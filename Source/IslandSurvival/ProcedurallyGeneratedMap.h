@@ -64,7 +64,9 @@ private:
 	float Grain; //how the amplitude changes over time
 
 	UPROPERTY(EditAnyWhere)
-		float seed;
+	float seed;
+
+	TArray<float> OcataveOffset;
 
 	float CalculateHeight(float XPosition, float YPosition, float PerlinOffset); //calculates the specific height value for each position using FBM combined with Perlin Noise
 };

@@ -45,6 +45,12 @@ void AProcedurallyGeneratedMap::Tick(float DeltaTime)
 void AProcedurallyGeneratedMap::GenerateMap() //make the map generate populating all the nessesary data
 {
 	float PerlinOffset = FMath::RandRange(-10000.0f, 10000.0f); //offset so the noise will always produce a different random map
+	OcataveOffset.Empty();
+	for (int32 i = 0; i < Octaves; i++) //for each octave use a different noise value offset
+	{
+		float PerlinOffsets = FMath::RandRange(-10000.0f, 10000.0f); //offset so the noise will always produce a different random map
+		OcataveOffset.Add(PerlinOffsets);
+	}
 	for (int32 i = 0; i < Width; i++)
 	{
 		for (int32 j = 0; j < Height; j++)
@@ -97,14 +103,15 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 	FVector2D Centre = FVector2D(Width / 2, Height / 2);
 	float DistFromCentre = FVector2D::Distance(Centre, FVector2D(XPosition, YPosition));
 	DistFromCentre /= Width;
-	DistFromCentre /= Octaves;
-	DistFromCentre *= Octaves;
-	UE_LOG(LogTemp, Warning, TEXT("Distance from centre: %f"), DistFromCentre)
+	//DistFromCentre /= Octaves;
+	//DistFromCentre *= Octaves;
+	//UE_LOG(LogTemp, Warning, TEXT("Distance from centre: %f"), DistFromCentre)
+	//float OctaveOffset = FMath::RandRange(-10000.0f, 10000.0f); //ensures that each Octave will be different as from differing point
 	//if (DistFromCentre < .4f) {
 		for (int32 i = 0; i < Octaves; i++)
 		{
 			//new height value
-			ZHeight += 1 - FMath::Abs((FMath::PerlinNoise2D(FVector2D(XPosition + PerlinOffset, YPosition + PerlinOffset) * Frequency * PerlinRoughness)- DistFromCentre) * Amplitude) * PerlinScale;
+			ZHeight += 1 - FMath::Abs((FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness)- DistFromCentre) * Amplitude) * PerlinScale;
 			//ZHeight *= Amplitude;
 
 			Frequency *= Lacunarity;
