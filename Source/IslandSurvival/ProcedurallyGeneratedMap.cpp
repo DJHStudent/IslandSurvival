@@ -111,12 +111,13 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 		for (int32 i = 0; i < Octaves; i++)
 		{
 			//new height value
-			ZHeight += (FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness)- DistFromCentre) * Amplitude * PerlinScale;
+			ZHeight += (FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness)) * Amplitude;
 			//ZHeight *= Amplitude;
 
 			Frequency *= Lacunarity;
 			Amplitude *= Grain;
 		}
-		return 1 - FMath::Abs(ZHeight);
+
+		return (1 - FMath::Abs(ZHeight) - DistFromCentre) * PerlinScale;
 	//return -PerlinScale;
 }
