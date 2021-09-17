@@ -96,6 +96,9 @@ bool AProcedurallyGeneratedMap::ShouldTickIfViewportsOnly() const
 
 float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPosition, float PerlinOffset)
 { //includes frequency, amplitude, octaves, lacunarity, grain
+	float radius = 0.45f;
+
+
 	float ZHeight = 0;
 
 	float Frequency = 1; //*lacunarity
@@ -103,21 +106,80 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 	FVector2D Centre = FVector2D(Width / 2, Height / 2);
 	float DistFromCentre = FVector2D::Distance(Centre, FVector2D(XPosition, YPosition));
 	DistFromCentre /= Width;
+	//if (DistFromCentre < radius) //Shouldnt be a straight line but a curve which is flatter towards centre and after point goes quickly down
+		//DistFromCentre = 0;
+	////////////////////////////if (DistFromCentre < radius)
+	////////////////////////////	DistFromCentre = 0;
+	////////////////////////////else //convert all values into range of zero to 1
+	////////////////////////////{
+	////////////////////////////	DistFromCentre -= radius;
+	////////////////////////////}
+	//if (DistFromCentre < 0.6f)
+		//DistFromCentre = 0;
 	//DistFromCentre /= Octaves;
 	//DistFromCentre *= Octaves;
 	//UE_LOG(LogTemp, Warning, TEXT("Distance from centre: %f"), DistFromCentre)
 	//float OctaveOffset = FMath::RandRange(-10000.0f, 10000.0f); //ensures that each Octave will be different as from differing point
 	//if (DistFromCentre < .4f) {
-		for (int32 i = 0; i < Octaves; i++)
-		{
-			//new height value
-			ZHeight += (FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness)) * Amplitude;
-			//ZHeight *= Amplitude;
+	for (int32 i = 0; i < Octaves; i++)
+	{
+		//new height value
+		ZHeight += FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness) * Amplitude;
+		//ZHeight *= Amplitude;
 
-			Frequency *= Lacunarity;
-			Amplitude *= Grain;
-		}
+		Frequency *= Lacunarity;
+		Amplitude *= Grain;
+	}
+	//if (ZHeight > 1)
+		//UE_LOG(LogTemp, Error, TEXT("%f, %f"), ZHeight, DistFromCentre)
+	ZHeight -= SquareGradient(XPosition, YPosition, DistFromCentre);
+	//ZHeight = FMath::Clamp(ZHeight, 0.0f, 1.0f);//DistFromCentre;  //SquareGradient(XPosition, YPosition, DistFromCentre);
 
-		return (1 - FMath::Abs(ZHeight) - DistFromCentre) * PerlinScale;
-	//return -PerlinScale;
+	return ZHeight * PerlinScale;//doing sharp peaks(1 - FMath::Abs(ZHeight)) * PerlinScale;
+//return -PerlinScale;
+}
+
+float AProcedurallyGeneratedMap::SquareGradient(float XPos, float YPos, float CentreDist)
+{
+	//first need to get a point in the form of -1 to 0
+	float X = XPos / Width * 2 - 1;
+	float Y = YPos / Height * 2 - 1;
+
+	float value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //find the value which is closest to 1
+
+
+
+
+	float a = 3.0f;
+	float b = 3.2f;
+
+	float newValue = FMath::Pow(value, a) / (FMath::Pow(value, a) + FMath::Pow(b - b * value, a));
+
+	return newValue;
+	//float XDistZero = XPos; float YDistZero = YPos;
+	//float XDistWidth = Width - XPos; float YDistHeight = Height - YPos;
+
+	//float value = FMath::Max(FMath::Abs(XPos / Width * 2 - 1), FMath::Abs(YPos / Width * 2 - 1));
+
+	//float a = 3;
+	//float b = 2.2f;
+	//float islandGradientValue = value;//FMath::Pow(value, a) / (FMath::Pow(value, a) + FMath::Pow(b - b * value, a));
+
+	//return islandGradientValue;
+	////if (CentreDist > 0.45f) 
+	//{
+	//	//close to X = 0
+	//	if (XDistZero <= XDistWidth && XDistZero <= YDistHeight && XDistZero <= YDistZero)
+	//		return 1 - XDistZero / Width;
+
+	//	else if (XDistWidth <= XDistZero && XDistWidth <= YDistHeight && XDistWidth <= YDistZero)
+	//		return XDistWidth / Width;
+
+	//	else if (YDistZero <= YDistHeight && YDistZero <= XDistWidth && YDistZero <= XDistZero)
+	//		return 1 - YDistZero / Height;
+
+	//	else if (YDistHeight <= YDistZero && YDistHeight <= XDistWidth && YDistHeight <= XDistZero)
+	//		return YDistHeight / Height;
+	//}
+	//return 0.0f;
 }
