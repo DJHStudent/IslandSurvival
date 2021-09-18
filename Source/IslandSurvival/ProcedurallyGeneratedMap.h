@@ -64,11 +64,19 @@ private:
 	float Grain; //how the amplitude changes over time
 
 	UPROPERTY(EditAnyWhere)
-	float seed;
+		float seed;
+
+	UPROPERTY(EditAnyWhere)
+		bool bDoDomain;
+
+	UPROPERTY(EditAnyWhere)
+		float DomainAmount;
 
 	TArray<float> OcataveOffset;
 
 	float CalculateHeight(float XPosition, float YPosition, float PerlinOffset); //calculates the specific height value for each position using FBM combined with Perlin Noise
 
 	float SquareGradient(float XPos, float YPos, float CentreDist);
+
+	float DomainWarping(float XPos, float YPos);
 };

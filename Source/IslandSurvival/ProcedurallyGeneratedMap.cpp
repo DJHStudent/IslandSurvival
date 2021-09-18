@@ -20,6 +20,8 @@ AProcedurallyGeneratedMap::AProcedurallyGeneratedMap()
 	Lacunarity = 2;
 	Octaves = 3;
 
+	DomainAmount = 4.0f;
+	bDoDomain = false;
 	bRegenerateMap = false;
 }
 
@@ -55,7 +57,11 @@ void AProcedurallyGeneratedMap::GenerateMap() //make the map generate populating
 	{
 		for (int32 j = 0; j < Height; j++)
 		{
-			float ZPosition = CalculateHeight(i, j, PerlinOffset); //use their position on grid, not their real world values
+			float ZPosition;
+			if (bDoDomain)
+				ZPosition = DomainWarping(i, j); //use their position on grid, not their real world values
+			else
+				ZPosition = CalculateHeight(i, j, 0) * PerlinScale;
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
 			/*
 				To get the position of an element in the array use i * width + j as its 1D but we are using 2D co-ordinates
@@ -124,7 +130,7 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 	for (int32 i = 0; i < Octaves; i++)
 	{
 		//new height value
-		ZHeight += FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness) * Amplitude;
+		ZHeight += FMath::PerlinNoise2D(FVector2D(XPosition + seed, YPosition + seed) * Frequency * PerlinRoughness) * Amplitude;
 		//ZHeight *= Amplitude;
 
 		Frequency *= Lacunarity;
@@ -135,7 +141,7 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 	ZHeight -= SquareGradient(XPosition, YPosition, DistFromCentre);
 	//ZHeight = FMath::Clamp(ZHeight, 0.0f, 1.0f);//DistFromCentre;  //SquareGradient(XPosition, YPosition, DistFromCentre);
 
-	return ZHeight * PerlinScale;//doing sharp peaks(1 - FMath::Abs(ZHeight)) * PerlinScale;
+	return ZHeight;//doing sharp peaks(1 - FMath::Abs(ZHeight)) * PerlinScale;
 //return -PerlinScale;
 }
 
@@ -183,3 +189,14 @@ float AProcedurallyGeneratedMap::SquareGradient(float XPos, float YPos, float Ce
 	//}
 	//return 0.0f;
 }
+
+float AProcedurallyGeneratedMap::DomainWarping(float XPos, float YPos)
+{
+	FVector2D q = FVector2D(CalculateHeight(XPos, YPos, 0), CalculateHeight(XPos + 5.2f, YPos + 1.3f, 0));
+
+	FVector2D r = FVector2D(CalculateHeight(XPos + DomainAmount *q.X + 1.7f, YPos + DomainAmount *q.Y + 9.2f, 0), CalculateHeight(XPos + DomainAmount * q.X + 8.3f, YPos + DomainAmount * q.Y + 2.8f, 0));
+
+	return CalculateHeight(XPos + DomainAmount*r.X, YPos + DomainAmount * r.Y, 0) * PerlinScale;
+}
+
+
