@@ -62,15 +62,17 @@ private:
 	float Lacunarity; //the gap in frequency from one step to the next
 	UPROPERTY(EditAnywhere, Category = "FBM")
 	float Grain; //how the amplitude changes over time
+	UPROPERTY(EditAnywhere, Category = "FBM")
+	float GrainAmplification; //the amplification of the grain from one octave to the next so different ones have different amplifications
 
 	UPROPERTY(EditAnyWhere)
-		float seed;
+	float seed;
 
 	UPROPERTY(EditAnyWhere)
-		bool bDoDomain;
+	bool bDoDomain;
 
 	UPROPERTY(EditAnyWhere)
-		float DomainAmount;
+	float DomainAmount;
 
 	TArray<float> OcataveOffset;
 
@@ -79,4 +81,11 @@ private:
 	float SquareGradient(float XPos, float YPos, float CentreDist);
 
 	float DomainWarping(float XPos, float YPos);
+
+
+	UPROPERTY(EditAnywhere, Category = "FallOff")//How sharp the transition will be, smaller means less abrupt
+	float Steepness; 
+
+	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the area is actually underwater
+	float Size; 
 };

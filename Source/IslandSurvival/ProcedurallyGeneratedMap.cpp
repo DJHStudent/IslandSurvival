@@ -62,6 +62,7 @@ void AProcedurallyGeneratedMap::GenerateMap() //make the map generate populating
 				ZPosition = DomainWarping(i, j); //use their position on grid, not their real world values
 			else
 				ZPosition = CalculateHeight(i, j, 0) * PerlinScale;
+
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
 			/*
 				To get the position of an element in the array use i * width + j as its 1D but we are using 2D co-ordinates
@@ -106,9 +107,11 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 
 
 	float ZHeight = 0;
-
+	FVector2D DSum = FVector2D(0, 0);
 	float Frequency = 1; //*lacunarity
 	float Amplitude = 1; //*grain
+	float CurrentGrain = Grain;
+
 	FVector2D Centre = FVector2D(Width / 2, Height / 2);
 	float DistFromCentre = FVector2D::Distance(Centre, FVector2D(XPosition, YPosition));
 	DistFromCentre /= Width;
@@ -130,14 +133,28 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 	for (int32 i = 0; i < Octaves; i++)
 	{
 		//new height value
-		ZHeight += FMath::PerlinNoise2D(FVector2D(XPosition + seed, YPosition + seed) * Frequency * PerlinRoughness) * Amplitude;
+		float Value = FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness) * Amplitude;
+		//Value = FMath::Abs(Value);
+
+		ZHeight += Value;
 		//ZHeight *= Amplitude;
 
+		ZHeight = 1 - FMath::Abs(ZHeight);
+
+		DSum += FVector2D(XPosition, YPosition);
+		//ZHeight /= 1 + FVector2D::DotProduct(DSum, DSum);
+
 		Frequency *= Lacunarity;
-		Amplitude *= Grain;
+		Amplitude *= CurrentGrain;
+
+		CurrentGrain += GrainAmplification;
 	}
 	//if (ZHeight > 1)
 		//UE_LOG(LogTemp, Error, TEXT("%f, %f"), ZHeight, DistFromCentre)
+	//ZHeight += 1 - FMath::Abs(ZHeight);
+
+
+
 	ZHeight -= SquareGradient(XPosition, YPosition, DistFromCentre);
 	//ZHeight = FMath::Clamp(ZHeight, 0.0f, 1.0f);//DistFromCentre;  //SquareGradient(XPosition, YPosition, DistFromCentre);
 
@@ -147,7 +164,7 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 
 float AProcedurallyGeneratedMap::SquareGradient(float XPos, float YPos, float CentreDist)
 {
-	//first need to get a point in the form of -1 to 0
+	//first need to get a point in the form of -1 to 0 otherwise will only do 2 of the edges of the map
 	float X = XPos / Width * 2 - 1;
 	float Y = YPos / Height * 2 - 1;
 
@@ -156,12 +173,12 @@ float AProcedurallyGeneratedMap::SquareGradient(float XPos, float YPos, float Ce
 
 
 
-	float a = 3.0f;
-	float b = 3.2f;
+	float a = 8.0f;
+	float b = 8;
 
-	float newValue = FMath::Pow(value, a) / (FMath::Pow(value, a) + FMath::Pow(b - b * value, a));
+	float newValue = FMath::Pow(value, Steepness) / (FMath::Pow(value, Steepness) + FMath::Pow(Size - Size * value, Steepness));
 
-	return newValue;
+	return 0;//newValue;
 	//float XDistZero = XPos; float YDistZero = YPos;
 	//float XDistWidth = Width - XPos; float YDistHeight = Height - YPos;
 
@@ -194,9 +211,21 @@ float AProcedurallyGeneratedMap::DomainWarping(float XPos, float YPos)
 {
 	FVector2D q = FVector2D(CalculateHeight(XPos, YPos, 0), CalculateHeight(XPos + 5.2f, YPos + 1.3f, 0));
 
-	FVector2D r = FVector2D(CalculateHeight(XPos + DomainAmount *q.X + 1.7f, YPos + DomainAmount *q.Y + 9.2f, 0), CalculateHeight(XPos + DomainAmount * q.X + 8.3f, YPos + DomainAmount * q.Y + 2.8f, 0));
+	FVector2D r = FVector2D(CalculateHeight(XPos + DomainAmount * q.X + 1.7f, YPos + DomainAmount * q.Y + 9.2f, 0), CalculateHeight(XPos + DomainAmount * q.X + 8.3f, YPos + DomainAmount * q.Y + 2.8f, 0));
 
-	return CalculateHeight(XPos + DomainAmount*r.X, YPos + DomainAmount * r.Y, 0) * PerlinScale;
+
+	float NewHeight = CalculateHeight(XPos + DomainAmount * r.X, YPos + DomainAmount * r.Y, 0);
+
+	UE_LOG(LogTemp, Error, TEXT("Height: %f"), NewHeight)
+
+		//if (NewHeight > 0.3f)
+		{
+			//NewHeight = FMath::Abs(NewHeight);
+			//NewHeight *= 2500;
+		}
+	//	else
+			NewHeight *= PerlinScale;
+	return NewHeight;
 }
 
 
