@@ -12,6 +12,7 @@ AProcedurallyGeneratedMap::AProcedurallyGeneratedMap()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("Mesh Component"); //"name" this is the name it will appear as in inspector
+	////MeshComponent->SetCollisionEnabled();
 
 	PerlinScale = 1000.0f;
 	PerlinRoughness = 0.1f;
@@ -23,6 +24,14 @@ AProcedurallyGeneratedMap::AProcedurallyGeneratedMap()
 	DomainAmount = 4.0f;
 	bDoDomain = false;
 	bRegenerateMap = false;
+
+	derivativeSmoothing = 0.5f;
+	TerraceSize = 12;
+
+	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialOb(TEXT("Grass'/Game/Materials.Grass'"));
+	//Material = MaterialOb.Object;
+	//Material = .Object;
+	//static ConstructorHelpers::FObjectFinder<UMaterial> MaterialOb(TEXT("Material'/Game/VertexMat.VertexMat'"));
 }
 
 // Called when the game starts or when spawned
@@ -59,11 +68,19 @@ void AProcedurallyGeneratedMap::GenerateMap() //make the map generate populating
 		{
 			float ZPosition;
 			if (bDoDomain)
-				ZPosition = DomainWarping(i, j); //use their position on grid, not their real world values
+				ZPosition = DomainWarping(i, j) * PerlinScale;// * FMath::Pow(DomainWarping(i, j), 2); //use their position on grid, not their real world values
 			else
-				ZPosition = CalculateHeight(i, j, 0) * PerlinScale;
+			{
+				ZPosition = CalculateHeight(i, j, 0) * PerlinScale;// *FMath::Pow(CalculateHeight(i, j, 0), 2);
+				/*ZPosition -= SquareGradient(i, j, 0);
+				ZPosition *= PerlinScale;*/
+			}
+			//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
 
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
+			VerticeColours.Add(FLinearColor((ZPosition / PerlinScale + 1) / 2, (ZPosition / PerlinScale + 1) / 2, (ZPosition / PerlinScale + 1) / 2));
+
+			//////////////////////UE_LOG(LogTemp, Warning, TEXT("Current Z psotion: %f"), (ZPosition/ PerlinScale))
 			/*
 				To get the position of an element in the array use i * width + j as its 1D but we are using 2D co-ordinates
 
@@ -82,14 +99,18 @@ void AProcedurallyGeneratedMap::GenerateMap() //make the map generate populating
 			UVCoords.Add(FVector2D(i, j));
 		}
 	}
+	//////FVector::Nor
+//UKismetProceduralMeshLibrary::Normal
 	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, Normals, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
-	MeshComponent->CreateMeshSection(int32(0), Vertices, Triangles, Normals, UVCoords, TArray<FColor>(), Tangents, true);
+	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
+	//MeshComponent->SetMaterial(0, Material);
 	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, UVCoords Count: %i, Triangles Count: %i"), Vertices.Num(), UVCoords.Num(), Triangles.Num())
 }
 
 void AProcedurallyGeneratedMap::ClearMap() //empties the map removing all data for it
 {
 	Vertices.Empty();
+	VerticeColours.Empty();
 	Triangles.Empty();
 	UVCoords.Empty();
 
@@ -133,15 +154,16 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 	for (int32 i = 0; i < Octaves; i++)
 	{
 		//new height value
-		float Value = FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness) * Amplitude;
+		float Value = FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffset[i], YPosition + OcataveOffset[i]) * Frequency * PerlinRoughness);
 		//Value = FMath::Abs(Value);
 
-		ZHeight += Value;
+		DSum += FVector2D(derivativeSmoothing, derivativeSmoothing);
+
+
+		ZHeight += (Value * Amplitude)/ (1 + FVector2D::DotProduct(DSum, DSum));
 		//ZHeight *= Amplitude;
 
-		ZHeight = 1 - FMath::Abs(ZHeight);
 
-		DSum += FVector2D(XPosition, YPosition);
 		//ZHeight /= 1 + FVector2D::DotProduct(DSum, DSum);
 
 		Frequency *= Lacunarity;
@@ -155,7 +177,11 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 
 
 
-	ZHeight -= SquareGradient(XPosition, YPosition, DistFromCentre);
+    //// ZHeight = 1 - FMath::Abs(ZHeight);
+
+	//ZHeight = FMath::RoundFromZero(ZHeight * TerraceSize) / TerraceSize;//FMath::Pow(FMath::Sin((ZHeight - FMath::RoundFromZero(ZHeight)) * 2.45f), 2) + FMath::RoundFromZero(ZHeight);//  //the wau to get terraced terrain if thats what we want
+
+
 	//ZHeight = FMath::Clamp(ZHeight, 0.0f, 1.0f);//DistFromCentre;  //SquareGradient(XPosition, YPosition, DistFromCentre);
 
 	return ZHeight;//doing sharp peaks(1 - FMath::Abs(ZHeight)) * PerlinScale;
@@ -178,7 +204,7 @@ float AProcedurallyGeneratedMap::SquareGradient(float XPos, float YPos, float Ce
 
 	float newValue = FMath::Pow(value, Steepness) / (FMath::Pow(value, Steepness) + FMath::Pow(Size - Size * value, Steepness));
 
-	return 0;//newValue;
+	return newValue;//newValue;
 	//float XDistZero = XPos; float YDistZero = YPos;
 	//float XDistWidth = Width - XPos; float YDistHeight = Height - YPos;
 
@@ -216,7 +242,7 @@ float AProcedurallyGeneratedMap::DomainWarping(float XPos, float YPos)
 
 	float NewHeight = CalculateHeight(XPos + DomainAmount * r.X, YPos + DomainAmount * r.Y, 0);
 
-	UE_LOG(LogTemp, Error, TEXT("Height: %f"), NewHeight)
+	/////////UE_LOG(LogTemp, Error, TEXT("Height: %f"), NewHeight)
 
 		//if (NewHeight > 0.3f)
 		{
@@ -224,8 +250,8 @@ float AProcedurallyGeneratedMap::DomainWarping(float XPos, float YPos)
 			//NewHeight *= 2500;
 		}
 	//	else
-			NewHeight *= PerlinScale;
+		//NewHeight = FMath::Clamp(NewHeight, 0.0f, 1.0f);
+		//NewHeight -= SquareGradient(XPos, YPos, 0);
+			//NewHeight *= PerlinScale;
 	return NewHeight;
 }
-
-

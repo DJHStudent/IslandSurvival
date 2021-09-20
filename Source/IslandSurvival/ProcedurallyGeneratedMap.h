@@ -27,6 +27,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent* MeshComponent;
 
+
 	UPROPERTY(EditAnywhere)
 	int32 Width; //number of grid squares in X
 	UPROPERTY(EditAnywhere)
@@ -35,6 +36,7 @@ public:
 	float GridSize; //size of each grid square
 
 	TArray<FVector> Vertices;
+	TArray<FLinearColor> VerticeColours;
 	TArray<int32> Triangles;
 	TArray<FVector2D> UVCoords; //coordinates to specify how a texture will be applied
 
@@ -66,13 +68,20 @@ private:
 	float GrainAmplification; //the amplification of the grain from one octave to the next so different ones have different amplifications
 
 	UPROPERTY(EditAnyWhere)
-	float seed;
+		float seed;
+
+	UPROPERTY(EditAnyWhere)
+	float derivativeSmoothing;
+
 
 	UPROPERTY(EditAnyWhere)
 	bool bDoDomain;
 
 	UPROPERTY(EditAnyWhere)
 	float DomainAmount;
+
+	UPROPERTY(EditAnyWhere)
+	float TerraceSize;
 
 	TArray<float> OcataveOffset;
 
@@ -88,4 +97,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the area is actually underwater
 	float Size; 
+
+	FVector perlinNoisePseudoDeriv(FVector2D p, float seedss);
 };
