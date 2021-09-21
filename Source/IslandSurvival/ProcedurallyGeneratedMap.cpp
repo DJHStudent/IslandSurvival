@@ -68,13 +68,16 @@ void AProcedurallyGeneratedMap::GenerateMap() //make the map generate populating
 		{
 			float ZPosition;
 			if (bDoDomain)
-				ZPosition = DomainWarping(i, j) * PerlinScale;// * FMath::Pow(DomainWarping(i, j), 2); //use their position on grid, not their real world values
+				ZPosition = DomainWarping(i, j) * FMath::Pow(DomainWarping(i, j), 2); //use their position on grid, not their real world values
 			else
 			{
 				ZPosition = CalculateHeight(i, j, 0) * PerlinScale;// *FMath::Pow(CalculateHeight(i, j, 0), 2);
 				/*ZPosition -= SquareGradient(i, j, 0);
 				ZPosition *= PerlinScale;*/
 			}
+			ZPosition -= SquareGradient(i, j, 0);
+			//ZPosition = FMath::Clamp(ZPosition, -0.0f, 10000.0f);
+			ZPosition *= PerlinScale;
 			//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
 
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
@@ -160,7 +163,7 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 		DSum += FVector2D(derivativeSmoothing, derivativeSmoothing);
 
 
-		ZHeight += (Value * Amplitude)/ (1 + FVector2D::DotProduct(DSum, DSum));
+		ZHeight += (Value * Amplitude) / (1 + FVector2D::DotProduct(DSum, DSum));
 		//ZHeight *= Amplitude;
 
 
@@ -183,7 +186,7 @@ float AProcedurallyGeneratedMap::CalculateHeight(float XPosition, float YPositio
 
 
 	//ZHeight = FMath::Clamp(ZHeight, 0.0f, 1.0f);//DistFromCentre;  //SquareGradient(XPosition, YPosition, DistFromCentre);
-
+	///////ZHeight -= SquareGradient(XPosition, YPosition, 0);
 	return ZHeight;//doing sharp peaks(1 - FMath::Abs(ZHeight)) * PerlinScale;
 //return -PerlinScale;
 }
@@ -194,7 +197,7 @@ float AProcedurallyGeneratedMap::SquareGradient(float XPos, float YPos, float Ce
 	float X = XPos / Width * 2 - 1;
 	float Y = YPos / Height * 2 - 1;
 
-	float value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //find the value which is closest to 1
+	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //find the value which is closest to 1
 
 
 
@@ -202,9 +205,10 @@ float AProcedurallyGeneratedMap::SquareGradient(float XPos, float YPos, float Ce
 	float a = 8.0f;
 	float b = 8;
 
-	float newValue = FMath::Pow(value, Steepness) / (FMath::Pow(value, Steepness) + FMath::Pow(Size - Size * value, Steepness));
-
-	return newValue;//newValue;
+	
+	float newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size));//Steepness * FMath::Pow(Value, 2);//1 / (1 + FMath::Exp(-Steepness * Value));//FMath::Pow(Value, Steepness) / (FMath::Pow(Value, Steepness) + FMath::Pow(Size - Size * Value, Steepness));
+	//1 / (1 + FMath::Exp(-Steepness * Value));//Steepness * FMath::Pow(Value, 2);////////
+	return newValue;
 	//float XDistZero = XPos; float YDistZero = YPos;
 	//float XDistWidth = Width - XPos; float YDistHeight = Height - YPos;
 
