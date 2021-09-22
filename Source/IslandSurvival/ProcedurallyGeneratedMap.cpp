@@ -71,13 +71,13 @@ void AProcedurallyGeneratedMap::GenerateMap() //make the map generate populating
 				ZPosition = DomainWarping(i, j) * FMath::Pow(DomainWarping(i, j), 2); //use their position on grid, not their real world values
 			else
 			{
-				ZPosition = CalculateHeight(i, j, 0) * PerlinScale;// *FMath::Pow(CalculateHeight(i, j, 0), 2);
+				ZPosition = CalculateHeight(i, j, 0) * PerlinScale *FMath::Pow(CalculateHeight(i, j, 0), 2);
 				/*ZPosition -= SquareGradient(i, j, 0);
 				ZPosition *= PerlinScale;*/
 			}
-			ZPosition -= SquareGradient(i, j, 0);
+			//ZPosition -= SquareGradient(i, j, 0);
 			//ZPosition = FMath::Clamp(ZPosition, -0.0f, 10000.0f);
-			ZPosition *= PerlinScale;
+			////////ZPosition *= PerlinScale;
 			//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
 
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
