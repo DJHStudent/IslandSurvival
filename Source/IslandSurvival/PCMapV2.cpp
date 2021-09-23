@@ -109,13 +109,12 @@ float APCMapV2::FractalBrownianMotion(int XPosition, int YPosition)
 	for (int32 i = 0; i < Octaves; i++) //the number of layers of noise to include
 	{
 		float NoiseValue = FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffsets[i], YPosition + OcataveOffsets[i]) * Frequency * PerlinRoughness); //the noise value for the octave
-
-
-		DSum += FVector2D(0.2f, 0.2f);
+		
+		DSum += FVector2D(0.15f, 0.15f);
 		HeightSum += NoiseValue * Amplitude / (1 + FVector2D::DotProduct(DSum, DSum));
 
 		Frequency *= Lacunarity;
-		Amplitude *= Grain;
+		Amplitude *= Grain; //persistance(influence of amplitude on each sucessive octave
 	}
 	return HeightSum;
 }
@@ -159,29 +158,35 @@ float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions
 	else
 		FBMValue = FractalBrownianMotion(XPosition, YPosition);
 
-	float HeightValue = FBMValue;// *FMath::Pow(FBMValue, 2.0f);
+	float HeightValue = FBMValue *FMath::Pow(FBMValue, 2.0f);
 
 	HeightValue *= FMath::Abs(FBMValue); //this will give us more isolated mountain peaks and valleys
 	HeightValue *= 1 - FMath::Abs(FBMValue);
 	//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
 
-
 	HeightValue -= SquareGradient(XPosition, YPosition);
 
 	HeightValue *= PerlinScale;
-
+	//HeightValue = FMath::Clamp(HeightValue, -100.0f, 1000000.0f);
 	return HeightValue;
 }
 
 
 float APCMapV2::SquareGradient(float XPosition, float YPosition)
 {
+	FVector2D CentrePosition = FVector2D(Width / (2), Height / (2));
+	float Dist = FVector2D::Distance(FVector2D(XPosition, YPosition), CentrePosition);
+	Dist /= Width;
 	//first need to get a point in the form of -1 to 0 otherwise will only do 2 of the edges of the map
-	float X = XPosition / Width * 2 - 1;
+	float X = (XPosition / Width) * 2 - 1;
 	float Y = YPosition / Height * 2 - 1;
 
 	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //find the value which is closest to 1
-
-	float newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size));
-	return newValue;
+	float newValue = 0;
+	//if (Dist > Size) {
+		newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size));
+		UE_LOG(LogTemp, Warning, TEXT("New Value: %f"), newValue)
+			//}
+		return newValue / 10;//((Dist - Size) / (1 - Size)) * (1 - 0) + 0 normalised value junk
+		//other falloff equation (3*FMath::Pow(Dist, 2) - 2 * FMath::Pow(Dist, 3));
 }
