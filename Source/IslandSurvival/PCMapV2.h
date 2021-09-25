@@ -91,4 +91,10 @@ private:
 	float Steepness;
 	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the area is actually underwater
 	float Size;
+	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the area is actually underwater
+	bool bDoFalloff;
+	UPROPERTY(EditAnywhere, Category = "Terraces") //controls how much of the area is actually underwater
+	bool bDoTerracing;	
+	UPROPERTY(EditAnywhere, Category = "Terraces") //controls how much of the area is actually underwater
+	float TerraceSize;
 };

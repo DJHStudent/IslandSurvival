@@ -73,7 +73,13 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 			float ZPosition = GenerateHeight(i, j); //get the specific height for the point of the mesh
 
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
-			VerticeColours.Add(FLinearColor(ZPosition, ZPosition, ZPosition)); //assign the colour of each vertex based on its Z position
+			if (ZPosition / PerlinScale > 0.05f)
+				VerticeColours.Add(FLinearColor(1, 1, 1)); //assign the colour of each vertex based on its Z position
+			else if(ZPosition / PerlinScale > 0.0f && ZPosition / PerlinScale < 0.25f)
+				VerticeColours.Add(FLinearColor(0, 0.7f, 0)); //assign the colour of each vertex based on its Z position
+			else
+				VerticeColours.Add(FLinearColor(1, 0.9f, 0)); //assign the colour of each vertex based on its Z position
+
 
 			/*
 				To get the position of an element in the array use i * width + j as its 1D but we are using 2D co-ordinates
@@ -109,7 +115,7 @@ float APCMapV2::FractalBrownianMotion(int XPosition, int YPosition)
 	for (int32 i = 0; i < Octaves; i++) //the number of layers of noise to include
 	{
 		float NoiseValue = FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffsets[i], YPosition + OcataveOffsets[i]) * Frequency * PerlinRoughness); //the noise value for the octave
-		
+	
 		DSum += FVector2D(0.15f, 0.15f);
 		HeightSum += NoiseValue * Amplitude / (1 + FVector2D::DotProduct(DSum, DSum));
 
@@ -149,7 +155,6 @@ float APCMapV2::DomainWarping(float XPosition, float YPosition)
 }
 
 
-
 float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions for determining the height of a specific point
 {
 	float FBMValue;
@@ -158,15 +163,24 @@ float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions
 	else
 		FBMValue = FractalBrownianMotion(XPosition, YPosition);
 
-	float HeightValue = FBMValue *FMath::Pow(FBMValue, 2.0f);
+	float HeightValue = FBMValue * FMath::Pow(FBMValue, 2.0f);
 
 	HeightValue *= FMath::Abs(FBMValue); //this will give us more isolated mountain peaks and valleys
 	HeightValue *= 1 - FMath::Abs(FBMValue);
 	//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
 
-	HeightValue -= SquareGradient(XPosition, YPosition);
+	///////HeightValue = FMath::Clamp(HeightValue, 0.0f, 1.0f);
+	if(bDoFalloff)
+		HeightValue -= SquareGradient(XPosition, YPosition);
+
+
+	if(bDoTerracing)
+		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;
+
 
 	HeightValue *= PerlinScale;
+
+	//////////////////HeightValue = FMath::Clamp(HeightValue, -PerlinScale / 5, PerlinScale);
 	//HeightValue = FMath::Clamp(HeightValue, -100.0f, 1000000.0f);
 	return HeightValue;
 }
@@ -181,12 +195,22 @@ float APCMapV2::SquareGradient(float XPosition, float YPosition)
 	float X = (XPosition / Width) * 2 - 1;
 	float Y = YPosition / Height * 2 - 1;
 
-	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //find the value which is closest to 1
+	float Value =FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //* FMath::Sqrt(FMath::Pow(FMath::Abs(X), 4) + FMath::Pow(FMath::Abs(Y), 4)); //find the value which is closest to 1
 	float newValue = 0;
-	//if (Dist > Size) {
-		newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size));
-		UE_LOG(LogTemp, Warning, TEXT("New Value: %f"), newValue)
-			//}
-		return newValue / 10;//((Dist - Size) / (1 - Size)) * (1 - 0) + 0 normalised value junk
-		//other falloff equation (3*FMath::Pow(Dist, 2) - 2 * FMath::Pow(Dist, 3));
+	//if (Dist > Size) { FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));
+	newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size));			//}
+	//if (Value > Size)
+	{
+		Value = FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));//////((Value - Size) / (1 - Size)) * (1 - 0) + 0;
+		////////////////Value /= 10;
+		UE_LOG(LogTemp, Warning, TEXT("New Value: %f"), Value)
+
+
+			//newValue = FMath::RoundFromZero(newValue * 12) / 12;
+
+			return newValue;// / 10;///////newValue * FalloffScale;// / 2.5f - 0.1f;//((Dist - Size) / (1 - Size)) * (1 - 0) + 0 normalised value junk
+	//other falloff equation (3*FMath::Pow(Dist, 2) - 2 * FMath::Pow(Dist, 3));
+	}
+	//else
+		//return 0;
 }
