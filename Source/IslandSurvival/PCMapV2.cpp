@@ -163,7 +163,7 @@ float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions
 	else
 		FBMValue = FractalBrownianMotion(XPosition, YPosition);
 
-	float HeightValue = FBMValue * FMath::Pow(FBMValue, 2.0f);
+	float HeightValue = FBMValue *FMath::Pow(FBMValue, 2.0f);
 
 	HeightValue *= FMath::Abs(FBMValue); //this will give us more isolated mountain peaks and valleys
 	HeightValue *= 1 - FMath::Abs(FBMValue);
@@ -199,18 +199,18 @@ float APCMapV2::SquareGradient(float XPosition, float YPosition)
 	float newValue = 0;
 	//if (Dist > Size) { FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));
 	newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size));			//}
-	//if (Value > Size)
+	if (Value > .8f)
 	{
-		Value = FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));//////((Value - Size) / (1 - Size)) * (1 - 0) + 0;
+		//Value = ////FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));//////((Value - Size) / (1 - Size)) * (1 - 0) + 0;
 		////////////////Value /= 10;
 		UE_LOG(LogTemp, Warning, TEXT("New Value: %f"), Value)
 
 
 			//newValue = FMath::RoundFromZero(newValue * 12) / 12;
-
+			Value = ((Value - 0.8f) / (1 - 0.8f)) * (1 - 0) + 0; //min-max normalize the value
 			return newValue;// / 10;///////newValue * FalloffScale;// / 2.5f - 0.1f;//((Dist - Size) / (1 - Size)) * (1 - 0) + 0 normalised value junk
 	//other falloff equation (3*FMath::Pow(Dist, 2) - 2 * FMath::Pow(Dist, 3));
 	}
-	//else
-		//return 0;
+	else
+		return newValue;
 }
