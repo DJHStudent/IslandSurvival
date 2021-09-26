@@ -41,6 +41,7 @@ public:
 
 		//texturing arrays
 	TArray<FVector> Normals;
+	TArray<FVector> NormalsEmptyToNotUse;
 	TArray<FProcMeshTangent> Tangents;
 
 	UFUNCTION(BlueprintCallable)
@@ -97,4 +98,7 @@ private:
 	bool bDoTerracing;	
 	UPROPERTY(EditAnywhere, Category = "Terraces") //controls how much of the area is actually underwater
 	float TerraceSize;
+
+
+	//TArray<FVector> TriangleNormals;
 };

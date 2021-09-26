@@ -2,6 +2,7 @@
 
 
 #include "PCMapV2.h"
+#include "ProceduralMapLighting.h"
 #include "KismetProceduralMeshLibrary.h"
 
 // Sets default values
@@ -46,6 +47,7 @@ void APCMapV2::Tick(float DeltaTime)
 	if (bRegenerateMap)
 	{
 		ClearMap();
+		Normals.Init(FVector::ZeroVector, Width * Height);
 		GenerateSeed();
 		CreateMesh();
 		bRegenerateMap = false;
@@ -60,15 +62,17 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 	UVCoords.Empty();
 
 	OcataveOffsets.Empty();
+	//TriangleNormals.Empty();
 
 	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 }
 
 void APCMapV2::CreateMesh() //make the map generate populating all the nessesary data
 {
-	for (int32 i = 0; i < Width; i++)
+	int32 TriangleCalculating = 0; //the current triangle of the mesh which is being calculated
+	for (int32 i = 0; i < Height; i++)
 	{
-		for (int32 j = 0; j < Height; j++)
+		for (int32 j = 0; j < Width; j++)
 		{
 			float ZPosition = GenerateHeight(i, j); //get the specific height for the point of the mesh
 
@@ -80,7 +84,6 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 			else
 				VerticeColours.Add(FLinearColor(1, 0.9f, 0)); //assign the colour of each vertex based on its Z position
 
-
 			/*
 				To get the position of an element in the array use i * width + j as its 1D but we are using 2D co-ordinates
 
@@ -90,18 +93,66 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 
 				only generate a triangle if i+1 and j+1 will be values within the bounds of the Vertex array
 			*/
-			if (i + 1 < Width && j + 1 < Height)
+			if (i + 1 < Height && j + 1 < Width) //this works as once loops finished will have the specific points using added to the array
 			{
-				Triangles.Add(j * Width + (i + 1)); Triangles.Add((j + 1) * Width + i); Triangles.Add(j * Width + i);
-				Triangles.Add((j + 1) * Width + (i + 1)); Triangles.Add((j + 1) * Width + i); Triangles.Add(j * Width + (i + 1));
+				Triangles.Add(i * Width + (j + 1)); Triangles.Add((i + 1) * Width + j); Triangles.Add(i * Width + j);
+				Triangles.Add((i + 1) * Width + (j + 1)); Triangles.Add((i + 1) * Width + j); Triangles.Add(i * Width + (j + 1));
 			}
+			if (j > 0 && i > 0) //for each triangle of the mesh determine its normal using the cross product method
+			{
+				//get the vertex of the first triangle
+				//then get vertex of second triangle
+				//6 points shift each time through to get the next triangle in the array
+				for (int32 k = 0; k < 2; k++)
+				{
+
+					/// <summary>
+					/// error here as going down, not accross
+					/// </summary>
+///////////////////////					UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, %i, %i, %i, %i"), i, j, Triangles.Num(), Vertices.Num(), TriangleCalculating)
+						int32 trianlgeAtInArray = TriangleCalculating * 3;
+
+					FVector A = Vertices[Triangles[trianlgeAtInArray]];
+					FVector B = Vertices[Triangles[trianlgeAtInArray + 1]];
+					FVector C = Vertices[Triangles[trianlgeAtInArray + 2]];
+
+					FVector AB = A-B;
+					FVector AC = A-C;
+					FVector TrianlgeNormal = FVector::CrossProduct(AB, AC);
+					TrianlgeNormal.Normalize(0.0001f); //this will get us just a vector pointing in a specific direction
+					//TriangleNormals.Add(TrianlgeNormal);
+
+					Normals[Triangles[trianlgeAtInArray]] += TrianlgeNormal;
+					Normals[Triangles[trianlgeAtInArray + 1]] += TrianlgeNormal;
+					Normals[Triangles[trianlgeAtInArray + 2]] += TrianlgeNormal;
+
+
+
+					TriangleCalculating++;
+				}
+			}
+
+			//as now have the normal for each triangle can calculate normal for each vertex
 
 			UVCoords.Add(FVector2D(i, j));
 		}
 	}
-	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, Normals, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
+	for(int32 x = 0; x < Normals.Num(); x++)
+	{
+		FVector item = Normals[x];
+		item.Normalize(0.0001f);
+		Normals[x] = -item;		
+
+	}
+	//UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
-	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, UVCoords Count: %i, Triangles Count: %i"), Vertices.Num(), UVCoords.Num(), Triangles.Num())
+	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Triangles Count: %i"), Vertices.Num(), Normals.Num(), Triangles.Num())
+		/*for (int32 x = 0; x < NormalsEmptyToNotUse.Num(); x++)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Normal x: %s"), *Normals[x].ToString())
+			UE_LOG(LogTemp, Warning, TEXT("Normals Not Use Ever x: %s"), *NormalsEmptyToNotUse[x].ToString())
+
+		}*/
 }
 
 float APCMapV2::FractalBrownianMotion(int XPosition, int YPosition)
@@ -203,7 +254,7 @@ float APCMapV2::SquareGradient(float XPosition, float YPosition)
 	{
 		//Value = ////FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));//////((Value - Size) / (1 - Size)) * (1 - 0) + 0;
 		////////////////Value /= 10;
-		UE_LOG(LogTemp, Warning, TEXT("New Value: %f"), Value)
+		/////////////UE_LOG(LogTemp, Warning, TEXT("New Value: %f"), Value)
 
 
 			//newValue = FMath::RoundFromZero(newValue * 12) / 12;
