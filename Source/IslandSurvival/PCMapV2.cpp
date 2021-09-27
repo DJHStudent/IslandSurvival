@@ -12,6 +12,8 @@ APCMapV2::APCMapV2()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("Mesh Component"); //"name" this is the name it will appear as in inspector
+	Biomes = CreateDefaultSubobject<UBiomesComponent>("Biomed Component"); //"name" this is the name it will appear as in inspector
+
 	Width = 100;
 	Height = 100;
 	GridSize = 100;
@@ -77,12 +79,14 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 			float ZPosition = GenerateHeight(i, j); //get the specific height for the point of the mesh
 
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
-			if (ZPosition / PerlinScale > 0.05f)
-				VerticeColours.Add(FLinearColor(1, 1, 1)); //assign the colour of each vertex based on its Z position
-			else if(ZPosition / PerlinScale > 0.0f && ZPosition / PerlinScale < 0.25f)
-				VerticeColours.Add(FLinearColor(0, 0.7f, 0)); //assign the colour of each vertex based on its Z position
-			else
-				VerticeColours.Add(FLinearColor(1, 0.9f, 0)); //assign the colour of each vertex based on its Z position
+			FLinearColor BiomeColour = Biomes->DetermineBiome(i, j);
+			VerticeColours.Add(BiomeColour);
+			////////////////////////////////if (ZPosition / PerlinScale > 0.05f)
+			////////////////////////////////	VerticeColours.Add(FLinearColor(1, 1, 1)); //assign the colour of each vertex based on its Z position
+			////////////////////////////////else if(ZPosition / PerlinScale > 0.0f && ZPosition / PerlinScale < 0.25f)
+			////////////////////////////////	VerticeColours.Add(FLinearColor(0, 0.7f, 0)); //assign the colour of each vertex based on its Z position
+			////////////////////////////////else
+			////////////////////////////////	VerticeColours.Add(FLinearColor(1, 0.9f, 0)); //assign the colour of each vertex based on its Z position
 
 			/*
 				To get the position of an element in the array use i * width + j as its 1D but we are using 2D co-ordinates
@@ -178,7 +182,7 @@ float APCMapV2::FractalBrownianMotion(int XPosition, int YPosition)
 
 void APCMapV2::GenerateSeed() //give a random seed, otherwise use the specified one from editor
 {
-	if (bRandomSeed)
+	if (bRandomSeed) //14625
 	{
 		Stream.GenerateNewSeed(); //this generates us a new random seed
 		Seed = Stream.GetCurrentSeed();
@@ -192,6 +196,8 @@ void APCMapV2::GenerateSeed() //give a random seed, otherwise use the specified 
 		float OffsetValue = Stream.RandRange(-10000.0f, 10000.0f); //offset so the noise will always produce a different random map
 		OcataveOffsets.Add(OffsetValue);
 	}
+	Biomes->TemperatureOffset = Stream.RandRange(-10000.0f, 10000.0f);
+	Biomes->MoistureOffset = Stream.RandRange(-10000.0f, 10000.0f);
 }
 
 
@@ -214,7 +220,7 @@ float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions
 	else
 		FBMValue = FractalBrownianMotion(XPosition, YPosition);
 
-	float HeightValue = FBMValue *FMath::Pow(FBMValue, 2.0f);
+	float HeightValue = FBMValue * FMath::Pow(FBMValue, 2.0f);
 
 	HeightValue *= FMath::Abs(FBMValue); //this will give us more isolated mountain peaks and valleys
 	HeightValue *= 1 - FMath::Abs(FBMValue);
@@ -249,8 +255,9 @@ float APCMapV2::SquareGradient(float XPosition, float YPosition)
 	float Value =FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //* FMath::Sqrt(FMath::Pow(FMath::Abs(X), 4) + FMath::Pow(FMath::Abs(Y), 4)); //find the value which is closest to 1
 	float newValue = 0;
 	//if (Dist > Size) { FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));
-	newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size));			//}
-	if (Value > .8f)
+	newValue = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size)) - AboveWater;			//}
+		//1 / FMath::Pow(Steepness - Steepness * Value, Size) - AboveWater;
+		if (Value > .8f)
 	{
 		//Value = ////FMath::Sqrt(FMath::Pow(X, 4) + FMath::Pow(Y, 4));//////((Value - Size) / (1 - Size)) * (1 - 0) + 0;
 		////////////////Value /= 10;

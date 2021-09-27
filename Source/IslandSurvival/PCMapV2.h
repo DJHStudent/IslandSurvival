@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
+#include "BiomesComponent.h"
 #include "PCMapV2.generated.h"
 
 UCLASS()
@@ -58,6 +59,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	bool bRegenerateMap;
 
+	UPROPERTY(EditAnywhere, Category = "Biomes")
+	UBiomesComponent* Biomes;
 private:
 	float GenerateHeight(int XPosition, int YPosition);
 
@@ -93,7 +96,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the area is actually underwater
 	float Size;
 	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the area is actually underwater
+	float AboveWater;
+	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the area is actually underwater
 	bool bDoFalloff;
+
+
 	UPROPERTY(EditAnywhere, Category = "Terraces") //controls how much of the area is actually underwater
 	bool bDoTerracing;	
 	UPROPERTY(EditAnywhere, Category = "Terraces") //controls how much of the area is actually underwater
