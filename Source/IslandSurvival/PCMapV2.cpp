@@ -63,6 +63,10 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 	Triangles.Empty();
 	UVCoords.Empty();
 
+	Normals.Empty();
+	Tangents.Empty();
+
+
 	OcataveOffsets.Empty();
 	//TriangleNormals.Empty();
 
@@ -79,8 +83,6 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 			float ZPosition = GenerateHeight(i, j); //get the specific height for the point of the mesh
 
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
-			FLinearColor BiomeColour = Biomes->DetermineBiome(i, j);
-			VerticeColours.Add(BiomeColour);
 			////////////////////////////////if (ZPosition / PerlinScale > 0.05f)
 			////////////////////////////////	VerticeColours.Add(FLinearColor(1, 1, 1)); //assign the colour of each vertex based on its Z position
 			////////////////////////////////else if(ZPosition / PerlinScale > 0.0f && ZPosition / PerlinScale < 0.25f)
@@ -148,7 +150,7 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 		Normals[x] = -item;		
 
 	}
-	//UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
+	////UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
 	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Triangles Count: %i"), Vertices.Num(), Normals.Num(), Triangles.Num())
 		/*for (int32 x = 0; x < NormalsEmptyToNotUse.Num(); x++)
@@ -198,6 +200,7 @@ void APCMapV2::GenerateSeed() //give a random seed, otherwise use the specified 
 	}
 	Biomes->TemperatureOffset = Stream.RandRange(-10000.0f, 10000.0f);
 	Biomes->MoistureOffset = Stream.RandRange(-10000.0f, 10000.0f);
+	Biomes->CheckOffset();
 }
 
 
@@ -234,6 +237,8 @@ float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions
 	if(bDoTerracing)
 		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;
 
+	FLinearColor BiomeColour = Biomes->DetermineBiome(XPosition, YPosition, VerticeColours, Width, HeightValue);
+	VerticeColours.Add(BiomeColour);
 
 	HeightValue *= PerlinScale;
 

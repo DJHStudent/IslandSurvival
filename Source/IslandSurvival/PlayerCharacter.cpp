@@ -15,7 +15,7 @@ APlayerCharacter::APlayerCharacter()
 	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	LookSensitivity = 1.0f;
-	SprintMultiplier = 1.5f;
+	SprintMultiplier = 5;
 
 	SprintMovementSpeed = GetCharacterMovement()->MaxWalkSpeed * SprintMultiplier;
 	NormalMovementSpeed = GetCharacterMovement()->MaxWalkSpeed;
