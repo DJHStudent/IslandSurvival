@@ -8,7 +8,7 @@
 
 
 USTRUCT()
-struct FBiomeStats //for the noise based biomes
+struct FBiomeStatss //for the noise based biomes
 {
     GENERATED_BODY()
 
@@ -27,7 +27,7 @@ struct FBiomeStats //for the noise based biomes
 	UPROPERTY(EditAnywhere)
 	FLinearColor Colour;
 
-	FBiomeStats()
+	FBiomeStatss()
 	{
 		MinTemp = 0;
 	MaxTemp = 0;
@@ -91,7 +91,7 @@ private:
 	TArray<int32> CurrCellBiome; //the current biome of each cell
 
 	UPROPERTY(EditAnywhere, Category = "Noise Biomes")
-    TArray<FBiomeStats> DifferentBiomes;
+    TArray<FBiomeStatss> DifferentBiomes;
 
 	UPROPERTY(EditAnywhere, Category = "Height Biomes")
 	TArray<FHeightBiomeStats> HeightBasedBiomes;

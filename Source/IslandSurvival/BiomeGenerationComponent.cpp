@@ -35,9 +35,10 @@ void UBiomeGenerationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 void UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition)
 {
 	int32 CurrentVertexPosition = YPosition * TerrainGenerator->Width + XPosition; //note this point is not yet added to the array
-	if (ZPosition <= WaterLine) //must be underwater so not an island
+	if (ZPosition < WaterLine) //must be underwater so not an island
 	{
 		TerrainGenerator->IslandNumber.Add(-1); //-1 means underwater
+		TerrainGenerator->VerticeColours[CurrentVertexPosition] = DifferentBiomesMap[1].BiomeColour;
 		//do nothing yet
 	}
 	else //must be above the water and as a result an island
@@ -121,10 +122,25 @@ void UBiomeGenerationComponent::ColourOfIsland()
 	//loop through the map and for each island give a colour to it
 	for (auto& Point : IslandPointsMap) 
 	{
-		FLinearColor Color = FLinearColor(FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f));
+		FLinearColor RandColour = FLinearColor(FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f));
 		for (int32 i = 0; i < Point.Value.Num(); i++)
 		{
-			TerrainGenerator->VerticeColours[Point.Value[i]] = Color;
+			int32 PointValue = Point.Value[i];
+			if (Point.Value.Num() <= 10) //biomes less than x size
+			{
+				TerrainGenerator->VerticeColours[PointValue] = DifferentBiomesMap[3].BiomeColour;
+				BiomeAtEachPoint[PointValue] = 3;
+			}
+			else if (Point.Value.Num() <= 100) //biomes less than x size
+			{
+				TerrainGenerator->VerticeColours[PointValue] = DifferentBiomesMap[2].BiomeColour;
+				BiomeAtEachPoint[PointValue] = 2;
+			}
+			else
+			{
+				TerrainGenerator->VerticeColours[PointValue] = RandColour;
+				BiomeAtEachPoint[PointValue] = 4;
+			}
 		}
 	}
 }
@@ -140,14 +156,3 @@ void UBiomeGenerationComponent::JoinIslands(int32 IslandPoint, int32 NewPoint)
 	IslandPointsMap.Remove(NewPoint);
 	///////IslandPointsMap[IslandPoint].Add(IslandPointsMap[NewPoint]);
 }
-
-int32 UBiomeGenerationComponent::FindCorrectIsland(int32 Point) //the key identifying an island and get its position within the array
-{
-	//for (int32 i = 0; i < IslandPointsMap.Num(); i++) //loop through all elements until find element related to specified key
-	//{
-	//	if (IslandPointsMap[i].Key == Point)
-	//		return i;
-	//}
-	return int32();
-}
-

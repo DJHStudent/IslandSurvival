@@ -52,6 +52,7 @@ void APCMapV2::Tick(float DeltaTime)
 	if (bRegenerateMap)
 	{
 		ClearMap();
+		BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
 		Normals.Init(FVector::ZeroVector, Width * Height);
 		VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
 		GenerateSeed();
@@ -77,6 +78,7 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 	//TriangleNormals.Empty();
 	BiomeGeneration->IslandKeys = 0;
 	BiomeGeneration->IslandPointsMap.Empty();
+	BiomeGeneration->BiomeAtEachPoint.Empty();
 
 	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 }
