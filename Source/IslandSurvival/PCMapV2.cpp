@@ -14,6 +14,9 @@ APCMapV2::APCMapV2()
 	MeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("Mesh Component"); //"name" this is the name it will appear as in inspector
 	Biomes = CreateDefaultSubobject<UBiomesComponent>("Biomed Component"); //"name" this is the name it will appear as in inspector
 
+	BiomeGeneration = CreateDefaultSubobject<UBiomeGenerationComponent>("Biome Generation Component"); //"name" this is the name it will appear as in inspector
+	BiomeGeneration->TerrainGenerator = this;
+
 	Width = 100;
 	Height = 100;
 	GridSize = 100;
@@ -50,6 +53,7 @@ void APCMapV2::Tick(float DeltaTime)
 	{
 		ClearMap();
 		Normals.Init(FVector::ZeroVector, Width * Height);
+		VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
 		GenerateSeed();
 		CreateMesh();
 		bRegenerateMap = false;
@@ -60,6 +64,8 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 {
 	Vertices.Empty();
 	VerticeColours.Empty();
+	IslandNumber.Empty();
+
 	Triangles.Empty();
 	UVCoords.Empty();
 
@@ -69,6 +75,8 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 
 	OcataveOffsets.Empty();
 	//TriangleNormals.Empty();
+	BiomeGeneration->IslandKeys = 0;
+	BiomeGeneration->IslandPointsMap.Empty();
 
 	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 }
@@ -80,7 +88,7 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 	{
 		for (int32 j = 0; j < Width; j++)
 		{
-			float ZPosition = GenerateHeight(i, j); //get the specific height for the point of the mesh
+			float ZPosition = GenerateHeight(j, i); //get the specific height for the point of the mesh
 
 			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
 			////////////////////////////////if (ZPosition / PerlinScale > 0.05f)
@@ -150,9 +158,10 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 		Normals[x] = -item;		
 
 	}
+
 	////UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
-	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Triangles Count: %i"), Vertices.Num(), Normals.Num(), Triangles.Num())
+	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Triangles Count: %i, Islands Count: %i"), Vertices.Num(), Normals.Num(), Triangles.Num(), BiomeGeneration->IslandPointsMap.Num())
 		/*for (int32 x = 0; x < NormalsEmptyToNotUse.Num(); x++)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Normal x: %s"), *Normals[x].ToString())
@@ -161,7 +170,7 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 		}*/
 }
 
-float APCMapV2::FractalBrownianMotion(int XPosition, int YPosition)
+float APCMapV2::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 {
 	float HeightSum = 0; //the sum of the height at each octave
 	float Frequency = 1; //*lacunarity
@@ -174,7 +183,7 @@ float APCMapV2::FractalBrownianMotion(int XPosition, int YPosition)
 		float NoiseValue = FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffsets[i], YPosition + OcataveOffsets[i]) * Frequency * PerlinRoughness); //the noise value for the octave
 	
 		DSum += FVector2D(0.15f, 0.15f);
-		HeightSum += NoiseValue * Amplitude / (1 + FVector2D::DotProduct(DSum, DSum));
+		HeightSum += NoiseValue * Amplitude;// / (1 + FVector2D::DotProduct(DSum, DSum));
 
 		Frequency *= Lacunarity;
 		Amplitude *= Grain; //persistance(influence of amplitude on each sucessive octave
@@ -198,9 +207,7 @@ void APCMapV2::GenerateSeed() //give a random seed, otherwise use the specified 
 		float OffsetValue = Stream.RandRange(-10000.0f, 10000.0f); //offset so the noise will always produce a different random map
 		OcataveOffsets.Add(OffsetValue);
 	}
-	Biomes->TemperatureOffset = Stream.RandRange(-10000.0f, 10000.0f);
-	Biomes->MoistureOffset = Stream.RandRange(-10000.0f, 10000.0f);
-	Biomes->CheckOffset();
+	//any varlues which are randomly generated for the biomes go here
 }
 
 
@@ -215,7 +222,7 @@ float APCMapV2::DomainWarping(float XPosition, float YPosition)
 }
 
 
-float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions for determining the height of a specific point
+float APCMapV2::GenerateHeight(int32 XPosition, int32 YPosition) //all the functions for determining the height of a specific point
 {
 	float FBMValue;
 	if (bDoDomain)
@@ -237,8 +244,10 @@ float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions
 	if(bDoTerracing)
 		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;
 
-	FLinearColor BiomeColour = Biomes->DetermineBiome(XPosition, YPosition, VerticeColours, Width, HeightValue);
-	VerticeColours.Add(BiomeColour);
+	////UE_LOG(LogTemp, Warning, TEXT("Height of Point is: %f, %i, %i, %i, %i"), HeightValue, Vertices.Num(), IslandNumber.Num(), YPosition, XPosition)
+	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue);
+	//FLinearColor BiomeColour = FLinearColor(1, 1, 1);//Biomes->DetermineBiome(XPosition, YPosition, VerticeColours, Width, HeightValue);
+	//VerticeColours.Add(BiomeColour);
 
 	HeightValue *= PerlinScale;
 
@@ -248,7 +257,7 @@ float APCMapV2::GenerateHeight(int XPosition, int YPosition) //all the functions
 }
 
 
-float APCMapV2::SquareGradient(float XPosition, float YPosition)
+float APCMapV2::SquareGradient(float XPosition, float YPosition) //really need to fix it up
 {
 	FVector2D CentrePosition = FVector2D(Width / (2), Height / (2));
 	float Dist = FVector2D::Distance(FVector2D(XPosition, YPosition), CentrePosition);

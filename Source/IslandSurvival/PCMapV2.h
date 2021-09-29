@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "BiomesComponent.h"
+#include "BiomeGenerationComponent.h"
 #include "PCMapV2.generated.h"
 
 UCLASS()
@@ -35,8 +36,10 @@ public:
 	UPROPERTY(EditAnywhere)//size of each grid square
 	float GridSize; 
 
-	TArray<FVector> Vertices;
-	TArray<FLinearColor> VerticeColours;
+	TArray<FVector> Vertices; //the position of each point in world space
+	TArray<FLinearColor> VerticeColours; //the colour of each point
+	TArray<int32> IslandNumber; //list directly correlating to the island each vertice relates to
+
 	TArray<int32> Triangles;
 	TArray<FVector2D> UVCoords; //coordinates to specify how a texture will be applied
 
@@ -59,10 +62,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	bool bRegenerateMap;
 
-	UPROPERTY(EditAnywhere, Category = "Biomes")
-	UBiomesComponent* Biomes;
+	UPROPERTY(EditAnywhere) //old
+	UBiomesComponent* Biomes; //old no longer use I guess
+
+	UPROPERTY(EditAnywhere)
+	class UBiomeGenerationComponent* BiomeGeneration;
 private:
-	float GenerateHeight(int XPosition, int YPosition);
+	float GenerateHeight(int32 XPosition, int32 YPosition);
 
 
 	UPROPERTY(EditAnywhere, Category = "FBM")//number of perlin noise maps to layer
@@ -72,7 +78,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "FBM")//how the amplitude changes over time
 	float Grain; 
 
-	float FractalBrownianMotion(int XPosition, int YPosition);
+	float FractalBrownianMotion(int32 XPosition, int32 YPosition);
 
 	UPROPERTY(EditAnywhere, Category = "Seed")
 	int32 Seed;
