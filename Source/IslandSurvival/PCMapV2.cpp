@@ -158,7 +158,7 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 		Normals[x] = -item;		
 
 	}
-
+	BiomeGeneration->ColourOfIsland();
 	////UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
 	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Triangles Count: %i, Islands Count: %i"), Vertices.Num(), Normals.Num(), Triangles.Num(), BiomeGeneration->IslandPointsMap.Num())

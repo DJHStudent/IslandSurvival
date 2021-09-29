@@ -121,9 +121,10 @@ void UBiomeGenerationComponent::ColourOfIsland()
 	//loop through the map and for each island give a colour to it
 	for (auto& Point : IslandPointsMap) 
 	{
+		FLinearColor Color = FLinearColor(FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f));
 		for (int32 i = 0; i < Point.Value.Num(); i++)
 		{
-
+			TerrainGenerator->VerticeColours[Point.Value[i]] = Color;
 		}
 	}
 }
