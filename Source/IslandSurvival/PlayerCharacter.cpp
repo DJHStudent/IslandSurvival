@@ -5,6 +5,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacterAnimInstance.h"
+#include "Kismet/GameplayStatics.h"
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -19,6 +20,7 @@ APlayerCharacter::APlayerCharacter()
 
 	SprintMovementSpeed = GetCharacterMovement()->MaxWalkSpeed * SprintMultiplier;
 	NormalMovementSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	CurrentBiomeText = TEXT("");
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +35,8 @@ void APlayerCharacter::BeginPlay()
 	USkeletalMeshComponent* SkeletalMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("Arms")));
 	if (SkeletalMesh)//ensures no null pointer and will only work if it exists
 		AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
+
+	BiomeList = FindComponentByClass<UBiomeGenerationComponent>();//Cast<APCMapV2>(UGameplayStatics::GetActorOfClass(GetWorld(), APCMapV2::StaticClass()));//FindActorOfClass<APCMapV2>();
 }
 
 // Called every frame
@@ -40,6 +44,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	DisplayPointBiome();
 }
 
 // Called to bind functionality to input
@@ -132,4 +137,18 @@ void APlayerCharacter::SprintEnd()
 void APlayerCharacter::Reload()
 {
 	BlueprintReload();
+}
+
+void APlayerCharacter::DisplayPointBiome()
+{
+	/*int32 XPosition = FMath::RoundToInt(GetActorLocation().Y / BiomeList->TerrainGenerator->GridSize);
+	int32 YPosition = FMath::RoundToInt(GetActorLocation().X / BiomeList->TerrainGenerator->GridSize);
+	XPosition = FMath::Clamp(XPosition, 0, BiomeList->TerrainGenerator->Width - 1);
+	YPosition = FMath::Clamp(YPosition, 0, BiomeList->TerrainGenerator->Height - 1);*/
+	//UE_LOG(LogTemp, Error, TEXT("Positions are: %i, %i, %i"), XPosition, YPosition, BiomeList->BiomeAtEachPoint.Num())
+
+	//int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[YPosition * BiomeList->Width + XPosition];
+	CurrentBiomeText = "Error Biome Unknown";//BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeList->BiomeGeneration->BiomeAtEachPoint[YPosition * BiomeList->Width + XPosition]].BiomeName;
+
+	//print this out as a string
 }

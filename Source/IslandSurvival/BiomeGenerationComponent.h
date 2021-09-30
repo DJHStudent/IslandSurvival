@@ -55,10 +55,10 @@ public:
 	int32 IslandKeys;
 
 	void ColourOfIsland();
-private:
-	//UPROPERTY(EditAnywhere)
-	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined, join them together
 
 	UPROPERTY(EditAnywhere)
 	TMap<int32, FBiomeStats> DifferentBiomesMap; //a map is used so can gain easy access to any biome by simply using its key
+private:
+	//UPROPERTY(EditAnywhere)
+	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined, join them together
 };

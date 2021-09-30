@@ -123,6 +123,20 @@ void UBiomeGenerationComponent::ColourOfIsland()
 	for (auto& Point : IslandPointsMap) 
 	{
 		FLinearColor RandColour = FLinearColor(FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f));
+		//UE_LOG(LogTemp, Error, TEXT("Island Sizes Are: %i"), Point.Value.Num())
+		int32 NumBiomes = FMath::CeilToInt(Point.Value.Num() / 2000);
+		//NumBiomes = FMath::Clamp(NumBiomes, 1, 5);
+		TArray<TPair<int32, FVector2D>> BiomePositions; //the biome and its position
+		for (int32 j = 0; j < NumBiomes; j++) //for each island scatter a number of random points around map, being the biomes location
+		{
+			int32 position = FMath::RandRange(0, Point.Value.Num() - 1);
+			int32 RandomBiome = FMath::RandRange(3, 10);
+
+			FVector2D location = FVector2D(TerrainGenerator->Vertices[Point.Value[position]].X, TerrainGenerator->Vertices[Point.Value[position]].Y);
+			//UE_LOG(LogTemp, Error, TEXT("Adding Biome Point: %i, %s"), RandomBiome, *location.ToString())
+
+			BiomePositions.Add(TPair<int32, FVector2D>(RandomBiome, location));
+		}
 		for (int32 i = 0; i < Point.Value.Num(); i++)
 		{
 			int32 PointValue = Point.Value[i];
@@ -131,18 +145,33 @@ void UBiomeGenerationComponent::ColourOfIsland()
 				TerrainGenerator->VerticeColours[PointValue] = DifferentBiomesMap[3].BiomeColour;
 				BiomeAtEachPoint[PointValue] = 3;
 			}
-			else if (Point.Value.Num() <= 100) //biomes less than x size
+			else if (Point.Value.Num() <= 50) //biomes less than x size
 			{
 				TerrainGenerator->VerticeColours[PointValue] = DifferentBiomesMap[2].BiomeColour;
 				BiomeAtEachPoint[PointValue] = 2;
 			}
 			else
 			{
-				TerrainGenerator->VerticeColours[PointValue] = RandColour;
-				BiomeAtEachPoint[PointValue] = 4;
+				int32 NearestBiome = 0;
+				float MinDist = TNumericLimits<float>::Max();
+				FVector2D currentLocation = FVector2D(TerrainGenerator->Vertices[PointValue].X, TerrainGenerator->Vertices[PointValue].Y);
+
+				for (int k = 0; k < BiomePositions.Num(); k++)
+				{
+					////UE_LOG(LogTemp, Error, TEXT("Set Biome As: %i"), NearestBiome)
+					float newDist = FVector2D::Distance(currentLocation, BiomePositions[k].Value);
+					if (newDist < MinDist) {
+						NearestBiome = BiomePositions[k].Key;
+						MinDist = newDist;
+					}
+				}
+				//UE_LOG(LogTemp, Error, TEXT("Adding Biome Point: %i, %i"), MinDist, BiomePositions.Num())
+				TerrainGenerator->VerticeColours[PointValue] = DifferentBiomesMap[NearestBiome].BiomeColour;
+				BiomeAtEachPoint[PointValue] = NearestBiome;
 			}
 		}
 	}
+	//UE_LOG(LogTemp, Error, TEXT("Number of Biomes, %i"), BiomePositions.Num())
 }
 
 void UBiomeGenerationComponent::JoinIslands(int32 IslandPoint, int32 NewPoint)

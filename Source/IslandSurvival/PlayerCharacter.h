@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h" //much be above the generated.h file
-
+#include "BiomeGenerationComponent.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
@@ -45,6 +45,8 @@ public:
 	void BlueprintReload(); //a function which will be made and editied in blueprints but callable in C++ code
 	void Reload(); //reload gun using blueprint nodes
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FString CurrentBiomeText;
 
 private: //i.e a member variable
 	UPROPERTY(EditInstanceOnly)
@@ -58,4 +60,8 @@ private: //i.e a member variable
 	UPROPERTY(EditAnywhere)
 		//forward delcaration e.g class
 	class UPlayerCharacterAnimInstance* AnimInstance;
+
+	UPROPERTY(EditAnywhere)
+	UBiomeGenerationComponent* BiomeList;
+	void DisplayPointBiome(); //displays the biome at the specified point
 };
