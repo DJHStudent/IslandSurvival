@@ -39,6 +39,7 @@ public:
 	TArray<FVector> Vertices; //the position of each point in world space
 	TArray<FLinearColor> VerticeColours; //the colour of each point
 	TArray<int32> IslandNumber; //list directly correlating to the island each vertice relates to
+	//each number is the key used to identify the island from the IslandsMap
 
 	TArray<int32> Triangles;
 	TArray<FVector2D> UVCoords; //coordinates to specify how a texture will be applied

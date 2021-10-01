@@ -52,7 +52,7 @@ void APCMapV2::Tick(float DeltaTime)
 	if (bRegenerateMap)
 	{
 		ClearMap();
-		BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
+		//BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
 		Normals.Init(FVector::ZeroVector, Width * Height);
 		VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
 		GenerateSeed();
@@ -76,9 +76,10 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 
 	OcataveOffsets.Empty();
 	//TriangleNormals.Empty();
+	//for the generation of the biomes empty all arrays, as it is reset
 	BiomeGeneration->IslandKeys = 0;
 	BiomeGeneration->IslandPointsMap.Empty();
-	BiomeGeneration->BiomeAtEachPoint.Empty();
+	//BiomeGeneration->BiomeAtEachPoint.Empty();
 
 	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 }
@@ -160,7 +161,9 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 		Normals[x] = -item;		
 
 	}
-	BiomeGeneration->ColourOfIsland();
+	//determine the biome of each vertex of the map which is above water
+	BiomeGeneration->VerticesBiomes();
+
 	////UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
 	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Triangles Count: %i, Islands Count: %i"), Vertices.Num(), Normals.Num(), Triangles.Num(), BiomeGeneration->IslandPointsMap.Num())
@@ -247,7 +250,7 @@ float APCMapV2::GenerateHeight(int32 XPosition, int32 YPosition) //all the funct
 		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;
 
 	////UE_LOG(LogTemp, Warning, TEXT("Height of Point is: %f, %i, %i, %i, %i"), HeightValue, Vertices.Num(), IslandNumber.Num(), YPosition, XPosition)
-	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue);
+	HeightValue = BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue); //for each point determine the island it specifically relates to
 	//FLinearColor BiomeColour = FLinearColor(1, 1, 1);//Biomes->DetermineBiome(XPosition, YPosition, VerticeColours, Width, HeightValue);
 	//VerticeColours.Add(BiomeColour);
 
