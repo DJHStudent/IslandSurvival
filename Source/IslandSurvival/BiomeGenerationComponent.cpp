@@ -298,6 +298,7 @@ void UBiomeGenerationComponent::HeightBiomes(float ZHeight, int32 Biome, int32 V
 	10970
 	11646
 	1179
+	32103(real interesting)
 
 	issue with the way generating the terrain is that really dependent upon the values you give it so for biomes not want that
 	when talking about method used to do terrain mention this issue and how I did it through much trial and error to find best values
