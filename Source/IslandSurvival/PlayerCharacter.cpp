@@ -36,7 +36,8 @@ void APlayerCharacter::BeginPlay()
 	if (SkeletalMesh)//ensures no null pointer and will only work if it exists
 		AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
 
-	BiomeList = FindComponentByClass<UBiomeGenerationComponent>();//Cast<APCMapV2>(UGameplayStatics::GetActorOfClass(GetWorld(), APCMapV2::StaticClass()));//FindActorOfClass<APCMapV2>();
+	////BiomeList = FindComponentByClass<UBiomeGenerationComponent>();//Cast<APCMapV2>(UGameplayStatics::GetActorOfClass(GetWorld(), APCMapV2::StaticClass()));//FindActorOfClass<APCMapV2>();
+	
 }
 
 // Called every frame
@@ -141,14 +142,25 @@ void APlayerCharacter::Reload()
 
 void APlayerCharacter::DisplayPointBiome()
 {
-	/*int32 XPosition = FMath::RoundToInt(GetActorLocation().Y / BiomeList->TerrainGenerator->GridSize);
-	int32 YPosition = FMath::RoundToInt(GetActorLocation().X / BiomeList->TerrainGenerator->GridSize);
-	XPosition = FMath::Clamp(XPosition, 0, BiomeList->TerrainGenerator->Width - 1);
-	YPosition = FMath::Clamp(YPosition, 0, BiomeList->TerrainGenerator->Height - 1);*/
-	//UE_LOG(LogTemp, Error, TEXT("Positions are: %i, %i, %i"), XPosition, YPosition, BiomeList->BiomeAtEachPoint.Num())
+	int32 XPosition = FMath::RoundToInt(GetActorLocation().Y / BiomeList->GridSize);
+	int32 YPosition = FMath::RoundToInt(GetActorLocation().X / BiomeList->GridSize);
+	XPosition = FMath::Clamp(XPosition, 0, BiomeList->Width - 1);
+	YPosition = FMath::Clamp(YPosition, 0, BiomeList->Height - 1);
+	//UE_LOG(LogTemp, Error, TEXT("Check each point Biome junk"), XPosition, YPosition, BiomeList->VerticeColours.Num())//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 
-	//int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[YPosition * BiomeList->Width + XPosition];
-	CurrentBiomeText = "Error Biome Unknown";//BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeList->BiomeGeneration->BiomeAtEachPoint[YPosition * BiomeList->Width + XPosition]].BiomeName;
+		//if (YPosition * BiomeList->Width + XPosition < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
+		{
+			int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[YPosition * BiomeList->Width + XPosition]; //biome at the specific point on map
+			//UE_LOG(LogTemp, Error, TEXT("Different Biomes: %i, %f, %f, %i, %i"), YPosition * BiomeList->Width + XPosition, GetActorLocation().X, GetActorLocation().Y, BiomeList->BiomeGeneration->DifferentBiomesMap.Num(), BiomeOfPoint);//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
+			
+			//FString Name = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint];//.BiomeName;
+			if(BiomeList->BiomeGeneration->DifferentBiomesMap.Contains(BiomeOfPoint))
+			CurrentBiomeText = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint].BiomeName; //for specific biome get its name
+			else
+				CurrentBiomeText = "Biome Does Not Exist";
+		}
+	//	else
+			//CurrentBiomeText = "Error";
 
 	//print this out as a string
 }

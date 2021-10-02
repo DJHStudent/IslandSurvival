@@ -53,7 +53,7 @@ public:
 	float AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition);
 	TMap<int32, TArray<int32>> IslandPointsMap; //a list of every island and the vertices contained within it, being their array index value within the vertices array
 	//an island is just a set of any number of vertices which are joined together above the waterline
-	//TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
+	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
 	int32 IslandKeys;
 
 	void VerticesBiomes(); //for each island determine the biome(s) residing their
@@ -65,8 +65,10 @@ private:
 	//UPROPERTY(EditAnywhere)
 	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined, join them together
 	
-	void HeightBiomes(float ZHeight, int32 Biome); //based on height of point, determine the biome 
-	void SingleBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers,int32 IslandSize); //islands below a certain size will have only 1 biome
+	void HeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //based on height of point, determine the biome 
+	void SingleBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
+	void MultiBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
+
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single island
 	float SingleIslandMaxSize; 

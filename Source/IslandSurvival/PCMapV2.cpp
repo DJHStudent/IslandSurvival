@@ -38,7 +38,15 @@ APCMapV2::APCMapV2()
 void APCMapV2::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	//make a new map when generating in the world
+	ClearMap();
+	BiomeGeneration->BiomeAtEachPoint.Init(0, Width * Height); //at the beginning initilize each point to be ocean
+	Normals.Init(FVector::ZeroVector, Width * Height);
+	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
+	GenerateSeed();
+	CreateMesh();
+	bRegenerateMap = false;
 }
 bool APCMapV2::ShouldTickIfViewportsOnly() const //run the code within the viewport when not running
 {
@@ -48,11 +56,11 @@ bool APCMapV2::ShouldTickIfViewportsOnly() const //run the code within the viewp
 void APCMapV2::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	////UE_LOG(LogTemp, Error, TEXT("Terrain Gen Actual Runtime Stats are: %i"), VerticeColours.Num())
 	if (bRegenerateMap)
 	{
 		ClearMap();
-		//BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
+		BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
 		Normals.Init(FVector::ZeroVector, Width * Height);
 		VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
 		GenerateSeed();
@@ -79,7 +87,7 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 	//for the generation of the biomes empty all arrays, as it is reset
 	BiomeGeneration->IslandKeys = 0;
 	BiomeGeneration->IslandPointsMap.Empty();
-	//BiomeGeneration->BiomeAtEachPoint.Empty();
+	BiomeGeneration->BiomeAtEachPoint.Empty();
 
 	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 }
@@ -166,7 +174,7 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 
 	////UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
-	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Triangles Count: %i, Islands Count: %i"), Vertices.Num(), Normals.Num(), Triangles.Num(), BiomeGeneration->IslandPointsMap.Num())
+	UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, Normals: %i, Biomes Count: %i, Islands Count: %i"), Vertices.Num(), Normals.Num(), BiomeGeneration->BiomeAtEachPoint.Num(), BiomeGeneration->IslandPointsMap.Num())
 		/*for (int32 x = 0; x < NormalsEmptyToNotUse.Num(); x++)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Normal x: %s"), *Normals[x].ToString())
@@ -236,9 +244,12 @@ float APCMapV2::GenerateHeight(int32 XPosition, int32 YPosition) //all the funct
 		FBMValue = FractalBrownianMotion(XPosition, YPosition);
 
 	float HeightValue = FBMValue * FMath::Pow(FBMValue, 2.0f);
+	////UE_LOG(LogTemp, Error, TEXT("Current Actual ZHeight is: %f"), HeightValue)
 
 	HeightValue *= FMath::Abs(FBMValue); //this will give us more isolated mountain peaks and valleys
 	HeightValue *= 1 - FMath::Abs(FBMValue);
+	//UE_LOG(LogTemp, Warning, TEXT("Clampped HeightValue ZHeight is: %f"), HeightValue)
+
 	//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
 
 	///////HeightValue = FMath::Clamp(HeightValue, 0.0f, 1.0f);

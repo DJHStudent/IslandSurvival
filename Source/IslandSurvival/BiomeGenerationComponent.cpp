@@ -40,6 +40,7 @@ float UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition
 	{
 		TerrainGenerator->IslandNumber.Add(-1); //-1 means underwater
 		TerrainGenerator->VerticeColours[CurrentVertexPosition] = DifferentBiomesMap[1].BiomeColour; //as underwater set biome to ocean
+		BiomeAtEachPoint[CurrentVertexPosition] = 1;
 		//do nothing yet
 	}
 	else //must be above the water and as a result an island
@@ -117,7 +118,7 @@ float UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition
 
 			IslandKeys++;//as a new Island has been made add will need another Key for the next island
 		}
-		else //it is part of an existing island 
+		else //it is part of an existing island
 		{
 			IslandPointsMap[IslandPoint].Add(CurrentVertexPosition);
 			TerrainGenerator->IslandNumber.Add(IslandPoint);
@@ -201,29 +202,103 @@ void UBiomeGenerationComponent::VerticesBiomes()
 		int32 IslandSize = IslandPair.Value.Num(); //the size or number of vertices which make up an island
 		if (IslandSize < 2000)
 			SingleBiomeIslands(IslandPair, IslandSize);
-		//else
-			//MultiBiomeIslands();
+		else
+			MultiBiomeIslands(IslandPair, IslandSize);
 	}
 }
 
 void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize)
 {
+	int32 RandomBiome = FMath::RandRange(3, 9); //from biome list pick random one
 	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value) //for each point stored in the specific island
 	{
 		//UE_LOG(LogTemp, Error, TEXT("Failed when determining biomes"))
 		if (IslandSize <= 10) //make island a specific type(rocky outcrop)
 		{
 			TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[3].BiomeColour; //for the vertex colour at the same position as it is in the verties array, give a colour
+			BiomeAtEachPoint[VertexIdentifier] = 3;
+			UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, 3)
 		}
 		else if (IslandSize <= 50) //make island a specific type(sandbar)
 		{
 			TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[2].BiomeColour; //for the vertex colour at the same position as it is in the verties array, give a colour
+			BiomeAtEachPoint[VertexIdentifier] = 2;
+			UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, 2)
 		}
 		else //randomly choose a biome from the list
 		{
-			FLinearColor RandColour = FLinearColor(FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f));
-			TerrainGenerator->VerticeColours[VertexIdentifier] = RandColour;
+			//FLinearColor RandColour = FLinearColor(FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f), FMath::RandRange(0.0f, 1.0f));
+
+			TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[RandomBiome].BiomeColour;
+			BiomeAtEachPoint[VertexIdentifier] = RandomBiome;
+			UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, RandomBiome)
+			HeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, 0, VertexIdentifier);
 			//based on vertex height pick biome
 		}
 	}
 }
+
+void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize)
+{
+	int32 NumBiomes = FMath::CeilToInt(IslandSize / SingleIslandMaxSize); //based on islands size the number of biomes which can spawn there
+	TArray<TPair<int32, FVector2D>> BiomePositions;
+	for (int32 j = 0; j < NumBiomes; j++) //for each island scatter a number of random points around map, being the biomes location
+	{
+		int32 position = FMath::RandRange(0, IslandSize - 1); //pick random array element for island to spawn at
+		int32 RandomBiome = FMath::RandRange(3, 9); //from biome list pick random one
+
+		//get the location of the location of the point choosen from the island list of points
+		FVector2D location = FVector2D(TerrainGenerator->Vertices[IslandVertexIdentifiers.Value[position]].X, TerrainGenerator->Vertices[IslandVertexIdentifiers.Value[position]].Y);
+		BiomePositions.Add(TPair<int32, FVector2D>(RandomBiome, location)); //add the choosen biome and position to the list
+	}
+
+
+	//for each vertex determine closest biome point near
+	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value) //for each point stored in the specific island
+	{
+		int32 NearestBiome = 0; //biome point will be, currently ocean
+		float MinDist = TNumericLimits<float>::Max(); //distance to the nearest point a biome can be at
+		FVector2D currentLocation = FVector2D(TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y); //location of the current vertex in world
+
+		for (int k = 0; k < BiomePositions.Num(); k++)
+		{
+			////UE_LOG(LogTemp, Error, TEXT("Set Biome As: %i"), NearestBiome)
+			float newDist = FVector2D::Distance(currentLocation, BiomePositions[k].Value);
+			if (newDist < MinDist) {
+				NearestBiome = BiomePositions[k].Key;
+				MinDist = newDist;
+			}
+		}
+		//assign the biome to the point
+		TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[NearestBiome].BiomeColour;
+		BiomeAtEachPoint[VertexIdentifier] = NearestBiome;
+		//determine if it should be a different biome based on height
+		UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, NearestBiome)
+
+		HeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, 0, VertexIdentifier);
+	}
+}
+
+void UBiomeGenerationComponent::HeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier)
+{
+	if (ZHeight > 700) //Testing of values until right one found
+	{
+		TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[10].BiomeColour;
+		BiomeAtEachPoint[VertexIdentifier] = 10;
+		UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, 10)
+	}
+}
+
+
+
+//interesting seeds
+/*
+	3541
+	30490
+	10970
+	11646
+	1179
+
+	issue with the way generating the terrain is that really dependent upon the values you give it so for biomes not want that
+	when talking about method used to do terrain mention this issue and how I did it through much trial and error to find best values
+*/
