@@ -91,7 +91,7 @@ FLinearColor UBiomesComponent::DetermineBiome(int32 i, int32 j, TArray<FLinearCo
 			//return linear color at the specific point
 			//break
 		}
-		UE_LOG(LogTemp, Error, TEXT("Values for biomes which failed: %f, %f, %f"), TempValue, MoistureValue)
+		//UE_LOG(LogTemp, Error, TEXT("Values for biomes which failed: %f, %f, %f"), TempValue, MoistureValue)
 	}
 	return FLinearColor(0, 0, 0); //should never actually be needed but just in case return null
 }

@@ -151,7 +151,7 @@ void APlayerCharacter::DisplayPointBiome()
 		//if (YPosition * BiomeList->Width + XPosition < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 		{
 			int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[YPosition * BiomeList->Width + XPosition]; //biome at the specific point on map
-			//UE_LOG(LogTemp, Error, TEXT("Different Biomes: %i, %f, %f, %i, %i"), YPosition * BiomeList->Width + XPosition, GetActorLocation().X, GetActorLocation().Y, BiomeList->BiomeGeneration->DifferentBiomesMap.Num(), BiomeOfPoint);//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
+			//(LogTemp, Error, TEXT("Different Biomes: %i, %f, %f, %i, %i"), YPosition * BiomeList->Width + XPosition, GetActorLocation().X, GetActorLocation().Y, BiomeList->BiomeGeneration->DifferentBiomesMap.Num(), BiomeOfPoint);//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 			
 			//FString Name = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint];//.BiomeName;
 			if(BiomeList->BiomeGeneration->DifferentBiomesMap.Contains(BiomeOfPoint))

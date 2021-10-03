@@ -7,6 +7,20 @@
 #include "PCMapV2.h"
 #include "BiomeGenerationComponent.generated.h"
 
+USTRUCT() struct FBiomeMeshes //Any stat nessesary for the different plants in a biome
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "100"))//% out of 100 of the biomes area taken up by this model
+	float Density; 
+	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	UStaticMesh* Mesh; 
+
+	FBiomeMeshes()
+	{
+		Density = 0;
+	}
+};
 
 USTRUCT()
 struct FBiomeStats //for the noise based biomes
@@ -19,12 +33,16 @@ struct FBiomeStats //for the noise based biomes
 	UPROPERTY(EditAnywhere)
 	FLinearColor BiomeColour;
 
+	UPROPERTY(EditAnywhere)
+	TArray<FBiomeMeshes> BiomeMeshes;
+
 	FBiomeStats()
 	{
 		BiomeName = FString(TEXT(""));
 		BiomeColour = FLinearColor(0, 0, 0);
 	}
 };
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class ISLANDSURVIVAL_API UBiomeGenerationComponent : public UActorComponent
 {
@@ -65,11 +83,15 @@ private:
 	//UPROPERTY(EditAnywhere)
 	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined, join them together
 	
-	void HeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //based on height of point, determine the biome 
+	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier);
+	bool bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //based on height of point, determine the biome 
 	void SingleBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
 	void MultiBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
 
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single island
 	float SingleIslandMaxSize; 
+
+	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where their is a list of each biome and every vertex which makes it up 
+	void SpawnMeshes(int32 Biome, int32 VertexIdentifier);
 };
