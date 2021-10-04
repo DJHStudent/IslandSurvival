@@ -218,13 +218,13 @@ void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, TArray<int32>> I
 		//UE_LOG(LogTemp, Error, TEXT("Failed when determining biomes"))
 		if (IslandSize <= 10) //make island a specific type(rocky outcrop)
 		{
-			UpdateBiomeLists(3, VertexIdentifier);
+			UpdateBiomeLists(DifferentBiomesMap[3].BiomeColour, 3, VertexIdentifier);
 
 			//UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, 3)
 		}
 		else if (IslandSize <= 50) //make island a specific type(sandbar)
 		{
-			UpdateBiomeLists(2, VertexIdentifier);
+			UpdateBiomeLists(DifferentBiomesMap[2].BiomeColour, 2, VertexIdentifier);
 
 			//UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, 2)
 		}
@@ -234,7 +234,7 @@ void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, TArray<int32>> I
 
 			if (!bHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, 0, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
 			{
-				UpdateBiomeLists(RandomBiome, VertexIdentifier);
+				UpdateBiomeLists(DifferentBiomesMap[RandomBiome].BiomeColour, RandomBiome, VertexIdentifier);
 
 				if (RandomBiome == 8) //i.e a desert biome
 				{
@@ -253,7 +253,7 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, TArray<int32>> Is
 	int32 NumBiomes = FMath::CeilToInt(IslandSize / SingleIslandMaxSize); //based on islands size the number of biomes which can spawn there
 	TArray<TPair<int32, FVector2D>> BiomePositions;
 	for (int32 j = 0; j < NumBiomes; j++) //for each island scatter a number of random points around map, being the biomes location
-	{
+	{ //possible for two biome to share the same point with this method
 		int32 position = FMath::RandRange(0, IslandSize - 1); //pick random array element for island to spawn at
 		int32 RandomBiome = FMath::RandRange(3, 9); //from biome list pick random one
 
@@ -267,22 +267,69 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, TArray<int32>> Is
 	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value) //for each point stored in the specific island
 	{
 		int32 NearestBiome = 0; //biome point will be, currently ocean
+		int32 SecondNearestBiome = 0;
 		float MinDist = TNumericLimits<float>::Max(); //distance to the nearest point a biome can be at
+		float MinDist2 = TNumericLimits<float>::Max(); //distance to the second nearest point a biome can be at
 		FVector2D currentLocation = FVector2D(TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y); //location of the current vertex in world
 
 		for (int k = 0; k < BiomePositions.Num(); k++) //determine the biome point nearest
 		{
 			////UE_LOG(LogTemp, Error, TEXT("Set Biome As: %i"), NearestBiome)
-			float newDist = FVector2D::Distance(currentLocation, BiomePositions[k].Value);
-			if (newDist < MinDist) {
+			float CurrentDistance = FVector2D::Distance(currentLocation, BiomePositions[k].Value); //for all biome points distance too it
+			if (k == 1) //issue if k1 is not nearer it will fail
+			{
+				if (CurrentDistance < MinDist) { //as the new point is a closer biome use this one
+					MinDist2 = MinDist; //as only second point first point i.e k = 0 would be the second closest
+					SecondNearestBiome = NearestBiome;
+				}
+				else //min biome closest is still the closest so set the current one to the biome
+				{
+					SecondNearestBiome = BiomePositions[k].Key;
+					MinDist2 = CurrentDistance;
+				}
+			}
+			else if (CurrentDistance > MinDist && CurrentDistance < MinDist2)
+			{
+				MinDist2 = CurrentDistance; //second closest point
+				SecondNearestBiome = BiomePositions[k].Key;
+				//each point has one biome closest to
+				//point second closest to would be min distance
+				//Current Distance > min distance but less than MinDist2
+			}
+			if (CurrentDistance < MinDist) //find the biome point closest too this one
+			{
 				NearestBiome = BiomePositions[k].Key;
-				MinDist = newDist;
+				MinDist = CurrentDistance;
 			}
 		}
 		//assign the biome to the point
 		if (!bHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, 0, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
 		{
-			UpdateBiomeLists(NearestBiome, VertexIdentifier);
+			//distance to second nearest point - distance to nearest point = distance to edge
+			float EdgeDistance = MinDist2 - MinDist; //gives the distance from the point to the biomes border edge
+			float TotalDistance = EdgeDistance + MinDist; //gives us the total distance from centre, through point to edge
+			float DistPercent = MinDist / TotalDistance; //gives % of way point is along path 100% means at edge 0% means at centre
+			FLinearColor NearestBiomeColour = DifferentBiomesMap[NearestBiome].BiomeColour;
+			FLinearColor SecondNearestBiomeColour = DifferentBiomesMap[SecondNearestBiome].BiomeColour;
+			//UE_LOG(LogTemp, Warning, TEXT("Biomes closest to point are: % i, % i"), NearestBiome, SecondNearestBiome)
+			FLinearColor PointColour;
+			//if (DistPercent > .9f)
+			//{ //or check all 8 tiles around current one and if not same biome
+			//	//normalise the point to be between a new range
+			//	DistPercent = ((DistPercent - 0.9f) / (1 - 0.9f)) * (1 - 0) + 0.0f;
+			//	DistPercent = FMath::Clamp(DistPercent, 0.0f, 0.5f);
+			//	PointColour = FMath::Lerp(NearestBiomeColour, SecondNearestBiomeColour, DistPercent); //a colour which is a blend between the two, bigger dist percent means more A
+			//}
+			//else
+				PointColour = NearestBiomeColour;
+			UpdateBiomeLists(PointColour, NearestBiome, VertexIdentifier); //as have nearest and second nearest biomes, just blend their colours together based on %distance to the border
+			/*
+				in theory a distance of halfway between the two biomes will be the border
+				its X dist from one biome and X2 Dist from another
+
+				need to find the edge location point where alfway between the two biomes
+				then just check how far away from that point this one is in % and apply appropriate blendings
+			*/
 
 
 			if (NearestBiome == 8) //i.e a desert biome
@@ -301,17 +348,24 @@ bool UBiomeGenerationComponent::bHeightBiomes(float ZHeight, int32 Biome, int32 
 {
 	if (ZHeight > 700) //Testing of values until right one found
 	{
-		UpdateBiomeLists(10, VertexIdentifier);
+		UpdateBiomeLists(DifferentBiomesMap[10].BiomeColour, 10, VertexIdentifier);
 		return true;
 		//UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, 10)
 	}
 	return false;
 }
 
-void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdentifier)
+void UBiomeGenerationComponent::UpdateBiomeLists(FLinearColor BiomeColour, int32 Biome, int32 VertexIdentifier)
 {
 	//apply the appropriate colour to the terrain
-	TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[Biome].BiomeColour; //for the vertex colour at the same position as it is in the verties array, give a colour
+	//just do the transition junk here
+	//get the x and y position of point on map
+	int32 XPosition = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
+	int32 YPosition = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
+	XPosition = FMath::Clamp(XPosition, 0, TerrainGenerator->Width - 1);
+	YPosition = FMath::Clamp(YPosition, 0, TerrainGenerator->Height - 1);
+	
+	TerrainGenerator->VerticeColours[VertexIdentifier] = BiomeColour; //for the vertex colour at the same position as it is in the verties array, give a colour
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //give each vertex the appropriate biome designation
 
 	if (VertexBiomeLocationsMap.Contains(Biome)) //update the list for each biome's positions on the map if it exists
@@ -323,20 +377,78 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	}
 }
 
+//void UBiomeGenerationComponent::BiomeBlending()
+//{
+//	for (int32 i = 0; i < TerrainGenerator->Height; i++)
+//	{
+//		for (int32 j = 0; j < TerrainGenerator->Width; j++)
+//		{
+//			int32 XPosition = j;
+//			int32 YPosition = i;
+//			int32 VertexIdentifier = YPosition * TerrainGenerator->Width + XPosition;
+//			int32 Biome = BiomeAtEachPoint[VertexIdentifier];
+//			//2 away would be 
+//			int32 Radius = 1; //the range of values to go back to
+//			int32 XStraightLineNum = 1;
+//			int32 YStraightLineNum = 1;
+//			float SmoothStep = .25f;
+//			for (int32 k = 0; k < Radius; k++)
+//			{
+//
+//				FLinearColor LerpedColour = DifferentBiomesMap[Biome].BiomeColour;
+//				FLinearColor Colour = FLinearColor(0.6f, 0.6f, 0.6f);
+//				////x + 1 y
+//				if (XPosition + XStraightLineNum < TerrainGenerator->Width && BiomeAtEachPoint[(YPosition)*TerrainGenerator->Width + (XPosition + XStraightLineNum)] != Biome && BiomeAtEachPoint[(YPosition)*TerrainGenerator->Width + (XPosition + XStraightLineNum)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition)*TerrainGenerator->Width + (XPosition + XStraightLineNum)]].BiomeColour, SmoothStep);
+//				////x - 1 y//
+//				else if (XPosition - XStraightLineNum >= 0 && BiomeAtEachPoint[(YPosition)*TerrainGenerator->Width + (XPosition - XStraightLineNum)] != Biome && BiomeAtEachPoint[(YPosition)*TerrainGenerator->Width + (XPosition - XStraightLineNum)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition)*TerrainGenerator->Width + (XPosition - XStraightLineNum)]].BiomeColour, SmoothStep);
+//				//x y + 1
+//				else if (YPosition + YStraightLineNum < TerrainGenerator->Height && BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition)] != Biome && BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition)]].BiomeColour, SmoothStep);
+//				//x y - 1//
+//				else if (YPosition - YStraightLineNum >= 0 && BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition)] != Biome && BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition)]].BiomeColour, SmoothStep);
+//
+//				//x + 1 y + 1
+//				else if (XPosition + XStraightLineNum < TerrainGenerator->Width && YPosition + YStraightLineNum < TerrainGenerator->Height && BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition + XStraightLineNum)] != Biome && BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition + XStraightLineNum)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition + XStraightLineNum)]].BiomeColour, SmoothStep);
+//				//x + 1y - 1//
+//				else if (XPosition + XStraightLineNum < TerrainGenerator->Width && YPosition - YStraightLineNum >= 0 && BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition + XStraightLineNum)] != Biome && BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition + XStraightLineNum)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition + XStraightLineNum)]].BiomeColour, SmoothStep);
+//				////x - 1 y - 1//
+//				else if (XPosition - XStraightLineNum >= 0 && YPosition - YStraightLineNum >= 0 && BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition - XStraightLineNum)] != Biome && BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition - XStraightLineNum)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition - YStraightLineNum) * TerrainGenerator->Width + (XPosition - XStraightLineNum)]].BiomeColour, SmoothStep);
+//				//////////x - 1 y + 1
+//				else if (XPosition - XStraightLineNum >= 0 && YPosition + YStraightLineNum < TerrainGenerator->Height && BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition - XStraightLineNum)] != Biome && BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition - XStraightLineNum)] != 1)
+//					LerpedColour = Colour;//FMath::Lerp(LerpedColour, DifferentBiomesMap[BiomeAtEachPoint[(YPosition + YStraightLineNum) * TerrainGenerator->Width + (XPosition - XStraightLineNum)]].BiomeColour, SmoothStep);
+//
+//				TerrainGenerator->VerticeColours[VertexIdentifier] = LerpedColour; //for the vertex colour at the same position as it is in the verties array, give a colour
+//				XStraightLineNum++;
+//				YStraightLineNum++;
+//				SmoothStep *= 0.5f;
+//			}
+//		}
+//	}
+//	/*
+//		going up would be y - 1 -2 etc
+//		same for down / left / right
+//	*/
+//}
 
 void UBiomeGenerationComponent::SpawnMeshes(int32 Biome, int32 VertexIdentifier) //spawn in the meshes into the map
 {
-	FVector VertexLocation = TerrainGenerator->Vertices[VertexIdentifier];
+	//FVector VertexLocation = TerrainGenerator->Vertices[VertexIdentifier];
 
-	float XPosition = VertexLocation.X;//FMath::RandRange(VertexLocation.X - TerrainGenerator->GridSize / 2, VertexLocation.X + TerrainGenerator->GridSize / 2);
-	float YPosition = VertexLocation.Y;//FMath::RandRange(VertexLocation.Y - TerrainGenerator->GridSize / 2, VertexLocation.Y + TerrainGenerator->GridSize / 2);
-	FVector Location = FVector(XPosition, YPosition, VertexLocation.Z);
+	//float XPosition = VertexLocation.X;//FMath::RandRange(VertexLocation.X - TerrainGenerator->GridSize / 2, VertexLocation.X + TerrainGenerator->GridSize / 2);
+	//float YPosition = VertexLocation.Y;//FMath::RandRange(VertexLocation.Y - TerrainGenerator->GridSize / 2, VertexLocation.Y + TerrainGenerator->GridSize / 2);
+	//FVector Location = FVector(XPosition, YPosition, VertexLocation.Z);
 
-	FRotator Rotation = FRotator(0,0, 0);
-	Rotation.Yaw = FMath::RandRange(0.0f, 360.0f);
-	AStaticMeshActor* NewMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(),Location, Rotation);
-	NewMesh->SetActorScale3D(FVector(FMath::RandRange(15.0f, 45.0f)));
-	NewMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentBiomesMap[Biome].BiomeMeshes[0].Mesh);
+	//FRotator Rotation = FRotator(0,0, 0);
+	//Rotation.Yaw = FMath::RandRange(0.0f, 360.0f);
+	//AStaticMeshActor* NewMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(),Location, Rotation);
+	//NewMesh->SetActorScale3D(FVector(FMath::RandRange(15.0f, 45.0f)));
+	//NewMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentBiomesMap[Biome].BiomeMeshes[0].Mesh);
 }
 
 //interesting seeds
@@ -347,6 +459,7 @@ void UBiomeGenerationComponent::SpawnMeshes(int32 Biome, int32 VertexIdentifier)
 	11646
 	1179
 	32103(real interesting)
+	7127(for sandbar/outcrop biomes)
 
 	issue with the way generating the terrain is that really dependent upon the values you give it so for biomes not want that
 	when talking about method used to do terrain mention this issue and how I did it through much trial and error to find best values

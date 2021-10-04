@@ -142,8 +142,8 @@ void APlayerCharacter::Reload()
 
 void APlayerCharacter::DisplayPointBiome()
 {
-	int32 XPosition = FMath::RoundToInt(GetActorLocation().Y / BiomeList->GridSize);
-	int32 YPosition = FMath::RoundToInt(GetActorLocation().X / BiomeList->GridSize);
+	int32 XPosition = FMath::RoundToInt(GetActorLocation().X / BiomeList->GridSize);
+	int32 YPosition = FMath::RoundToInt(GetActorLocation().Y / BiomeList->GridSize);
 	XPosition = FMath::Clamp(XPosition, 0, BiomeList->Width - 1);
 	YPosition = FMath::Clamp(YPosition, 0, BiomeList->Height - 1);
 	//UE_LOG(LogTemp, Error, TEXT("Check each point Biome junk"), XPosition, YPosition, BiomeList->VerticeColours.Num())//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())

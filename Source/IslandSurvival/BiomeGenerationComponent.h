@@ -83,7 +83,7 @@ private:
 	//UPROPERTY(EditAnywhere)
 	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined, join them together
 	
-	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier);
+	void UpdateBiomeLists(FLinearColor BiomeColour, int32 Biome, int32 VertexIdentifier);
 	bool bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //based on height of point, determine the biome 
 	void SingleBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
 	void MultiBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
@@ -94,4 +94,5 @@ private:
 
 	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where their is a list of each biome and every vertex which makes it up 
 	void SpawnMeshes(int32 Biome, int32 VertexIdentifier);
+
 };

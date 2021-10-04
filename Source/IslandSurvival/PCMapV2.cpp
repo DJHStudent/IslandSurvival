@@ -41,7 +41,7 @@ void APCMapV2::BeginPlay()
 
 	//make a new map when generating in the world
 	ClearMap();
-	BiomeGeneration->BiomeAtEachPoint.Init(0, Width * Height); //at the beginning initilize each point to be ocean
+	BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
 	Normals.Init(FVector::ZeroVector, Width * Height);
 	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
 	GenerateSeed();
@@ -101,7 +101,7 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 		{
 			float ZPosition = GenerateHeight(j, i); //get the specific height for the point of the mesh
 
-			Vertices.Add(FVector(i * GridSize, j * GridSize, ZPosition));
+			Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
 			////////////////////////////////if (ZPosition / PerlinScale > 0.05f)
 			////////////////////////////////	VerticeColours.Add(FLinearColor(1, 1, 1)); //assign the colour of each vertex based on its Z position
 			////////////////////////////////else if(ZPosition / PerlinScale > 0.0f && ZPosition / PerlinScale < 0.25f)
@@ -120,8 +120,8 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 			*/
 			if (i + 1 < Height && j + 1 < Width) //this works as once loops finished will have the specific points using added to the array
 			{
-				Triangles.Add(i * Width + (j + 1)); Triangles.Add((i + 1) * Width + j); Triangles.Add(i * Width + j);
-				Triangles.Add((i + 1) * Width + (j + 1)); Triangles.Add((i + 1) * Width + j); Triangles.Add(i * Width + (j + 1));
+				Triangles.Add(i * Width + j); Triangles.Add((i + 1) * Width + j); Triangles.Add(i * Width + (j + 1));
+				Triangles.Add(i * Width + (j + 1)); Triangles.Add((i + 1) * Width + j); Triangles.Add((i + 1) * Width + (j + 1));
 			}
 			if (j > 0 && i > 0) //for each triangle of the mesh determine its normal using the cross product method
 			{
