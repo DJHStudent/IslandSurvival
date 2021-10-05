@@ -25,20 +25,20 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	float CellSize = Radius / FMath::Sqrt(2); //on the actual grid, the size of a cell
 
 	//determine the width and height of the grid of points, using the actual space avaliable(IslandSize) and the size of each cell(CellSize)
-	int32 GridWidth = FMath::FloorToInt(IslandWidth / CellSize); //round down to nearest whole number so can fit into an array
-	int32 GridHeight = FMath::FloorToInt(IslandHeight / CellSize);
+	int32 GridWidth = FMath::Clamp(FMath::FloorToInt(IslandWidth / CellSize), 1, TNumericLimits<int32>::Max()); //round down to nearest whole number so can fit into an array
+	int32 GridHeight = FMath::Clamp(FMath::FloorToInt(IslandHeight / CellSize), 1, TNumericLimits<int32>::Max());
 
 	//initilize the grid with default values and a specific predetermined size
 	GridPoints.Init(FVector2D::ZeroVector, GridWidth * GridHeight);
 	bGridContainsPoint.Init(false, GridWidth * GridHeight);
 
-	UE_LOG(LogTemp, Warning, TEXT("Values:::: %f, %f"), GridHeight, GridWidth)
-	/*
-		Add an inital first value to the grid
-	*/
-	//within bounds of island rectangle determine a random point
-	float InitalXValue = FMath::RandRange(0.0f, IslandWidth); 
-	float InitalYValue = FMath::RandRange(0.0f, IslandHeight);
+	UE_LOG(LogTemp, Warning, TEXT("Values:::: %i, %i, %f, %f, %i, %f"), GridHeight, GridWidth, IslandWidth, IslandHeight, GridPoints.Num(), CellSize)
+		/*
+			Add an inital first value to the grid
+		*/
+		//within bounds of island rectangle determine a random point
+	float InitalXValue = IslandHeight / 2;//FMath::RandRange(0.0f, IslandWidth / CellSize); 
+	float InitalYValue = IslandWidth / 2; //FMath::RandRange(0.0f, IslandHeight / CellSize);
 
 	//determine the index of the point within the grid i.e the grid cell the point belongs too
 	int32 XPosition = FMath::Clamp(FMath::FloorToInt(InitalXValue / CellSize), 0, GridWidth - 1);
@@ -59,7 +59,7 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	/*
 		Add / check new points which get added until no new ones can exist
 	*/
-	while (ActiveList.Num() > 0) //while a point can still have neighbours continue to add/ check
+	while (ActiveList.Num() > 0 && GridWidth * GridHeight > 1) //while a point can still have neighbours continue to add/ check
 	{//issue is multiple items can go into the same cell, overriding its current value and as result messing everything up
 		//random active index of the grid
 		int32 ActiveGridIndex = FMath::RandRange(0, ActiveList.Num() - 1);
@@ -72,9 +72,10 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 		{
 			//generate a random point between r and 2r of the active one
 			//determine location of new point to check
-			FVector Direction3D = UKismetMathLibrary::RandomUnitVector();//get direction to offset the point by
-			FVector2D OffsetDirection = FVector2D(Direction3D.X, Direction3D.Y); //get a random direction to offset the current active point by
-			float OffsetDistance = FMath::RandRange(Radius, 2 * Radius); //get a random distance away from the current active point between Radius and 2 * Radius
+			float Angle = FMath::RandRange(0.0f, 1.0f) * PI * 2;
+			//FVector Direction3D = UKismetMathLibrary::RandomUnitVector();//get direction to offset the point by
+			FVector2D OffsetDirection = FVector2D(FMath::Cos(Angle), FMath::Sin(Angle));//FVector2D(Direction3D.X, Direction3D.Y); //get a random direction to offset the current active point by
+			float OffsetDistance = 2 * Radius;// FMath::RandRange(2 * Radius, Radius + 1); //get a random distance away from the current active point between Radius and 2 * Radius
 			
 			//determine the location and cell the offset point belongs too
 			FVector2D OffsetPosition = ActiveIndexLocation + OffsetDirection * OffsetDistance; //the new point will be an offset of the active point based on above parameters
@@ -95,6 +96,8 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 						if (bGridContainsPoint[NeighbourGridIndex] && Distance < Radius) //if the offset point testing is too close to another already existing point
 							bOffsetValid = false;
 					}
+					else //as outside array bounds it is also invalid
+						bOffsetValid = false;
 				}
 			}
 

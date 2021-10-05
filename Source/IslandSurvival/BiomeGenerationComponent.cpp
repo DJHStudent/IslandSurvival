@@ -276,7 +276,12 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 	//get the straight line width of the island * by grid size so it gets the actual width not the distance between the two positions in array
 	float IslandWidth = (IslandVertexIdentifiers.Value.MaxXPosition - IslandVertexIdentifiers.Value.MinXPosition) * TerrainGenerator->GridSize;
 	float IslandHeight = (IslandVertexIdentifiers.Value.MaxYPosition - IslandVertexIdentifiers.Value.MinYPosition) * TerrainGenerator->GridSize;
-	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(SingleIslandMaxSize / 2, 3, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize);
+	float Radius = TerrainGenerator->Width * TerrainGenerator->Height / 10; //as size doubles radius shouldn't double
+	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(Radius, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize);
+	for (int32 pp = 0; pp < BiomePositions.Num(); pp++)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Number Of Biomes: %s, %i"), *BiomePositions[pp].Value.ToString(), BiomePositions[pp].Key)
+	}
 	//for (int32 j = 0; j < NumBiomes; j++) //for each island scatter a number of random points around map, being the biomes location
 	//{ //possible for two biome to share the same point with this method
 	//	int32 position = FMath::RandRange(0, IslandSize - 1); //pick random array element for island to spawn at
