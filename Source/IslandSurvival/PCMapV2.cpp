@@ -172,6 +172,7 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 	//determine the biome of each vertex of the map which is above water
 	BiomeGeneration->VerticesBiomes();
 	//spawn in all the appropriate meshes
+	BiomeGeneration->SpawnMeshes();
 
 	////UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);

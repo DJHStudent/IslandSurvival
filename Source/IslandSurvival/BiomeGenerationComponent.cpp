@@ -252,11 +252,6 @@ void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, FIslandStats> Is
 			if (!bHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, 0, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
 			{
 				UpdateBiomeLists(DifferentBiomesMap[RandomBiome].BiomeColour, RandomBiome, VertexIdentifier);
-
-				if (RandomBiome == 8) //i.e a desert biome
-				{
-					SpawnMeshes(8, VertexIdentifier);
-				}
 			}
 			//UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, RandomBiome)
 			//HeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, 0, VertexIdentifier);
@@ -276,7 +271,7 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 	//get the straight line width of the island * by grid size so it gets the actual width not the distance between the two positions in array
 	float IslandWidth = (IslandVertexIdentifiers.Value.MaxXPosition - IslandVertexIdentifiers.Value.MinXPosition) * TerrainGenerator->GridSize;
 	float IslandHeight = (IslandVertexIdentifiers.Value.MaxYPosition - IslandVertexIdentifiers.Value.MinYPosition) * TerrainGenerator->GridSize;
-	float Radius = TerrainGenerator->Width * TerrainGenerator->Height / 10; //as size doubles radius shouldn't double
+	float Radius = TerrainGenerator->Width * TerrainGenerator->Height / 10; //as size doubles radius shouldn't double //come back too later
 	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(Radius, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize);
 	for (int32 pp = 0; pp < BiomePositions.Num(); pp++)
 	{
@@ -360,12 +355,6 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 				need to find the edge location point where alfway between the two biomes
 				then just check how far away from that point this one is in % and apply appropriate blendings
 			*/
-
-
-			if (NearestBiome == 8) //i.e a desert biome
-			{
-				SpawnMeshes(8, VertexIdentifier);
-			}
 		}
 		//determine if it should be a different biome based on height
 		//UE_LOG(LogTemp, Warning, TEXT("Current Pos and Biome: %f, %f, %i"), TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y, NearestBiome)
@@ -466,8 +455,40 @@ void UBiomeGenerationComponent::UpdateBiomeLists(FLinearColor BiomeColour, int32
 //	*/
 //}
 
-void UBiomeGenerationComponent::SpawnMeshes(int32 Biome, int32 VertexIdentifier) //spawn in the meshes into the map
+void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 {
+	for (auto& BiomePoints : VertexBiomeLocationsMap) //for each biome on the map
+	{
+		int32 BiomeAmount = BiomePoints.Value.Num(); //number of points which make up the biome
+		for (FBiomeMeshes DifferentMeshes : DifferentBiomesMap[BiomePoints.Key].BiomeMeshes) //for each mesh which can spawn in each biome on the map
+		{
+			//calculate the density of each point based on total points for the biome
+			int32 MeshesDensity = FMath::CeilToInt(DifferentMeshes.Density / 100 * BiomeAmount);
+			for (size_t i = 0; i < DifferentMeshes.Density; i++) //spawn in X meshes based on its density within the biome
+			{
+				//pick a random location within the specified biome
+				int32 RandomLocation = FMath::RandRange(0, BiomePoints.Value.Num() - 1);
+				int32 VertexIndex = BiomePoints.Value[RandomLocation];
+				FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
+
+				FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
+				Rotation.Yaw = FMath::RandRange(0.0f, 360.0f);
+
+				//spawn in a new mesh in specified location, with rotation
+				AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
+				SpawnedMesh->SetActorScale3D(FVector(FMath::RandRange(15.0f, 45.0f))); //give the mesh the same random scale on all 3 axis
+				SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in one
+
+				//remove the choosen location from the list so no new meshes can spawn there
+				BiomePoints.Value.RemoveAt(RandomLocation);
+			}
+		}
+	}
+
+
+	//if i have a list of all points within a biome then its easy
+
+
 	//FVector VertexLocation = TerrainGenerator->Vertices[VertexIdentifier];
 
 	//float XPosition = VertexLocation.X;//FMath::RandRange(VertexLocation.X - TerrainGenerator->GridSize / 2, VertexLocation.X + TerrainGenerator->GridSize / 2);

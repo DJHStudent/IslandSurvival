@@ -117,6 +117,8 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TMap<int32, FBiomeStats> DifferentBiomesMap; //A map of the stats of each biome and the int key used to identify it, a map is used so can gain easy access to any biome by simply using its key
+
+	void SpawnMeshes();
 private:
 
 	PoissonDiskSampling DiskSampling;
@@ -134,6 +136,4 @@ private:
 	float SingleIslandMaxSize; 
 
 	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where their is a list of each biome and every vertex which makes it up 
-	void SpawnMeshes(int32 Biome, int32 VertexIdentifier);
-
 };
