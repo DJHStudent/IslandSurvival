@@ -5,7 +5,6 @@
 //#include "Engine/World.h"
 #include "Engine/StaticMeshActor.h"
 
-
 // Sets default values for this component's properties
 UBiomeGenerationComponent::UBiomeGenerationComponent()
 {
@@ -14,6 +13,7 @@ UBiomeGenerationComponent::UBiomeGenerationComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 	IslandKeys = 0;
 	SingleIslandMaxSize = 2000;
+	////DiskSampling = CreateDefaultSubobject<PoissonDiskSampling>("Sampling");
 	// ...
 }
 
@@ -115,15 +115,21 @@ float UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition
 		//once all points are checked can go through and actaully add the points to the nessesary array
 		if (IslandPoint == -1) //as all points around it are underwater it must be an entirly new Island
 		{
-			IslandPointsMap.Add(IslandKeys, TArray<int32>());
-			IslandPointsMap[IslandKeys].Add(CurrentVertexPosition); //Num() -1 gets the last island added i.e the new island
+			FIslandStats IslandStats;
+			IslandPointsMap.Add(IslandKeys, IslandStats);
+			IslandPointsMap[IslandKeys].VertexIndices.Add(CurrentVertexPosition); //Num() -1 gets the last island added i.e the new island
+			IslandPointsMap[IslandKeys].MinXPosition = XPosition;
+			IslandPointsMap[IslandKeys].MaxXPosition = XPosition;
+			IslandPointsMap[IslandKeys].MinYPosition = YPosition;
+			IslandPointsMap[IslandKeys].MaxYPosition = YPosition;
 			TerrainGenerator->IslandNumber.Add(IslandKeys);
 
 			IslandKeys++;//as a new Island has been made add will need another Key for the next island
 		}
 		else //it is part of an existing island
 		{
-			IslandPointsMap[IslandPoint].Add(CurrentVertexPosition);
+			IslandPointsMap[IslandPoint].VertexIndices.Add(CurrentVertexPosition);
+			IslandPointsMap[IslandPoint].UpdateIslandBounds(FVector2D(XPosition, YPosition));
 			TerrainGenerator->IslandNumber.Add(IslandPoint);
 		}
 	}
@@ -133,10 +139,21 @@ float UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition
 void UBiomeGenerationComponent::JoinIslands(int32 IslandPoint, int32 NewPoint) //for 2 islands which are actually joined, add them together
 {
 	//island point is the current point at ...... NewPoint is the neighbouring point checking
-	for (int32 i = 0; i < IslandPointsMap[NewPoint].Num(); i++)// Point in IslandPointsMap[NewPoint])
+	for (int32 i = 0; i < IslandPointsMap[NewPoint].VertexIndices.Num(); i++)// Point in IslandPointsMap[NewPoint])
 	{
-		IslandPointsMap[IslandPoint].Add(IslandPointsMap[NewPoint][i]);//Point);
-		TerrainGenerator->IslandNumber[IslandPointsMap[NewPoint][i]] = IslandPoint;
+		IslandPointsMap[IslandPoint].VertexIndices.Add(IslandPointsMap[NewPoint].VertexIndices[i]);//Point);
+		TerrainGenerator->IslandNumber[IslandPointsMap[NewPoint].VertexIndices[i]] = IslandPoint;
+
+		//update the size of the island to reflect the new values if nessesary
+		if (IslandPointsMap[NewPoint].MinXPosition < IslandPointsMap[IslandPoint].MinXPosition)
+			IslandPointsMap[IslandPoint].MinXPosition = IslandPointsMap[NewPoint].MinXPosition;
+		if (IslandPointsMap[NewPoint].MinYPosition < IslandPointsMap[IslandPoint].MinYPosition)
+			IslandPointsMap[IslandPoint].MinYPosition = IslandPointsMap[NewPoint].MinYPosition;
+
+		if (IslandPointsMap[NewPoint].MaxXPosition > IslandPointsMap[IslandPoint].MaxXPosition)
+			IslandPointsMap[IslandPoint].MaxXPosition = IslandPointsMap[NewPoint].MaxXPosition;
+		if (IslandPointsMap[NewPoint].MaxYPosition > IslandPointsMap[IslandPoint].MaxYPosition)
+			IslandPointsMap[IslandPoint].MaxYPosition = IslandPointsMap[NewPoint].MaxYPosition;
 	}
 	IslandPointsMap.Remove(NewPoint); //remove the old island which is copied to the actual island list
 }
@@ -198,11 +215,11 @@ void UBiomeGenerationComponent::JoinIslands(int32 IslandPoint, int32 NewPoint) /
 //	//UE_LOG(LogTemp, Error, TEXT("Number of Biomes, %i"), BiomePositions.Num())
 //}
 
-void UBiomeGenerationComponent::VerticesBiomes()
+void UBiomeGenerationComponent::VerticesBiomes() //determine the biome for each vertex above waterline
 {
 	for (auto& IslandPair : IslandPointsMap)
 	{
-		int32 IslandSize = IslandPair.Value.Num(); //the size or number of vertices which make up an island
+		int32 IslandSize = IslandPair.Value.VertexIndices.Num(); //the size or number of vertices which make up an island
 		if (IslandSize < SingleIslandMaxSize)
 			SingleBiomeIslands(IslandPair, IslandSize);
 		else
@@ -210,10 +227,10 @@ void UBiomeGenerationComponent::VerticesBiomes()
 	}
 }
 
-void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize)
+void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize)
 {
 	int32 RandomBiome = FMath::RandRange(3, 9); //from biome list pick random one
-	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value) //for each point stored in the specific island
+	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value.VertexIndices) //for each point stored in the specific island
 	{
 		//UE_LOG(LogTemp, Error, TEXT("Failed when determining biomes"))
 		if (IslandSize <= 10) //make island a specific type(rocky outcrop)
@@ -248,23 +265,31 @@ void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, TArray<int32>> I
 	}
 }
 
-void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, TArray<int32>> IslandVertexIdentifiers, int32 IslandSize)
+void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize)
 {
+	//use poisson disk sampling here to give a more even distribution of the biomes
 	int32 NumBiomes = FMath::CeilToInt(IslandSize / SingleIslandMaxSize); //based on islands size the number of biomes which can spawn there
-	TArray<TPair<int32, FVector2D>> BiomePositions;
-	for (int32 j = 0; j < NumBiomes; j++) //for each island scatter a number of random points around map, being the biomes location
-	{ //possible for two biome to share the same point with this method
-		int32 position = FMath::RandRange(0, IslandSize - 1); //pick random array element for island to spawn at
-		int32 RandomBiome = FMath::RandRange(3, 9); //from biome list pick random one
 
-		//get the location of the location of the point choosen from the island list of points
-		FVector2D location = FVector2D(TerrainGenerator->Vertices[IslandVertexIdentifiers.Value[position]].X, TerrainGenerator->Vertices[IslandVertexIdentifiers.Value[position]].Y);
-		BiomePositions.Add(TPair<int32, FVector2D>(RandomBiome, location)); //add the choosen biome and position to the list
-	}
+	//radius will be determined based on SingleIslandMaxSize, k is determined via testing
+	//biomes sizes will need to be * by grid size to get actual positions for them
+
+	//get the straight line width of the island * by grid size so it gets the actual width not the distance between the two positions in array
+	float IslandWidth = (IslandVertexIdentifiers.Value.MaxXPosition - IslandVertexIdentifiers.Value.MinXPosition) * TerrainGenerator->GridSize;
+	float IslandHeight = (IslandVertexIdentifiers.Value.MaxYPosition - IslandVertexIdentifiers.Value.MinYPosition) * TerrainGenerator->GridSize;
+	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(SingleIslandMaxSize / 2, 3, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize);
+	//for (int32 j = 0; j < NumBiomes; j++) //for each island scatter a number of random points around map, being the biomes location
+	//{ //possible for two biome to share the same point with this method
+	//	int32 position = FMath::RandRange(0, IslandSize - 1); //pick random array element for island to spawn at
+	//	int32 RandomBiome = FMath::RandRange(3, 9); //from biome list pick random one
+
+	//	//get the location of the location of the point choosen from the island list of points
+	//	FVector2D location = FVector2D(TerrainGenerator->Vertices[IslandVertexIdentifiers.Value[position]].X, TerrainGenerator->Vertices[IslandVertexIdentifiers.Value[position]].Y);
+	//	BiomePositions.Add(TPair<int32, FVector2D>(RandomBiome, location)); //add the choosen biome and position to the list
+	//}
 
 
 	//for each vertex determine closest biome point near
-	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value) //for each point stored in the specific island
+	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value.VertexIndices) //for each point stored in the specific island
 	{
 		int32 NearestBiome = 0; //biome point will be, currently ocean
 		int32 SecondNearestBiome = 0;
@@ -305,12 +330,12 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, TArray<int32>> Is
 		//assign the biome to the point
 		if (!bHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, 0, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
 		{
-			//distance to second nearest point - distance to nearest point = distance to edge
-			float EdgeDistance = MinDist2 - MinDist; //gives the distance from the point to the biomes border edge
-			float TotalDistance = EdgeDistance + MinDist; //gives us the total distance from centre, through point to edge
-			float DistPercent = MinDist / TotalDistance; //gives % of way point is along path 100% means at edge 0% means at centre
+			////distance to second nearest point - distance to nearest point = distance to edge
+			//float EdgeDistance = MinDist2 - MinDist; //gives the distance from the point to the biomes border edge
+			//float TotalDistance = EdgeDistance + MinDist; //gives us the total distance from centre, through point to edge
+			//float DistPercent = MinDist / TotalDistance; //gives % of way point is along path 100% means at edge 0% means at centre
 			FLinearColor NearestBiomeColour = DifferentBiomesMap[NearestBiome].BiomeColour;
-			FLinearColor SecondNearestBiomeColour = DifferentBiomesMap[SecondNearestBiome].BiomeColour;
+			//FLinearColor SecondNearestBiomeColour = DifferentBiomesMap[SecondNearestBiome].BiomeColour;
 			//UE_LOG(LogTemp, Warning, TEXT("Biomes closest to point are: % i, % i"), NearestBiome, SecondNearestBiome)
 			FLinearColor PointColour;
 			//if (DistPercent > .9f)
@@ -321,7 +346,7 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, TArray<int32>> Is
 			//	PointColour = FMath::Lerp(NearestBiomeColour, SecondNearestBiomeColour, DistPercent); //a colour which is a blend between the two, bigger dist percent means more A
 			//}
 			//else
-				PointColour = NearestBiomeColour;
+			PointColour = NearestBiomeColour;
 			UpdateBiomeLists(PointColour, NearestBiome, VertexIdentifier); //as have nearest and second nearest biomes, just blend their colours together based on %distance to the border
 			/*
 				in theory a distance of halfway between the two biomes will be the border

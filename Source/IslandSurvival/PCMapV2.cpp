@@ -59,13 +59,13 @@ void APCMapV2::Tick(float DeltaTime)
 	////UE_LOG(LogTemp, Error, TEXT("Terrain Gen Actual Runtime Stats are: %i"), VerticeColours.Num())
 	if (bRegenerateMap)
 	{
+		bRegenerateMap = false;
 		ClearMap();
 		BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
 		Normals.Init(FVector::ZeroVector, Width * Height);
 		VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
 		GenerateSeed();
 		CreateMesh();
-		bRegenerateMap = false;
 	}
 }
 
