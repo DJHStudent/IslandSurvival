@@ -220,7 +220,7 @@ void APCMapV2::GenerateSeed() //give a random seed, otherwise use the specified 
 	}
 	for (int32 i = 0; i < Octaves; i++) //for each octave use a different offset value for the noise 
 	{
-		float OffsetValue = Stream.RandRange(-10000.0f, 10000.0f); //offset so the noise will always produce a different random map
+		float OffsetValue = Stream.FRandRange(-10000.0f, 10000.0f); //offset so the noise will always produce a different random map
 		OcataveOffsets.Add(OffsetValue);
 	}
 	//any varlues which are randomly generated for the biomes go here

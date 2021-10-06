@@ -73,7 +73,7 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 		{
 			//generate a random point between r and 2r of the active one
 			//determine location of new point to check
-			float Angle = Stream.RandRange(0.0f, 1.0f) * PI * 2;
+			float Angle = Stream.FRandRange(0.0f, 1.0f) * PI * 2;
 			//FVector Direction3D = UKismetMathLibrary::RandomUnitVector();//get direction to offset the point by
 			FVector2D OffsetDirection = FVector2D(FMath::Cos(Angle), FMath::Sin(Angle));//FVector2D(Direction3D.X, Direction3D.Y); //get a random direction to offset the current active point by
 			float OffsetDistance = 2 * Radius;// FMath::RdandRange(2 * Radius, Radius + 1); //get a random distance away from the current active point between Radius and 2 * Radius

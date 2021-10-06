@@ -295,35 +295,13 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value.VertexIndices) //for each point stored in the specific island
 	{
 		int32 NearestBiome = 0; //biome point will be, currently ocean
-		int32 SecondNearestBiome = 0;
 		float MinDist = TNumericLimits<float>::Max(); //distance to the nearest point a biome can be at
-		float MinDist2 = TNumericLimits<float>::Max(); //distance to the second nearest point a biome can be at
 		FVector2D currentLocation = FVector2D(TerrainGenerator->Vertices[VertexIdentifier].X, TerrainGenerator->Vertices[VertexIdentifier].Y); //location of the current vertex in world
 
 		for (int k = 0; k < BiomePositions.Num(); k++) //determine the biome point nearest
 		{
 			////UE_LOG(LogTemp, Error, TEXT("Set Biome As: %i"), NearestBiome)
 			float CurrentDistance = FVector2D::Distance(currentLocation, BiomePositions[k].Value); //for all biome points distance too it
-			if (k == 1) //issue if k1 is not nearer it will fail
-			{
-				if (CurrentDistance < MinDist) { //as the new point is a closer biome use this one
-					MinDist2 = MinDist; //as only second point first point i.e k = 0 would be the second closest
-					SecondNearestBiome = NearestBiome;
-				}
-				else //min biome closest is still the closest so set the current one to the biome
-				{
-					SecondNearestBiome = BiomePositions[k].Key;
-					MinDist2 = CurrentDistance;
-				}
-			}
-			else if (CurrentDistance > MinDist && CurrentDistance < MinDist2)
-			{
-				MinDist2 = CurrentDistance; //second closest point
-				SecondNearestBiome = BiomePositions[k].Key;
-				//each point has one biome closest to
-				//point second closest to would be min distance
-				//Current Distance > min distance but less than MinDist2
-			}
 			if (CurrentDistance < MinDist) //find the biome point closest too this one
 			{
 				NearestBiome = BiomePositions[k].Key;
@@ -498,11 +476,11 @@ void UBiomeGenerationComponent::SpawnMeshes(FRandomStream& Stream) //spawn in th
 						FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
 
 						FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
-						Rotation.Yaw = Stream.RandRange(0.0f, 360.0f);
+						Rotation.Yaw = Stream.FRandRange(0.0f, 360.0f);
 
 						//////////spawn in a new mesh in specified location, with rotation
 						AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
-						SpawnedMesh->SetActorScale3D(FVector(Stream.RandRange(15.0f, 45.0f))); //give the mesh the same random scale on all 3 axis
+						SpawnedMesh->SetActorScale3D(FVector(Stream.FRandRange(15.0f, 45.0f))); //give the mesh the same random scale on all 3 axis
 						SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in one
 
 						//remove the choosen location from the list so no new meshes can spawn there
