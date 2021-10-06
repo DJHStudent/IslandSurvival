@@ -219,7 +219,9 @@ void UBiomeGenerationComponent::VerticesBiomes() //determine the biome for each 
 {
 	for (auto& IslandPair : IslandPointsMap)
 	{
-		int32 IslandSize = IslandPair.Value.VertexIndices.Num(); //the size or number of vertices which make up an island
+		float IslandWidth = (IslandPair.Value.MaxXPosition - IslandPair.Value.MinXPosition);// *TerrainGenerator->GridSize;
+		float IslandHeight = (IslandPair.Value.MaxYPosition - IslandPair.Value.MinYPosition);// *TerrainGenerator->GridSize;
+		int32 IslandSize = FMath::CeilToInt(IslandWidth * IslandHeight);//IslandPair.Value.VertexIndices.Num(); //the size or number of vertices which make up an island
 		if (IslandSize < SingleIslandMaxSize)
 			SingleBiomeIslands(IslandPair, IslandSize);
 		else
@@ -263,19 +265,20 @@ void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, FIslandStats> Is
 void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize)
 {
 	//use poisson disk sampling here to give a more even distribution of the biomes
-	int32 NumBiomes = FMath::CeilToInt(IslandSize / SingleIslandMaxSize); //based on islands size the number of biomes which can spawn there
-
+	float IslandWidths = (IslandVertexIdentifiers.Value.MaxXPosition - IslandVertexIdentifiers.Value.MinXPosition);
+	float IslandHeights = (IslandVertexIdentifiers.Value.MaxYPosition - IslandVertexIdentifiers.Value.MinYPosition);
+	int32 NumBiomes = FMath::CeilToInt(IslandWidths * IslandHeights / SingleIslandMaxSize); //based on islands size the number of biomes which can spawn there
 	//radius will be determined based on SingleIslandMaxSize, k is determined via testing
 	//biomes sizes will need to be * by grid size to get actual positions for them
 
 	//get the straight line width of the island * by grid size so it gets the actual width not the distance between the two positions in array
 	float IslandWidth = (IslandVertexIdentifiers.Value.MaxXPosition - IslandVertexIdentifiers.Value.MinXPosition) * TerrainGenerator->GridSize;
 	float IslandHeight = (IslandVertexIdentifiers.Value.MaxYPosition - IslandVertexIdentifiers.Value.MinYPosition) * TerrainGenerator->GridSize;
-	float Radius = TerrainGenerator->Width * TerrainGenerator->Height / 10; //as size doubles radius shouldn't double //come back too later
-	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(Radius, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize);
+	float Radius = IslandHeights * IslandWidths / NumBiomes;//TerrainGenerator->Width * TerrainGenerator->Height / 6;//SingleIslandMaxSize * 2;//TerrainGenerator->Width * TerrainGenerator->Height / 10; //as size doubles radius shouldn't double //come back too later
+	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(Radius, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize, DifferentBiomesMap);
 	for (int32 pp = 0; pp < BiomePositions.Num(); pp++)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Number Of Biomes: %s, %i"), *BiomePositions[pp].Value.ToString(), BiomePositions[pp].Key)
+		UE_LOG(LogTemp, Error, TEXT("Number Of Biomes: %s, %i, %i"), *BiomePositions[pp].Value.ToString(), BiomePositions[pp].Key, NumBiomes)
 	}
 	//for (int32 j = 0; j < NumBiomes; j++) //for each island scatter a number of random points around map, being the biomes location
 	//{ //possible for two biome to share the same point with this method
@@ -469,15 +472,15 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 				//pick a random location within the specified biome
 				int32 RandomLocation = FMath::RandRange(0, BiomePoints.Value.Num() - 1);
 				int32 VertexIndex = BiomePoints.Value[RandomLocation];
-				FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
+				/////////////FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
 
 				FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
 				Rotation.Yaw = FMath::RandRange(0.0f, 360.0f);
 
-				//spawn in a new mesh in specified location, with rotation
-				AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
-				SpawnedMesh->SetActorScale3D(FVector(FMath::RandRange(15.0f, 45.0f))); //give the mesh the same random scale on all 3 axis
-				SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in one
+				//////////spawn in a new mesh in specified location, with rotation
+				////////AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
+				////////SpawnedMesh->SetActorScale3D(FVector(FMath::RandRange(15.0f, 45.0f))); //give the mesh the same random scale on all 3 axis
+				////////SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in one
 
 				//remove the choosen location from the list so no new meshes can spawn there
 				BiomePoints.Value.RemoveAt(RandomLocation);

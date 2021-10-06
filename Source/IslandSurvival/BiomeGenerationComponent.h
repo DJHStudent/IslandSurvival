@@ -6,43 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "PoissonDiskSampling.h"
 #include "PCMapV2.h"
+#include "BiomeStats.h"
 #include "BiomeGenerationComponent.generated.h"
 
-USTRUCT() struct FBiomeMeshes //Any stat nessesary for the different plants in a biome
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "100"))//% out of 100 of the biomes area taken up by this model
-	float Density; 
-	UPROPERTY(EditAnywhere)//the mesh to spawn in
-	UStaticMesh* Mesh; 
-
-	FBiomeMeshes()
-	{
-		Density = 0;
-	}
-};
-
-USTRUCT()
-struct FBiomeStats //for the noise based biomes
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	FString BiomeName;
-
-	UPROPERTY(EditAnywhere)
-	FLinearColor BiomeColour;
-
-	UPROPERTY(EditAnywhere)
-	TArray<FBiomeMeshes> BiomeMeshes;
-
-	FBiomeStats()
-	{
-		BiomeName = FString(TEXT(""));
-		BiomeColour = FLinearColor(0, 0, 0);
-	}
-};
 
 USTRUCT() struct FIslandStats //the different parameters for an island
 {
@@ -106,7 +72,7 @@ public:
 
 	//stuff for determining where each island is
 	float AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition);
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	TMap<int32, FIslandStats> IslandPointsMap; //a list of every island and the vertices contained within it, being their array index value within the vertices array
 	//an island is just a set of any number of vertices which are joined together above the waterline
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value

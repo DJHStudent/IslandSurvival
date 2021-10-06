@@ -13,7 +13,7 @@ PoissonDiskSampling::~PoissonDiskSampling()
 {
 }
 
-TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset)
+TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, FBiomeStats>& DifferentBiomesMap)
 {
 	TArray<TPair<int32, FVector2D>> BiomePoints; //a list of points and the biomes which comprise them
 
@@ -21,16 +21,16 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 		Setup the grid of a specific size with default values
 	*/
 	TArray<FVector2D> GridPoints; //the vectors, each of which lie inside a single grid square
-	TArray<bool> bGridContainsPoint; //on the grid at the specified location, is their a point
+	TArray<int32> GridBiomes; //on the grid at the specified location, the biome, -1 means no biome their
 	float CellSize = Radius / FMath::Sqrt(2); //on the actual grid, the size of a cell
 
 	//determine the width and height of the grid of points, using the actual space avaliable(IslandSize) and the size of each cell(CellSize)
-	int32 GridWidth = FMath::Clamp(FMath::FloorToInt(IslandWidth / CellSize), 1, TNumericLimits<int32>::Max()); //round down to nearest whole number so can fit into an array
-	int32 GridHeight = FMath::Clamp(FMath::FloorToInt(IslandHeight / CellSize), 1, TNumericLimits<int32>::Max());
+	int32 GridWidth = FMath::Clamp(FMath::CeilToInt(IslandWidth / CellSize), 1, TNumericLimits<int32>::Max()); //round down to nearest whole number so can fit into an array
+	int32 GridHeight = FMath::Clamp(FMath::CeilToInt(IslandHeight / CellSize), 1, TNumericLimits<int32>::Max());
 
 	//initilize the grid with default values and a specific predetermined size
 	GridPoints.Init(FVector2D::ZeroVector, GridWidth * GridHeight);
-	bGridContainsPoint.Init(false, GridWidth * GridHeight);
+	GridBiomes.Init(-1, GridWidth * GridHeight);
 
 	UE_LOG(LogTemp, Warning, TEXT("Values:::: %i, %i, %f, %f, %i, %f"), GridHeight, GridWidth, IslandWidth, IslandHeight, GridPoints.Num(), CellSize)
 		/*
@@ -46,10 +46,12 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	int32 InitialGridLocation = YPosition * GridWidth + XPosition;
 	//add the inital point into the grid
 	GridPoints[InitialGridLocation] = FVector2D(InitalXValue, InitalYValue);
-	bGridContainsPoint[InitialGridLocation] = true;
+
+	int32 NewBiome = DetermineBiome(GridBiomes[InitialGridLocation], DifferentBiomesMap);
+	GridBiomes[InitialGridLocation] = NewBiome;
 
 	//add the point as a valid biome location. Need the offset value as grid values centred around 0,0 so will shift the point to be around the islands location
-	BiomePoints.Add(TPair<int32, FVector2D>(FMath::RandRange(4, 10), FVector2D(InitalXValue + XOriginOffset, InitalYValue + YOriginOffset)));
+	BiomePoints.Add(TPair<int32, FVector2D>(NewBiome, FVector2D(InitalXValue + XOriginOffset, InitalYValue + YOriginOffset)));
 
 
 	//a list of all points which can still have neighbouring biomes placed around it
@@ -84,16 +86,16 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 
 			//due to the setup only need to check the neighbours grid cell one cell away from the current point
 			bool bOffsetValid = true;
-			for (int32 i = -2; i <= 2; i++)
+			for (int32 i = -1; i <= 1; i++)
 			{
-				for (int32 j = -2; j <= 2; j++)
+				for (int32 j = -1; j <= 1; j++)
 				{
 					//as long as the new point falls within the bounds of the island it can be used
 					if (OffsetGridXPosition + j >= 0 && OffsetGridXPosition + j < GridWidth && OffsetGridYPosition + i >= 0 && OffsetGridYPosition + i < GridHeight)
 					{
 						int32 NeighbourGridIndex = (OffsetGridYPosition + i) * GridWidth + (OffsetGridXPosition + j);
 						float Distance = FVector2D::Distance(OffsetPosition, GridPoints[NeighbourGridIndex]); //determine the distance between the active point and its neighbour's location
-						if (bGridContainsPoint[NeighbourGridIndex] && Distance < Radius) //if the offset point testing is too close to another already existing point
+						if (GridBiomes[NeighbourGridIndex] != -1 && Distance < Radius) //if the offset point testing is too close to another already existing point
 							bOffsetValid = false;
 					}
 					else //as outside array bounds it is also invalid
@@ -106,10 +108,12 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 			{
 				int32 OffsetGridIndex = (OffsetGridYPosition) * GridWidth + (OffsetGridXPosition);
 				GridPoints[OffsetGridIndex] = OffsetPosition;
-				bGridContainsPoint[OffsetGridIndex] = true;
+
+				NewBiome = DetermineBiome(GridBiomes[ActiveGridIndexValue], DifferentBiomesMap);
+				GridBiomes[OffsetGridIndex] = NewBiome;
 
 				//add the point as a valid biome location
-				BiomePoints.Add(TPair<int32, FVector2D>(FMath::RandRange(4, 10), FVector2D(OffsetPosition.X + XOriginOffset, OffsetPosition.Y + YOriginOffset)));
+				BiomePoints.Add(TPair<int32, FVector2D>(NewBiome, FVector2D(OffsetPosition.X + XOriginOffset, OffsetPosition.Y + YOriginOffset)));
 				ActiveList.Add(OffsetGridIndex); //add the index of the point to the active list
 
 				bValidCandidate = true;
@@ -122,6 +126,20 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	}
 
 	return BiomePoints;
+}
+
+int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32, FBiomeStats>& DifferentBiomesMap) //needs a reference to the biomes list
+{
+	if (NeighbourBiome == -1) //i.e no biome exists yet
+	{
+		return 4;
+	}
+	else
+	{
+		//pick random biome from list of all possible biomes
+		int32 RandBiome = FMath::RandRange(0, DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys.Num() - 1); //also tie in the rarity system somehow
+		return 7;//DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys[RandBiome]; //return the value stored at the randomly choosen position within the array
+	}
 }
 
 ////bool PoissonDiskSampling::bIsValid(FVector2D CandidatePoint, int32 GridPosition, int32 GridXSize, int32 CellSize)
