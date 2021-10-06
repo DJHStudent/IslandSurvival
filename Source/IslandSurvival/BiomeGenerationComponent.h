@@ -78,13 +78,14 @@ public:
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
 	int32 IslandKeys;
 
-	void VerticesBiomes(); //for each island determine the biome(s) residing their
+	void VerticesBiomes(FRandomStream& Stream); //for each island determine the biome(s) residing their
 
 
 	UPROPERTY(EditAnywhere)
 	TMap<int32, FBiomeStats> DifferentBiomesMap; //A map of the stats of each biome and the int key used to identify it, a map is used so can gain easy access to any biome by simply using its key
 
-	void SpawnMeshes();
+	void SpawnMeshes(FRandomStream& Stream);
+	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where their is a list of each biome and every vertex which makes it up 
 private:
 
 	PoissonDiskSampling DiskSampling;
@@ -94,12 +95,10 @@ private:
 	
 	void UpdateBiomeLists(FLinearColor BiomeColour, int32 Biome, int32 VertexIdentifier);
 	bool bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //based on height of point, determine the biome 
-	void SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
-	void MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
+	void SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, FRandomStream& Stream); //islands below a certain size will have only 1 biome
+	void MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, FRandomStream& Stream); //islands below a certain size will have only 1 biome
 
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single island
 	float SingleIslandMaxSize; 
-
-	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where their is a list of each biome and every vertex which makes it up 
 };

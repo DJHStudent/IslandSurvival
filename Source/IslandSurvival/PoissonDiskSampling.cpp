@@ -3,7 +3,6 @@
 
 #include "PoissonDiskSampling.h"
 #include "Containers/Queue.h"
-#include "Kismet/KismetMathLibrary.h"
 
 PoissonDiskSampling::PoissonDiskSampling()
 {
@@ -13,7 +12,7 @@ PoissonDiskSampling::~PoissonDiskSampling()
 {
 }
 
-TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, FBiomeStats>& DifferentBiomesMap)
+TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, FBiomeStats>& DifferentBiomesMap, FRandomStream& Stream)
 {
 	TArray<TPair<int32, FVector2D>> BiomePoints; //a list of points and the biomes which comprise them
 
@@ -32,13 +31,13 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	GridPoints.Init(FVector2D::ZeroVector, GridWidth * GridHeight);
 	GridBiomes.Init(-1, GridWidth * GridHeight);
 
-	UE_LOG(LogTemp, Warning, TEXT("Values:::: %i, %i, %f, %f, %i, %f"), GridHeight, GridWidth, IslandWidth, IslandHeight, GridPoints.Num(), CellSize)
+	//UE_LOG(LogTemp, Warning, TEXT("Values:::: %i, %i, %f, %f, %i, %f"), GridHeight, GridWidth, IslandWidth, IslandHeight, GridPoints.Num(), CellSize)
 		/*
 			Add an inital first value to the grid
 		*/
 		//within bounds of island rectangle determine a random point
-	float InitalXValue = IslandHeight / 2;//FMath::RandRange(0.0f, IslandWidth / CellSize); 
-	float InitalYValue = IslandWidth / 2; //FMath::RandRange(0.0f, IslandHeight / CellSize);
+	float InitalXValue = IslandHeight / 2;//dRange(0.0f, IslandWidth / CellSize); 
+	float InitalYValue = IslandWidth / 2; //FMath::RdandRange(0.0f, IslandHeight / CellSize);
 
 	//determine the index of the point within the grid i.e the grid cell the point belongs too
 	int32 XPosition = FMath::Clamp(FMath::FloorToInt(InitalXValue / CellSize), 0, GridWidth - 1);
@@ -47,7 +46,7 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	//add the inital point into the grid
 	GridPoints[InitialGridLocation] = FVector2D(InitalXValue, InitalYValue);
 
-	int32 NewBiome = DetermineBiome(GridBiomes[InitialGridLocation], DifferentBiomesMap);
+	int32 NewBiome = DetermineBiome(GridBiomes[InitialGridLocation], DifferentBiomesMap, Stream);
 	GridBiomes[InitialGridLocation] = NewBiome;
 
 	//add the point as a valid biome location. Need the offset value as grid values centred around 0,0 so will shift the point to be around the islands location
@@ -64,7 +63,7 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	while (ActiveList.Num() > 0 && GridWidth * GridHeight > 1) //while a point can still have neighbours continue to add/ check
 	{//issue is multiple items can go into the same cell, overriding its current value and as result messing everything up
 		//random active index of the grid
-		int32 ActiveGridIndex = FMath::RandRange(0, ActiveList.Num() - 1);
+		int32 ActiveGridIndex = Stream.RandRange(0, ActiveList.Num() - 1);
 		int32 ActiveGridIndexValue = ActiveList[ActiveGridIndex]; //get the value stored at this grid location
 		FVector2D ActiveIndexLocation = GridPoints[ActiveGridIndexValue];
 
@@ -74,10 +73,10 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 		{
 			//generate a random point between r and 2r of the active one
 			//determine location of new point to check
-			float Angle = FMath::RandRange(0.0f, 1.0f) * PI * 2;
+			float Angle = Stream.RandRange(0.0f, 1.0f) * PI * 2;
 			//FVector Direction3D = UKismetMathLibrary::RandomUnitVector();//get direction to offset the point by
 			FVector2D OffsetDirection = FVector2D(FMath::Cos(Angle), FMath::Sin(Angle));//FVector2D(Direction3D.X, Direction3D.Y); //get a random direction to offset the current active point by
-			float OffsetDistance = 2 * Radius;// FMath::RandRange(2 * Radius, Radius + 1); //get a random distance away from the current active point between Radius and 2 * Radius
+			float OffsetDistance = 2 * Radius;// FMath::RdandRange(2 * Radius, Radius + 1); //get a random distance away from the current active point between Radius and 2 * Radius
 			
 			//determine the location and cell the offset point belongs too
 			FVector2D OffsetPosition = ActiveIndexLocation + OffsetDirection * OffsetDistance; //the new point will be an offset of the active point based on above parameters
@@ -109,7 +108,7 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 				int32 OffsetGridIndex = (OffsetGridYPosition) * GridWidth + (OffsetGridXPosition);
 				GridPoints[OffsetGridIndex] = OffsetPosition;
 
-				NewBiome = DetermineBiome(GridBiomes[ActiveGridIndexValue], DifferentBiomesMap);
+				NewBiome = DetermineBiome(GridBiomes[ActiveGridIndexValue], DifferentBiomesMap, Stream);
 				GridBiomes[OffsetGridIndex] = NewBiome;
 
 				//add the point as a valid biome location
@@ -128,17 +127,19 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	return BiomePoints;
 }
 
-int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32, FBiomeStats>& DifferentBiomesMap) //needs a reference to the biomes list
+int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32, FBiomeStats>& DifferentBiomesMap, FRandomStream& Stream) //needs a reference to the biomes list
 {
 	if (NeighbourBiome == -1) //i.e no biome exists yet
 	{
-		return 4;
+		int32 RandBiome = Stream.RandRange(7, 12); //the keys for the biomes not bound by specific conditions
+
+		return RandBiome;
 	}
 	else
 	{
 		//pick random biome from list of all possible biomes
-		int32 RandBiome = FMath::RandRange(0, DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys.Num() - 1); //also tie in the rarity system somehow
-		return 7;//DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys[RandBiome]; //return the value stored at the randomly choosen position within the array
+		int32 RandBiome = Stream.RandRange(0, DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys.Num() - 1); //also tie in the rarity system somehow
+		return DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys[RandBiome]; //return the value stored at the randomly choosen position within the array
 	}
 }
 
@@ -162,8 +163,8 @@ int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32
 //bGridHasValue.Init(false, GridXSize* GridYSize); //create a grid of values initilized to 0(empty) so each point is Radius appart
 //
 ////randomly choose an inital starting point to be somehwhere on the grid
-//int32 RandomPointX = FMath::RandRange(0, IslandWidth - 1); //give a random point within bounds of the island
-//int32 RandomPointY = FMath::RandRange(0, IslandHeight - 1); //give a random point within bounds of the island
+//int32 RandomPointX = FMath::d(0, IslandWidth - 1); //give a random point within bounds of the island
+//int32 RandomPointY = FMath::dRandRange(0, IslandHeight - 1); //give a random point within bounds of the island
 //int32 GridPoint = FMath::FloorToInt(RandomPointY / CellSize) * GridXSize + FMath::FloorToInt(RandomPointX / CellSize); //get the index on the grid this point is within
 //Grid[GridPoint] = FVector2D(RandomPointX, RandomPointY);
 //bGridHasValue[GridPoint] = true;
@@ -176,7 +177,7 @@ int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32
 //while (ActiveList.Num() > 0) //while elements exist within the ActiveList
 //{
 //	UE_LOG(LogTemp, Warning, TEXT("Truing to poisson disk sampling again"))
-//		int32 RandomActivePoint = FMath::RandRange(0, ActiveList.Num() - 1); //give the actual world co-ordinates of a point from the active list
+//		int32 RandomActivePoint = FMath::RdandRange(0, ActiveList.Num() - 1); //give the actual world co-ordinates of a point from the active list
 //	FVector2D RandomPointPosition = Grid[RandomActivePoint]; //position of a random point on the grid
 //
 //	bool bValidCanditdate = false;
@@ -194,7 +195,7 @@ int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32
 //		//determine location of new point to check
 //		FVector Direction3D = UKismetMathLibrary::RandomUnitVector();//FVector2D::UnitVector;
 //		FVector2D Direction2D = FVector2D(Direction3D.X, Direction3D.Y); //converts the 3D vector into a 2D vector
-//		float Distance = FMath::RandRange(Radius, 2 * Radius);
+//		float Distance = FMath::RadndRange(Radius, 2 * Radius);
 //		FVector2D OffsetPoint = RandomPointPosition + Distance * Direction2D; //gives us the points position offset by a direction for a distance
 //		int32 YPos = FMath::Clamp(FMath::FloorToInt(OffsetPoint.Y / CellSize), 0, GridYSize - 1);
 //		int32 XPos = FMath::Clamp(FMath::FloorToInt(OffsetPoint.X / CellSize), 0, GridXSize - 1);

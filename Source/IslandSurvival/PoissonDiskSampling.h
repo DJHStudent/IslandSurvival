@@ -16,9 +16,9 @@ public:
 	//radius is the min distance appart a biome can be from another, test values and try initially with the min island max size variable
 	//k is number of points to test before algorithm rejects it typically k = 30 is fine
 //	const TMap<int32, FBiomeStats>& DifferentBiomesMap;
-	TArray<TPair<int32, FVector2D>> CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, FBiomeStats>& DifferentBiomesMap); //create all the biomes points
+	TArray<TPair<int32, FVector2D>> CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, FBiomeStats>& DifferentBiomesMap, FRandomStream& Stream); //create all the biomes points
 	//bool bIsValid(FVector2D CandidatePoint, int32 GridPosition, int32 GridXSize, int32 CellSize);
 
 private:
-	int32 DetermineBiome(int32 NeighbourBiome, const TMap<int32, FBiomeStats>& DifferentBiomesMap); //for each point determine the biome which resides within it
+	int32 DetermineBiome(int32 NeighbourBiome, const TMap<int32, FBiomeStats>& DifferentBiomesMap, FRandomStream& Stream); //for each point determine the biome which resides within it
 };

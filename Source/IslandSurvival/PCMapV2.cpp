@@ -88,6 +88,7 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 	BiomeGeneration->IslandKeys = 0;
 	BiomeGeneration->IslandPointsMap.Empty();
 	BiomeGeneration->BiomeAtEachPoint.Empty();
+	BiomeGeneration->VertexBiomeLocationsMap.Empty();
 
 	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 }
@@ -170,9 +171,9 @@ void APCMapV2::CreateMesh() //make the map generate populating all the nessesary
 
 	}
 	//determine the biome of each vertex of the map which is above water
-	BiomeGeneration->VerticesBiomes();
+	BiomeGeneration->VerticesBiomes(Stream);
 	//spawn in all the appropriate meshes
-	///////BiomeGeneration->SpawnMeshes();
+	BiomeGeneration->SpawnMeshes(Stream);
 
 	////UKismetProceduralMeshLibrary::CalculateTangentsForMesh(Vertices, Triangles, UVCoords, NormalsEmptyToNotUse, Tangents); //auto generate the normals and tangents for mesh and add them to respective array
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, Normals, UVCoords, VerticeColours, Tangents, true);
