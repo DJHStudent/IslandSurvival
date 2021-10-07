@@ -86,6 +86,8 @@ public:
 
 	void SpawnMeshes(FRandomStream& Stream);
 	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where their is a list of each biome and every vertex which makes it up 
+	TArray<AActor*> MeshActors; //all actors added into the world
+
 private:
 
 	PoissonDiskSampling DiskSampling;
@@ -101,4 +103,6 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single island
 	float SingleIslandMaxSize; 
+
+	bool bCheckNeighbourHeight(float XPosition, float YPosition, int32 VertexIdentifier);
 };

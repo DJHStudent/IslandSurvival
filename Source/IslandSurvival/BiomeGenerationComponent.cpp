@@ -384,6 +384,7 @@ void UBiomeGenerationComponent::UpdateBiomeLists(FLinearColor BiomeColour, int32
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //give each vertex the appropriate biome designation
 
 	if (VertexBiomeLocationsMap.Contains(Biome)) {//update the list for each biome's positions on the map if it exists
+
 		VertexBiomeLocationsMap[Biome].Add(VertexIdentifier);
 		//UE_LOG(LogTemp, Error, TEXT("List of all biomes contained within the area: %i"), Biome)
 	}
@@ -394,7 +395,26 @@ void UBiomeGenerationComponent::UpdateBiomeLists(FLinearColor BiomeColour, int32
 		UE_LOG(LogTemp, Warning, TEXT("List of all biomes contained within the area: %i"), Biome)
 	}
 }
-
+bool UBiomeGenerationComponent::bCheckNeighbourHeight(float XPosition, float YPosition, int32 VertexIdentifier)
+{
+	for (int32 i = -1; i <= 1; i++) //height
+	{
+		for (int32 j = -1; j <= 1; j++) //width
+		{
+			//as long as the new point falls within the bounds of the island check its neighbour
+			if (XPosition + j >= 0 && YPosition + j < TerrainGenerator->Width && YPosition + i >= 0 && YPosition + i < TerrainGenerator->Height)
+			{
+				int32 NeighbourGridIndex = (YPosition + i) * TerrainGenerator->Width + (XPosition + j);
+				//if a neighbours point is not a similar height to this point, it will not be a point which a mesh can spawn
+				if (TerrainGenerator->Vertices[VertexIdentifier].Z < TerrainGenerator->Vertices[NeighbourGridIndex].Z - 20 || TerrainGenerator->Vertices[VertexIdentifier].Z > TerrainGenerator->Vertices[NeighbourGridIndex].Z + 20)
+					return false;
+			}
+			else
+				return false;
+		}
+	}
+	return true;
+}
 //void UBiomeGenerationComponent::BiomeBlending()
 //{
 //	for (int32 i = 0; i < TerrainGenerator->Height; i++)
@@ -474,17 +494,40 @@ void UBiomeGenerationComponent::SpawnMeshes(FRandomStream& Stream) //spawn in th
 					if (BiomePoints.Value.Num() > 0) {
 						int32 VertexIndex = BiomePoints.Value[RandomLocation];
 						FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
+						//int32 XIndex = FMath::Clamp(FMath::);
+						////////int32 VertexIndexLocationX = FM
+						////////int32 MinXPosition = 0;
+						////////for (int32 j = -1; j <= 1; j + 2) //width
+						////////{
+						////////	//as long as the new point falls within the bounds of the island check its neighbour
+						////////	if (XPosition + j >= 0 && YPosition + j < TerrainGenerator->Width && YPosition + i >= 0 && YPosition + i < TerrainGenerator->Height)
+						////////	{
+						////////		int32 NeighbourGridIndex = (YPosition + i) * TerrainGenerator->Width + (XPosition + j);
+						////////	}
+						////////	else
+						////////		return false;
+						////////}
+						////////if(XPos)
+						////////int32 MaxXPosition = 0;
+						////////int32 MinYPosition = 0;
+						////////int32 MaxYPosition = 0;
+
+						//float XPosition = Stream.FRandRange(VertexLocation.X - TerrainGenerator->GridSize / 2, VertexLocation.X + TerrainGenerator->GridSize / 2);
+						//float YPosition = Stream.FRandRange(VertexLocation.Y - TerrainGenerator->GridSize / 2, VertexLocation.Y + TerrainGenerator->GridSize / 2);
 
 						FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
 						Rotation.Yaw = Stream.FRandRange(0.0f, 360.0f);
 
 						//////////spawn in a new mesh in specified location, with rotation
 						AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
+						SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 						SpawnedMesh->SetActorScale3D(FVector(Stream.FRandRange(15.0f, 45.0f))); //give the mesh the same random scale on all 3 axis
 						SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in one
+						SpawnedMesh->SetActorEnableCollision(DifferentMeshes.bHasCollision);
 
 						//remove the choosen location from the list so no new meshes can spawn there
 						BiomePoints.Value.RemoveAt(RandomLocation);
+						MeshActors.Add(SpawnedMesh);//SpawnedMesh->AttachToActor(TerrainGenerator, FAttachmentTransformRules::KeepWorldTransform);
 					}
 				}
 			}

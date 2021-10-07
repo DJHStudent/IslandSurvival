@@ -15,14 +15,17 @@ USTRUCT() struct FBiomeMeshes //Any stat nessesary for the different plants in a
 {
 	GENERATED_BODY()
 
-		UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "100"))//% out of 100 of the biomes area taken up by this model
-		float Density;
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "100"))//% out of 100 of the biomes area taken up by this model
+	float Density;
 	UPROPERTY(EditAnywhere)//the mesh to spawn in
-		UStaticMesh* Mesh;
+	UStaticMesh* Mesh;
+	UPROPERTY(EditAnywhere)
+	bool bHasCollision;
 
 	FBiomeMeshes()
 	{
 		Density = 0;
+		bHasCollision = true;
 	}
 };
 

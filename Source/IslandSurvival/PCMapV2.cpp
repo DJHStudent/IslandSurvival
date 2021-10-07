@@ -40,13 +40,7 @@ void APCMapV2::BeginPlay()
 	Super::BeginPlay();
 
 	//make a new map when generating in the world
-	ClearMap();
-	BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
-	Normals.Init(FVector::ZeroVector, Width * Height);
-	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
-	GenerateSeed();
-	CreateMesh();
-	bRegenerateMap = false;
+	RegenerateMap();
 }
 bool APCMapV2::ShouldTickIfViewportsOnly() const //run the code within the viewport when not running
 {
@@ -59,14 +53,19 @@ void APCMapV2::Tick(float DeltaTime)
 	////UE_LOG(LogTemp, Error, TEXT("Terrain Gen Actual Runtime Stats are: %i"), VerticeColours.Num())
 	if (bRegenerateMap)
 	{
-		bRegenerateMap = false;
-		ClearMap();
-		BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
-		Normals.Init(FVector::ZeroVector, Width * Height);
-		VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
-		GenerateSeed();
-		CreateMesh();
+		RegenerateMap();
 	}
+}
+
+void APCMapV2::RegenerateMap()
+{
+	ClearMap();
+	BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //at the beginning initilize each point to be ocean
+	Normals.Init(FVector::ZeroVector, Width * Height);
+	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height);
+	GenerateSeed();
+	CreateMesh();
+	bRegenerateMap = false;
 }
 
 void APCMapV2::ClearMap() //empties the map removing all data for it
@@ -90,6 +89,11 @@ void APCMapV2::ClearMap() //empties the map removing all data for it
 	BiomeGeneration->BiomeAtEachPoint.Empty();
 	BiomeGeneration->VertexBiomeLocationsMap.Empty();
 
+	for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0 ; i--)
+	{
+		BiomeGeneration->MeshActors[i]->Destroy();
+	}
+	BiomeGeneration->MeshActors.Empty();
 	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 }
 
@@ -209,10 +213,12 @@ float APCMapV2::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 
 void APCMapV2::GenerateSeed() //give a random seed, otherwise use the specified one from editor
 {
-	if (bRandomSeed) //14625
+	UE_LOG(LogTemp, Error, TEXT("Seed: %i"), Seed)
+	if (bRandomSeed || Seed == 0) //14625
 	{
 		Stream.GenerateNewSeed(); //this generates us a new random seed
 		Seed = Stream.GetCurrentSeed();
+
 	}
 	else
 	{

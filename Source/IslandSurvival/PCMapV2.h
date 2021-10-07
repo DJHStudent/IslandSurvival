@@ -29,9 +29,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent* MeshComponent;
 
-	UPROPERTY(EditAnywhere)//number of grid squares in X
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)//number of grid squares in X
 	int32 Width; 
-	UPROPERTY(EditAnywhere)//number of grid squares in Y
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)//number of grid squares in Y
 	int32 Height; 
 	UPROPERTY(EditAnywhere)//size of each grid square
 	float GridSize; 
@@ -50,6 +50,7 @@ public:
 	TArray<FProcMeshTangent> Tangents;
 
 	UFUNCTION(BlueprintCallable)
+	void RegenerateMap();
 	void CreateMesh();
 	void ClearMap();
 
@@ -68,6 +69,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class UBiomeGenerationComponent* BiomeGeneration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")
+	int32 Seed;
 private:
 	float GenerateHeight(int32 XPosition, int32 YPosition);
 
@@ -81,8 +85,6 @@ private:
 
 	float FractalBrownianMotion(int32 XPosition, int32 YPosition);
 
-	UPROPERTY(EditAnywhere, Category = "Seed")
-	int32 Seed;
 	//the random values to offset the perlin noise by in each octave, in order to introduce randomness
 	TArray<float> OcataveOffsets;
 

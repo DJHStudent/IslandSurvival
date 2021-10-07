@@ -148,17 +148,21 @@ void APlayerCharacter::DisplayPointBiome()
 	YPosition = FMath::Clamp(YPosition, 0, BiomeList->Height - 1);
 	//UE_LOG(LogTemp, Error, TEXT("Check each point Biome junk"), XPosition, YPosition, BiomeList->VerticeColours.Num())//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 
+	int32 BiomeIndex = YPosition * BiomeList->Width + XPosition;
+	if(BiomeIndex < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 		//if (YPosition * BiomeList->Width + XPosition < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 		{
-			int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[YPosition * BiomeList->Width + XPosition]; //biome at the specific point on map
+			int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[BiomeIndex]; //biome at the specific point on map
 			//(LogTemp, Error, TEXT("Different Biomes: %i, %f, %f, %i, %i"), YPosition * BiomeList->Width + XPosition, GetActorLocation().X, GetActorLocation().Y, BiomeList->BiomeGeneration->DifferentBiomesMap.Num(), BiomeOfPoint);//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 			
 			//FString Name = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint];//.BiomeName;
 			if(BiomeList->BiomeGeneration->DifferentBiomesMap.Contains(BiomeOfPoint))
-			CurrentBiomeText = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint].BiomeName; //for specific biome get its name
+				CurrentBiomeText = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint].BiomeName; //for specific biome get its name
 			else
-				CurrentBiomeText = "Biome Does Not Exist";
+				CurrentBiomeText = "Lookup Error";
 		}
+	else
+		CurrentBiomeText = "Lookup Error";
 	//	else
 			//CurrentBiomeText = "Error";
 
