@@ -16,7 +16,7 @@ APlayerCharacter::APlayerCharacter()
 	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	LookSensitivity = 1.0f;
-	SprintMultiplier = 5;
+	SprintMultiplier = 7.5f;
 
 	SprintMovementSpeed = GetCharacterMovement()->MaxWalkSpeed * SprintMultiplier;
 	NormalMovementSpeed = GetCharacterMovement()->MaxWalkSpeed;
@@ -35,9 +35,6 @@ void APlayerCharacter::BeginPlay()
 	USkeletalMeshComponent* SkeletalMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("Arms")));
 	if (SkeletalMesh)//ensures no null pointer and will only work if it exists
 		AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
-
-	////BiomeList = FindComponentByClass<UBiomeGenerationComponent>();//Cast<APCMapV2>(UGameplayStatics::GetActorOfClass(GetWorld(), APCMapV2::StaticClass()));//FindActorOfClass<APCMapV2>();
-	
 }
 
 // Called every frame
@@ -142,29 +139,23 @@ void APlayerCharacter::Reload()
 
 void APlayerCharacter::DisplayPointBiome()
 {
+	//based on the players actual position determine its position within the Biome at each point array
 	int32 XPosition = FMath::RoundToInt(GetActorLocation().X / BiomeList->GridSize);
 	int32 YPosition = FMath::RoundToInt(GetActorLocation().Y / BiomeList->GridSize);
+	//clamp the values so they don't fall outside of the size of the array of biome points
 	XPosition = FMath::Clamp(XPosition, 0, BiomeList->Width - 1);
 	YPosition = FMath::Clamp(YPosition, 0, BiomeList->Height - 1);
-	//UE_LOG(LogTemp, Error, TEXT("Check each point Biome junk"), XPosition, YPosition, BiomeList->VerticeColours.Num())//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
 
-	int32 BiomeIndex = YPosition * BiomeList->Width + XPosition;
-	if(BiomeIndex < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
-		//if (YPosition * BiomeList->Width + XPosition < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
-		{
-			int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[BiomeIndex]; //biome at the specific point on map
-			//(LogTemp, Error, TEXT("Different Biomes: %i, %f, %f, %i, %i"), YPosition * BiomeList->Width + XPosition, GetActorLocation().X, GetActorLocation().Y, BiomeList->BiomeGeneration->DifferentBiomesMap.Num(), BiomeOfPoint);//BiomeList->BiomeGeneration->BiomeAtEachPoint.Num())
-			
-			//FString Name = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint];//.BiomeName;
-			if(BiomeList->BiomeGeneration->DifferentBiomesMap.Contains(BiomeOfPoint))
-				CurrentBiomeText = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint].BiomeName; //for specific biome get its name
-			else
-				CurrentBiomeText = "Lookup Error";
-		}
+	int32 BiomeIndex = YPosition * BiomeList->Width + XPosition; //get the 1D index of the position of the point 
+	if (BiomeIndex < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num()) //check to ensure the index doesn't fall outside the bounds of the array
+	{
+		int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[BiomeIndex]; //biome at the specific point on map
+
+		if (BiomeList->BiomeGeneration->DifferentBiomesMap.Contains(BiomeOfPoint)) //if the biome choosen actually does exist i.e an error occured when adding it's value to the list
+			CurrentBiomeText = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint].BiomeName; //for specific biome get its name and display it to the UI
+		else
+			CurrentBiomeText = "Lookup Error";
+	}
 	else
-		CurrentBiomeText = "Lookup Error";
-	//	else
-			//CurrentBiomeText = "Error";
-
-	//print this out as a string
+		CurrentBiomeText = "Lookup Error"; //display an error as one occured when trying to access a biome as it didn't exist
 }

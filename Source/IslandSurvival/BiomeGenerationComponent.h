@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "PoissonDiskSampling.h"
-#include "PCMapV2.h"
+#include "ProcedurallyGeneratedTerrain.h"
 #include "BiomeStats.h"
 #include "BiomeGenerationComponent.generated.h"
 
@@ -15,14 +15,15 @@ USTRUCT() struct FIslandStats //the different parameters for an island
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	TArray<int32> VertexIndices;
+	TArray<int32> VertexIndices; //a list of the indexes of the vertex array which make up the island
 
-	float MinXPosition;
-	float MaxXPosition;
-	float MinYPosition;
-	float MaxYPosition;
+	//these points used to determine the position of biomes on the island
+	float MinXPosition; //the smallest X vertex postion of the island
+	float MaxXPosition; //the largest X vertex postion of the island
+	float MinYPosition; //the smallest Y vertex postion of the island
+	float MaxYPosition; //the largest Y vertex postion of the island
 
-	void UpdateIslandBounds(FVector2D NewSize) //as points get added update the variables as they change
+	void UpdateIslandBounds(FVector2D NewSize) //as points get added update the islands min/max positions accordingly
 	{
 		if (NewSize.X < MinXPosition)
 			MinXPosition = NewSize.X;
@@ -63,46 +64,40 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-
-	//all related to determining the locations of all points on an island
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "-1", ClampMax = "1"))
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "-1", ClampMax = "1")) //the Z position of water on the map
 	float WaterLine;
 
-	class APCMapV2* TerrainGenerator;
+	class AProcedurallyGeneratedTerrain* TerrainGenerator;
 
-	//stuff for determining where each island is
-	float AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition);
+	void AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition); //for each point determine the island it relates too
 	UPROPERTY()
-	TMap<int32, FIslandStats> IslandPointsMap; //a list of every island and the vertices contained within it, being their array index value within the vertices array
+	TMap<int32, FIslandStats> IslandPointsMap; //a map containing a key for the specific island it is and its various statistics
 	//an island is just a set of any number of vertices which are joined together above the waterline
-	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
-	int32 IslandKeys;
+	int32 IslandKeys; //the current max key have, ensuring no duplicates are created
 
-	void VerticesBiomes(FRandomStream& Stream); //for each island determine the biome(s) residing their
+	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
+	void VerticesBiomes(); //for each island determine the biome(s) residing within it
 
 
 	UPROPERTY(EditAnywhere)
-	TMap<int32, FBiomeStats> DifferentBiomesMap; //A map of the stats of each biome and the int key used to identify it, a map is used so can gain easy access to any biome by simply using its key
+	TMap<int32, FBiomeStats> DifferentBiomesMap; //A map holding the various stats for each biome such as its name and colour, each having a specific key identofying it for fast lookup
 
-	void SpawnMeshes(FRandomStream& Stream);
-	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where their is a list of each biome and every vertex which makes it up 
-	TArray<AActor*> MeshActors; //all actors added into the world
+	void SpawnMeshes(); //for each biome spawn in the appropriate meshes
+	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where the key is the biomes key it relates to and the index of every vertex held within 
+	TArray<AActor*> MeshActors; //all meshes added into the world
 
 private:
 
 	PoissonDiskSampling DiskSampling;
 
-	//UPROPERTY(EditAnywhere)
-	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined, join them together
+	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined and disconected, so join them together
 	
-	void UpdateBiomeLists(FLinearColor BiomeColour, int32 Biome, int32 VertexIdentifier);
-	bool bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //based on height of point, determine the biome 
-	void SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, FRandomStream& Stream); //islands below a certain size will have only 1 biome
-	void MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, FRandomStream& Stream); //islands below a certain size will have only 1 biome
+	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier); 
+	bool bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //determine if it is a height based biome or not
+	void SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
+	void MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //for all biomes above a certain size generate multiple biomes
 
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single island
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single biome
 	float SingleIslandMaxSize; 
-
-	bool bCheckNeighbourHeight(float XPosition, float YPosition, int32 VertexIdentifier);
 };

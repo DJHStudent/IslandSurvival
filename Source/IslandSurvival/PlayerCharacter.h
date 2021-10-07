@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h" //much be above the generated.h file
-#include "PCMapV2.h"
+#include "ProcedurallyGeneratedTerrain.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
@@ -62,6 +62,6 @@ private: //i.e a member variable
 	class UPlayerCharacterAnimInstance* AnimInstance;
 
 	UPROPERTY(EditAnywhere)
-	APCMapV2* BiomeList;
+	AProcedurallyGeneratedTerrain* BiomeList;
 	void DisplayPointBiome(); //displays the biome at the specified point
 };
