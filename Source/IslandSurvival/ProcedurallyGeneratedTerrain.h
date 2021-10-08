@@ -83,8 +83,6 @@ private:
 	void GenerateSeed(); //determine the seed for the map
 
 	float DomainWarping(float XPos, float YPos); //offset the vertices of each point by specific values
-	UPROPERTY(EditAnyWhere, Category = "Domain Warping")
-	bool bDoDomain;
 	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//the amount of offset to actually apply to each vertex
 	float DomainAmount; 
 
@@ -95,12 +93,7 @@ private:
 	float Size;
 	UPROPERTY(EditAnywhere, Category = "FallOff") //amound of the map, from centre point is above water
 	float AboveWater;
-	UPROPERTY(EditAnywhere, Category = "FallOff") //should the map be an island or not
-	bool bDoFalloff;
-
-
-	UPROPERTY(EditAnywhere, Category = "Terraces") //should the terrain be terraced
-	bool bDoTerracing;	
+	
 	UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
 	float TerraceSize;
 };

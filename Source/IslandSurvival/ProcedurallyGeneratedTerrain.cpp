@@ -30,15 +30,12 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 	Grain = 0.5f;
 
 	DomainAmount = 40;
-	bDoDomain = true;
 
 	Size = 2.0f;
 	Steepness = 20.0f;
 	AboveWater = 0.0025f;
-	bDoFalloff = true;
 
 	TerraceSize = 112.5f;
-	bDoTerracing = true;
 }
 
 // Called when the game starts or when spawned
@@ -181,9 +178,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	//	Normals[x] = -item;		
 
 	//}*/
-
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
-
 	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
@@ -226,25 +221,21 @@ float AProcedurallyGeneratedTerrain::DomainWarping(float XPosition, float YPosit
 
 float AProcedurallyGeneratedTerrain::GenerateHeight(int32 XPosition, int32 YPosition) //all the functions for determining the height of a specific point
 {
-	float FBMValue;
-	if (bDoDomain) //determine the inital value of the point based on if using domain warping or not
-		FBMValue = DomainWarping(XPosition, YPosition);
-	else
-		FBMValue = FractalBrownianMotion(XPosition, YPosition);
+	float FBMValue = DomainWarping(XPosition, YPosition); //determine the inital value of the point using domain warping
 
-	float HeightValue = FBMValue * FMath::Pow(FBMValue, 2.0f); //this will give us terrain which consists mostly of flater land broken up occasionally by hills and valleys
-
-	HeightValue *= FMath::Abs(FBMValue); //this will add sharp gullies as a possibility to occur
+	float HeightValue = FBMValue;
+	HeightValue *= FMath::Pow(FBMValue, 2.0f); //this will give us terrain which consists mostly of flater land broken up occasionally by hills and valleys
+	HeightValue *= FMath::Abs(FBMValue); //this will add more rolling hills
 	HeightValue *= 1 - FMath::Abs(FBMValue); //this will add sharp peaks or ridges as a possibility to occur
 
 	//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
 
-	if(bDoFalloff) //determine how much the height will decrease based on the sqaure gradient map
+	//if(bDoFalloff) //determine how much the height will decrease based on the sqaure gradient map
 		HeightValue -= SquareGradient(XPosition, YPosition);
 
 
-	if(bDoTerracing) //terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
-		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;
+	//if(bDoTerracing) //terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue); //Calculate the island this point relates to for the biome generation
 
@@ -261,7 +252,9 @@ float AProcedurallyGeneratedTerrain::SquareGradient(float XPosition, float YPosi
 	float Y = YPosition / Height * 2 - 1;
 
 	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //for a sqaure gradient determine the positive value closest to the edge
-	Value = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size)) - AboveWater; //using this specific S curve equation compute the amount to reduce the terrains height by
+
+	//using this specific S curve equation compute the amount to reduce the terrains height by
+	Value = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size)) - AboveWater;
 	
 	return Value;
 }
