@@ -119,7 +119,6 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 
 void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populating all the nessesary data
 {
-	int32 TriangleCalculating = 0; //the current triangle of the mesh which is being calculated
 	//loop through each vertex of the terrain
 	for (int32 i = 0; i < Height; i++)
 	{
@@ -134,50 +133,8 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 				Triangles.Add(i * Width + j); Triangles.Add((i + 1) * Width + j); Triangles.Add(i * Width + (j + 1));
 				Triangles.Add(i * Width + (j + 1)); Triangles.Add((i + 1) * Width + j); Triangles.Add((i + 1) * Width + (j + 1));
 			}
-////			if (j > 0 && i > 0) //for each triangle of the mesh determine its normal using the cross product method
-////			{
-////				//get the vertex of the first triangle
-////				//then get vertex of second triangle
-////				//6 points shift each time through to get the next triangle in the array
-////				for (int32 k = 0; k < 2; k++)
-////				{
-////
-////					/// <summary>
-////					/// error here as going down, not accross
-////					/// </summary>
-///////////////////////////					UE_LOG(LogTemp, Warning, TEXT("Vertices Count: %i, %i, %i, %i, %i"), i, j, Triangles.Num(), Vertices.Num(), TriangleCalculating)
-////						int32 trianlgeAtInArray = TriangleCalculating * 3;
-////
-////					FVector A = Vertices[Triangles[trianlgeAtInArray]];
-////					FVector B = Vertices[Triangles[trianlgeAtInArray + 1]];
-////					FVector C = Vertices[Triangles[trianlgeAtInArray + 2]];
-////
-////					FVector AB = A-B;
-////					FVector AC = A-C;
-////					FVector TrianlgeNormal = FVector::CrossProduct(AB, AC);
-////					TrianlgeNormal.Normalize(0.0001f); //this will get us just a vector pointing in a specific direction
-////					//TriangleNormals.Add(TrianlgeNormal);
-////
-////					Normals[Triangles[trianlgeAtInArray]] += TrianlgeNormal;
-////					Normals[Triangles[trianlgeAtInArray + 1]] += TrianlgeNormal;
-////					Normals[Triangles[trianlgeAtInArray + 2]] += TrianlgeNormal;
-////
-////
-////
-////					TriangleCalculating++;
-////				}
-////			}
-
-			//as now have the normal for each triangle can calculate normal for each vertex
 		}
 	}
-	///*for(int32 x = 0; x < Normals.Num(); x++)
-	//{
-	//	FVector item = Normals[x];
-	//	item.Normalize(0.0001f);
-	//	Normals[x] = -item;		
-
-	//}*/
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
 	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 
@@ -228,14 +185,9 @@ float AProcedurallyGeneratedTerrain::GenerateHeight(int32 XPosition, int32 YPosi
 	HeightValue *= FMath::Abs(FBMValue); //this will add more rolling hills
 	HeightValue *= 1 - FMath::Abs(FBMValue); //this will add sharp peaks or ridges as a possibility to occur
 
-	//https://paginas.fe.up.pt/~ei12054/presentation/documents/thesis.pdf pg 39
+	HeightValue -= SquareGradient(XPosition, YPosition); 	//determine how much the height will decrease based on the sqaure gradient map
 
-	//if(bDoFalloff) //determine how much the height will decrease based on the sqaure gradient map
-		HeightValue -= SquareGradient(XPosition, YPosition);
-
-
-	//if(bDoTerracing) //terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
-		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+	HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue); //Calculate the island this point relates to for the biome generation
 
