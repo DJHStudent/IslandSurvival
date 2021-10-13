@@ -136,7 +136,8 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 		}
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
-	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
+	if(bDoMeshes)
+		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
@@ -181,13 +182,21 @@ float AProcedurallyGeneratedTerrain::GenerateHeight(int32 XPosition, int32 YPosi
 	float FBMValue = DomainWarping(XPosition, YPosition); //determine the inital value of the point using domain warping
 
 	float HeightValue = FBMValue;
-	HeightValue *= FMath::Pow(FBMValue, 2.0f); //this will give us terrain which consists mostly of flater land broken up occasionally by hills and valleys
-	HeightValue *= FMath::Abs(FBMValue); //this will add more rolling hills
-	HeightValue *= 1 - FMath::Abs(FBMValue); //this will add sharp peaks or ridges as a possibility to occur
+	if(bDoPower || bIsPower)
+		HeightValue *= FMath::Pow(FBMValue, 2.0f); //this will give us terrain which consists mostly of flater land broken up occasionally by hills and valleys
+	if(bDoBillowy)
+		HeightValue *= FMath::Abs(FBMValue); //this will add more rolling hills
+	if (bIsBillowy)
+		HeightValue = FMath::Abs(HeightValue);
+	if(bDoRigid)
+		HeightValue *= 1 - FMath::Abs(FBMValue); //this will add sharp peaks or ridges as a possibility to occur
+	if(bIsRigid)
+		HeightValue = 1 - FMath::Abs(HeightValue);
 
-	HeightValue -= SquareGradient(XPosition, YPosition); 	//determine how much the height will decrease based on the sqaure gradient map
-
-	HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+	if(bDoIsland)
+		HeightValue -= SquareGradient(XPosition, YPosition); 	//determine how much the height will decrease based on the sqaure gradient map
+	if(bDoTerrace)
+		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue); //Calculate the island this point relates to for the biome generation
 
