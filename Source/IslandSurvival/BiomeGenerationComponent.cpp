@@ -252,6 +252,18 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[Biome].BiomeColour; //for the specified biome assign the vertex the appropriate colour
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //also give each vertex the appropriate biome
 
+	//assign the appropriate height value to the vertex
+	if (Biome == 9 || Biome == 12 || Biome == 11 || Biome == 8 || Biome == 10)// || Biome == 12)
+	{
+		//DifferentBiomesMap[Biome].BiomeHeight.TerraceSize = TerrainGenerator->TerraceSize;
+		DifferentBiomesMap[Biome].BiomeHeight.OcataveOffsets = TerrainGenerator->OcataveOffsets;
+
+		int32 XPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
+		int32 YPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
+		TerrainGenerator->Vertices[VertexIdentifier].Z = DifferentBiomesMap[Biome].BiomeHeight.GenerateHeight(XPos, YPos);
+	}
+
+
 	if (VertexBiomeLocationsMap.Contains(Biome)) //update the list holding each biome and the vertices contained within them, if they exist
 		VertexBiomeLocationsMap[Biome].Add(VertexIdentifier);
 	else //add a new biome too the list as it has not been seen before

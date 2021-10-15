@@ -136,9 +136,10 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 		}
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
-	if(bDoMeshes)
+	if (bDoMeshes)
+	{
 		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
-
+	}
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
 }
@@ -152,7 +153,8 @@ float AProcedurallyGeneratedTerrain::FractalBrownianMotion(int32 XPosition, int3
 	for (int32 i = 0; i < Octaves; i++) //the number of layers of noise to include
 	{
 		//for each octave determine the noise value to use, using frequency
-		float NoiseValue = FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffsets[i], YPosition + OcataveOffsets[i]) * Frequency * PerlinRoughness);
+		float NoiseValue = (FMath::PerlinNoise2D(FVector2D(XPosition + OcataveOffsets[i], YPosition + OcataveOffsets[i]) * Frequency * PerlinRoughness));
+		//NoiseValue = (NoiseValue - -1) / (1 - -1) * (1 - 0) + 0; //normalize value into range of 0 - 1
 	
 		HeightSum += NoiseValue * Amplitude; //add this noise value to the total with amplitude
 
@@ -179,7 +181,7 @@ float AProcedurallyGeneratedTerrain::DomainWarping(float XPosition, float YPosit
 
 float AProcedurallyGeneratedTerrain::GenerateHeight(int32 XPosition, int32 YPosition) //all the functions for determining the height of a specific point
 {
-	float FBMValue = DomainWarping(XPosition, YPosition); //determine the inital value of the point using domain warping
+	float FBMValue = DomainWarping(XPosition, YPosition);//+ 1) / 2; //determine the inital value of the point using domain warping
 
 	float HeightValue = FBMValue;
 	if(bDoPower || bIsPower)
@@ -199,6 +201,8 @@ float AProcedurallyGeneratedTerrain::GenerateHeight(int32 XPosition, int32 YPosi
 		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue); //Calculate the island this point relates to for the biome generation
+
+	UE_LOG(LogTemp, Warning, TEXT("Height: %f"), HeightValue)
 
 	HeightValue *= PerlinScale; //give the Z position its final in game height
 

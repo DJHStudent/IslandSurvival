@@ -63,6 +63,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")
 	int32 Seed; //seed to use in the map for seeded generation
 	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
+
+	//the random values to offset the perlin noise by in each octave, in order to introduce randomness
+	TArray<float> OcataveOffsets;
+
+	UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
+	float TerraceSize;
 private:
 	float GenerateHeight(int32 XPosition, int32 YPosition); //returns the height of each vertex in turn
 
@@ -74,9 +80,6 @@ private:
 	float Grain; 
 
 	float FractalBrownianMotion(int32 XPosition, int32 YPosition);
-
-	//the random values to offset the perlin noise by in each octave, in order to introduce randomness
-	TArray<float> OcataveOffsets;
 
 	UPROPERTY(EditAnywhere, Category = "Seed")//if true will give a random seed on each generation
 	bool bRandomSeed; 
@@ -93,9 +96,6 @@ private:
 	float Size;
 	UPROPERTY(EditAnywhere, Category = "FallOff") //amound of the map, from centre point is above water
 	float AboveWater;
-	
-	UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
-	float TerraceSize;
 
 	UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
 		bool bDoTerrace;
