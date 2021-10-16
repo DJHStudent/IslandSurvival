@@ -136,6 +136,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 		}
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
+	BiomeGeneration->BiomeLerping();
 	if (bDoMeshes)
 	{
 		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
@@ -202,7 +203,7 @@ float AProcedurallyGeneratedTerrain::GenerateHeight(int32 XPosition, int32 YPosi
 
 	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue); //Calculate the island this point relates to for the biome generation
 
-	UE_LOG(LogTemp, Warning, TEXT("Height: %f"), HeightValue)
+	//UE_LOG(LogTemp, Warning, TEXT("Height: %f"), HeightValue)
 
 	HeightValue *= PerlinScale; //give the Z position its final in game height
 

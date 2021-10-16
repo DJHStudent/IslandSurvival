@@ -116,7 +116,7 @@ USTRUCT() struct FBiomeHeight
 
 	float GenerateHeight(int32 XPosition, int32 YPosition) //all the functions for determining the height of a specific point
 	{
-		float FBMValue = DomainWarping(XPosition, YPosition); //determine the inital value of the point using domain warping
+		float FBMValue = (DomainWarping(XPosition, YPosition) + 1) / 2; //determine the inital value of the point using domain warping
 
 		float HeightValue = FBMValue;
 		if (bDoPower || bIsPower)
@@ -130,8 +130,8 @@ USTRUCT() struct FBiomeHeight
 		if (bIsRigid)
 			HeightValue = 1 - FMath::Abs(HeightValue);
 
-		if (bDoTerrace)
-			HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+		//if (bDoTerrace)
+			//HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 		HeightValue *= PerlinScale; //give the Z position its final in game height
 

@@ -86,6 +86,7 @@ public:
 	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where the key is the biomes key it relates to and the index of every vertex held within 
 	TArray<AActor*> MeshActors; //all meshes added into the world
 
+	void BiomeLerping();
 private:
 
 	PoissonDiskSampling DiskSampling;
@@ -96,7 +97,6 @@ private:
 	bool bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //determine if it is a height based biome or not
 	void SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
 	void MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //for all biomes above a certain size generate multiple biomes
-
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single biome
 	float SingleIslandMaxSize; 

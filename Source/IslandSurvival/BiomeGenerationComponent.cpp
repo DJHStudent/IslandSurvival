@@ -273,6 +273,176 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	}
 }
 
+void UBiomeGenerationComponent::BiomeLerping()
+{
+	TArray<bool> bBeenLerped;
+	bBeenLerped.Init(false, TerrainGenerator->Width * TerrainGenerator->Height);
+	for (int32 i = 0; i < TerrainGenerator->Height; i++)
+	{
+		for  (int32 j = 0; j < TerrainGenerator->Width; j++)
+		{
+			int32 VertexIndex = i * TerrainGenerator->Width + j;
+			float VertexValue = TerrainGenerator->Vertices[VertexIndex].Z;
+			//chech all neighbours of current vertex
+			for (int32 i1 = -1; i1 <= 1; i1++) //loop through all neighbouring grid points
+			{
+				for (int32 j1 = -1; j1 <= 1; j1++)
+				{
+					//as long as the new point falls within the bounds of the island it can be used
+					if (j + j1 >= 0 && j + j1 < TerrainGenerator->Width && i + i1 >= 0 && i + i1 < TerrainGenerator->Height)
+					{
+						//check the biome around the point
+						int32 NeighbourIndex = (i + i1) * TerrainGenerator->Width + (j + j1);
+						//float NeightbourValue = DifferentBiomesMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(i, j);//->GenerateHeight();
+						if (BiomeAtEachPoint[VertexIndex] != BiomeAtEachPoint[NeighbourIndex])
+						{
+							if (!bBeenLerped[VertexIndex])
+							{
+								float alpha = 0.5f;
+								//if (i1 == 3 || i1 == -3)
+								//	alpha = 0.25f;
+								float LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, alpha); //for vertex directly next to the new biome
+								TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
+								//////for (int32 a = -1; a <= 1; a++) //get neighbouring vertices of current one which are same biome
+								//////{
+								//////	for (int32 b = -1; b <= 1; b++)
+								//////	{
+								//////		if (j1 + b >= 0 && j1 + b < TerrainGenerator->Width && i1 + a >= 0 && i1 + a < TerrainGenerator->Height)
+								//////		{
+								//////			int32 SameNeighbourIndex = (i1 + a) * TerrainGenerator->Width + (j1 + b);
+								//////			//lerp between the two values
+								//////			if (BiomeAtEachPoint[VertexIndex] == BiomeAtEachPoint[SameNeighbourIndex])// && !bBeenLerped[SameNeighbourIndex])
+								//////			{
+								//////				UE_LOG(LogTemp, Error, TEXT("Same Biome"))
+								//////				//if (i1 == 3 || i1 == -3)
+								//////				//	alpha = 0.75f;
+								//////				float NewLerpedValue = FMath::Lerp(LerpedValue, TerrainGenerator->Vertices[SameNeighbourIndex].Z, alpha); //for vertex directly next to the new biome
+								//////				TerrainGenerator->Vertices[SameNeighbourIndex].Z = NewLerpedValue;
+								//////				bBeenLerped[SameNeighbourIndex] = true;
+
+								//////			}
+								//////		}
+								//////	}
+								//////}
+
+								bBeenLerped[VertexIndex] = true;
+							}
+							if (!bBeenLerped[NeighbourIndex])
+							{
+								float alpha = 0.5f;
+								
+								//if (i1 == 3 || i1 == -3)
+								//	alpha = 0.75f;
+								float LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, alpha); //for vertex directly next to the new biome
+								TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+								//////for (int32 a = -1; a <= 1; a++) //get neighbouring vertices of current one which are same biome
+								//////{
+								//////	for (int32 b = -1; b <= 1; b++)
+								//////	{
+								//////		if (j1 + b >= 0 && j1 + b < TerrainGenerator->Width && i1 + a >= 0 && i1 + a < TerrainGenerator->Height)
+								//////		{
+								//////			int32 SameNeighbourIndex = (i1 + a) * TerrainGenerator->Width + (j1 + b);
+								//////			//lerp between the two values
+								//////			if (BiomeAtEachPoint[NeighbourIndex] == BiomeAtEachPoint[SameNeighbourIndex])// && !bBeenLerped[SameNeighbourIndex])
+								//////			{
+								//////				UE_LOG(LogTemp, Error, TEXT("Same Biome"))
+								//////				//if (i1 == 3 || i1 == -3)
+								//////				//	alpha = 0.75f;
+								//////				float NewLerpedValue = FMath::Lerp(LerpedValue, TerrainGenerator->Vertices[SameNeighbourIndex].Z, alpha); //for vertex directly next to the new biome
+								//////				TerrainGenerator->Vertices[SameNeighbourIndex].Z = NewLerpedValue;
+								//////				bBeenLerped[SameNeighbourIndex] = true;
+
+								//////			}
+								//////		}
+								//////	}
+								//////}
+
+
+								bBeenLerped[NeighbourIndex] = true;
+							}
+
+						}
+					}
+				}
+			}
+
+			//uj
+
+			//////////chech all neighbours of current vertex if two away is a different biome
+			////////for (int32 i1 = -2; i1 <= 2; i1 ++) //loop through all neighbouring grid points
+			////////{
+			////////	for (int32 j1 = -2; j1 <= 2; j1 ++)
+			////////	{
+			////////		//as long as the new point falls within the bounds of the island it can be used
+			////////		if (j + j1 >= 0 && j + j1 < TerrainGenerator->Width && i + i1 >= 0 && i + i1 < TerrainGenerator->Height)
+			////////		{
+			////////			//check the biome around the point
+			////////			int32 NeighbourIndex = (i + i1) * TerrainGenerator->Width + (j + j1);
+			////////			//int32 NewVertexIndex = (i - i1) * TerrainGenerator->Width + (j - j1);
+			////////			if (BiomeAtEachPoint[VertexIndex] != BiomeAtEachPoint[NeighbourIndex])
+			////////			{
+			////////				if (!bBeenLerped[VertexIndex])
+			////////				{
+
+			////////					float alpha = 0.5f;
+			////////					if (i1 != 0) {
+			////////						alpha /= i1;
+			////////						float LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, alpha);
+			////////						TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
+			////////						bBeenLerped[VertexIndex] = true;
+			////////					}
+			////////				}
+			////////				if (!bBeenLerped[NeighbourIndex])
+			////////				{
+			////////					float alpha = 0.5f;
+			////////					if (i1 != 0) {
+			////////						alpha = 1 - 0.5f / i1;
+			////////						float LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, alpha);
+			////////						TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+			////////						bBeenLerped[NeighbourIndex] = true;
+			////////					}
+			////////				}
+
+			////////			}
+			////////		}
+			////////	}
+			////////}
+
+			//for (int32 i1 = -3; i1 <= 3; i1 += 3) //loop through all neighbouring grid points
+			//{
+			//	for (int32 j1 = -3; j1 <= 3; j1 += 3)
+			//	{
+			//		//as long as the new point falls within the bounds of the island it can be used
+			//		if (j + j1 >= 0 && j + j1 < TerrainGenerator->Width && i + i1 >= 0 && i + i1 < TerrainGenerator->Height)
+			//		{
+			//			//check the biome around the point
+			//			int32 NeighbourIndex = (i + i1) * TerrainGenerator->Width + (j + j1);
+			//			if (BiomeAtEachPoint[VertexIndex] != BiomeAtEachPoint[NeighbourIndex])
+			//			{
+			//				if (!bBeenLerped[VertexIndex])
+			//				{
+			//					float LerpedValue = FMath::Lerp(TerrainGenerator->Vertices[VertexIndex].Z, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.125f);
+			//					TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
+			//					bBeenLerped[NeighbourIndex] = true;
+			//				}
+			//				if (!bBeenLerped[NeighbourIndex])
+			//				{
+			//					float LerpedValue = FMath::Lerp(TerrainGenerator->Vertices[VertexIndex].Z, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.875f);
+			//					TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+			//					bBeenLerped[NeighbourIndex] = true;
+			//				}
+
+			//			}
+			//		}
+			//	}
+			//}
+
+			TerrainGenerator->Vertices[VertexIndex].Z = FMath::RoundFromZero(TerrainGenerator->Vertices[VertexIndex].Z * TerrainGenerator->TerraceSize) / TerrainGenerator->TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+		}
+	}
+}
+
+
 void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 {
 	for (auto& BiomePoints : VertexBiomeLocationsMap) //for each biome on the map
