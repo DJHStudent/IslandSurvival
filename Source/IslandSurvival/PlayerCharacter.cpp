@@ -152,7 +152,9 @@ void APlayerCharacter::DisplayPointBiome()
 		int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[BiomeIndex]; //biome at the specific point on map
 
 		if (BiomeList->BiomeGeneration->DifferentBiomesMap.Contains(BiomeOfPoint)) //if the biome choosen actually does exist i.e an error occured when adding it's value to the list
+		{
 			CurrentBiomeText = BiomeList->BiomeGeneration->DifferentBiomesMap[BiomeOfPoint].BiomeName; //for specific biome get its name and display it to the UI
+		}
 		else
 			CurrentBiomeText = "Lookup Error";
 	}
