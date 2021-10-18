@@ -262,7 +262,7 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 		int32 XPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
 		int32 YPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
 		TerrainGenerator->Vertices[VertexIdentifier].Z = DifferentBiomesMap[Biome].BiomeHeight.GenerateHeight(XPos, YPos);
-		TerrainGenerator->Vertices[VertexIdentifier].Z = FMath::RoundFromZero(TerrainGenerator->Vertices[VertexIdentifier].Z * TerrainGenerator->TerraceSize) / TerrainGenerator->TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+		//TerrainGenerator->Vertices[VertexIdentifier].Z = FMath::RoundFromZero(TerrainGenerator->Vertices[VertexIdentifier].Z * TerrainGenerator->TerraceSize) / TerrainGenerator->TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 	}
 
 
@@ -285,7 +285,7 @@ void UBiomeGenerationComponent::BiomeLerping()
 		{
 			int32 VertexIndex = i * TerrainGenerator->Width + j; //this is the current point at which is being checked
 			float VertexValue = TerrainGenerator->Vertices[VertexIndex].Z;
-			int32 blendAmount = 1;
+			int32 blendAmount = 2;
 
 			//chech all neighbours of current vertex
 			for (int32 i1 = -blendAmount; i1 <= blendAmount; i1++) //loop through all neighbouring grid points

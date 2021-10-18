@@ -14,8 +14,8 @@ USTRUCT() struct FIslandStats //the different parameters for an island
 {
 	GENERATED_BODY()
 
-		UPROPERTY(EditAnywhere)
-		TArray<int32> VertexIndices; //a list of the indexes of the vertex array which make up the island
+	UPROPERTY(EditAnywhere)
+	TArray<int32> VertexIndices; //a list of the indexes of the vertex array which make up the island
 
 		//these points used to determine the position of biomes on the island
 	float MinXPosition; //the smallest X vertex postion of the island

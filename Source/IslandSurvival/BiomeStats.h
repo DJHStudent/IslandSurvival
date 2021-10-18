@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "UObject/UObjectGlobals.h"
 #include "Engine/StaticMesh.h"
+#include "TerrainHeight.h"
 #include "BiomeStats.generated.h"
 
 /**
@@ -139,6 +141,7 @@ USTRUCT() struct FBiomeHeight
 	}
 	FBiomeHeight() //empty constructor for the class
 	{
+		//TerrainHeight = NewObject<UTerrainHeight>(this, TEXT("Terrain Height"), EObjectFlags::RF_Public);
 		TerraceSize = 15;
 		PerlinScale = 2000;
 		PerlinRoughness = 0.01f;
@@ -172,9 +175,12 @@ struct FBiomeStats//the stats for each biome which spawns in
 	UPROPERTY(EditAnywhere)
 	struct FBiomeHeight BiomeHeight;
 
+	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")
+	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
+
 	FBiomeStats()
 	{
-
+		//TerrainHeight = NewObject<UTerrainHeight>(GetOwner(), TEXT("Terrain Height"));
 		BiomeName = FString(TEXT(""));
 		BiomeColour = FLinearColor(0, 0, 0);
 	}

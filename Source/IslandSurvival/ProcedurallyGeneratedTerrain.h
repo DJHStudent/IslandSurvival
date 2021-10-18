@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "BiomeGenerationComponent.h"
+#include "TerrainHeight.h"
 #include "ProcedurallyGeneratedTerrain.generated.h"
 
 UCLASS()
@@ -47,10 +48,10 @@ public:
 	void CreateMesh();
 	void ClearMap(); //remove any data stored for the previous map
 
-	UPROPERTY(EditAnywhere)//the range of values perlin noise will return
-	float PerlinScale; 
-	UPROPERTY(EditAnywhere)//how spiky or smooth the terrain will be
-	float PerlinRoughness; 
+	////UPROPERTY(EditAnywhere)//the range of values perlin noise will return
+	////float PerlinScale; 
+	////UPROPERTY(EditAnywhere)//how spiky or smooth the terrain will be
+	////float PerlinRoughness; 
 
 
 	virtual bool ShouldTickIfViewportsOnly() const override; //update the maps terrain, when value changed even if in the editor and not running
@@ -67,53 +68,56 @@ public:
 	//the random values to offset the perlin noise by in each octave, in order to introduce randomness
 	TArray<float> OcataveOffsets;
 
-	UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
-	float TerraceSize;
+	//UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
+	//float TerraceSize;
 private:
-	float GenerateHeight(int32 XPosition, int32 YPosition); //returns the height of each vertex in turn
+	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")
+	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
 
-	UPROPERTY(EditAnywhere, Category = "FBM")//number of perlin noise maps to layer
-	int32 Octaves; 
-	UPROPERTY(EditAnywhere, Category = "FBM")//the gap in frequency from one layer to the next
-	float Lacunarity; 
-	UPROPERTY(EditAnywhere, Category = "FBM")//how the amplitude changes over time
-	float Grain; 
+	//float GenerateHeight(int32 XPosition, int32 YPosition); //returns the height of each vertex in turn
 
-	float FractalBrownianMotion(int32 XPosition, int32 YPosition);
+	//UPROPERTY(EditAnywhere, Category = "FBM")//number of perlin noise maps to layer
+	//int32 Octaves; 
+	//UPROPERTY(EditAnywhere, Category = "FBM")//the gap in frequency from one layer to the next
+	//float Lacunarity; 
+	//UPROPERTY(EditAnywhere, Category = "FBM")//how the amplitude changes over time
+	//float Grain; 
+
+	//float FractalBrownianMotion(int32 XPosition, int32 YPosition);
 
 	UPROPERTY(EditAnywhere, Category = "Seed")//if true will give a random seed on each generation
 	bool bRandomSeed; 
 	void GenerateSeed(); //determine the seed for the map
 
-	float DomainWarping(float XPos, float YPos); //offset the vertices of each point by specific values
-	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//the amount of offset to actually apply to each vertex
-	float DomainAmount; 
+	//////float DomainWarping(float XPos, float YPos); //offset the vertices of each point by specific values
+	////UPROPERTY(EditAnyWhere, Category = "Domain Warping")//the amount of offset to actually apply to each vertex
+	////float DomainAmount; 
 
-	float SquareGradient(float XPosition, float YPosition);
-	UPROPERTY(EditAnywhere, Category = "FallOff")//steepness of the transition from island to deep abyss underwater
-	float Steepness;
-	UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the map's border is actually underwater
-	float Size;
-	UPROPERTY(EditAnywhere, Category = "FallOff") //amound of the map, from centre point is above water
-	float AboveWater;
+	//////float SquareGradient(float XPosition, float YPosition);
+	////UPROPERTY(EditAnywhere, Category = "FallOff")//steepness of the transition from island to deep abyss underwater
+	////float Steepness;
+	////UPROPERTY(EditAnywhere, Category = "FallOff") //controls how much of the map's border is actually underwater
+	////float Size;
+	////UPROPERTY(EditAnywhere, Category = "FallOff") //amound of the map, from centre point is above water
+	////float AboveWater;
 
-	UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
-		bool bDoTerrace;
-	UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
-		bool bDoPower;
-	UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
-		bool bDoRigid;
-	UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
-		bool bDoBillowy;
-	UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
-		bool bDoMeshes;
-	UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
-		bool bDoIsland;
+	////UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bDoTerrace;
+	////UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bDoPower;
+	////UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bDoRigid;
+	////UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bDoBillowy;
+	////UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bDoMeshes;
+	////UPROPERTY(EditAnywhere, Category = "Options") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bDoIsland;
 
-	UPROPERTY(EditAnywhere, Category = "IsOptions") //the distance appart of each terrace, larger value means smaller appart
-		bool bIsPower;
-	UPROPERTY(EditAnywhere, Category = "IsOptions") //the distance appart of each terrace, larger value means smaller appart
-		bool bIsRigid;
-	UPROPERTY(EditAnywhere, Category = "IsOptions") //the distance appart of each terrace, larger value means smaller appart
-		bool bIsBillowy;
+	////UPROPERTY(EditAnywhere, Category = "IsOptions") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bIsPower;
+	////UPROPERTY(EditAnywhere, Category = "IsOptions") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bIsRigid;
+	////UPROPERTY(EditAnywhere, Category = "IsOptions") //the distance appart of each terrace, larger value means smaller appart
+	////	bool bIsBillowy;
 };
