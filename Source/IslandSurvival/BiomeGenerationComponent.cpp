@@ -253,7 +253,8 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //also give each vertex the appropriate biome
 
 	//assign the appropriate height value to the vertex
-	if (Biome == 9 || Biome == 12 || Biome == 11 || Biome == 8 || Biome == 10)// || Biome == 12)
+	//desert, alpine, forest, dryland, dead forest
+	if (Biome == 12 || Biome == 9 || Biome == 8 || Biome == 11 || Biome == 10)// || Biome == 12)
 	{
 		//DifferentBiomesMap[Biome].BiomeHeight.TerraceSize = TerrainGenerator->TerraceSize;
 		DifferentBiomesMap[Biome].BiomeHeight.OcataveOffsets = TerrainGenerator->OcataveOffsets;
@@ -261,6 +262,7 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 		int32 XPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
 		int32 YPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
 		TerrainGenerator->Vertices[VertexIdentifier].Z = DifferentBiomesMap[Biome].BiomeHeight.GenerateHeight(XPos, YPos);
+		TerrainGenerator->Vertices[VertexIdentifier].Z = FMath::RoundFromZero(TerrainGenerator->Vertices[VertexIdentifier].Z * TerrainGenerator->TerraceSize) / TerrainGenerator->TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 	}
 
 
@@ -283,7 +285,7 @@ void UBiomeGenerationComponent::BiomeLerping()
 		{
 			int32 VertexIndex = i * TerrainGenerator->Width + j; //this is the current point at which is being checked
 			float VertexValue = TerrainGenerator->Vertices[VertexIndex].Z;
-			int32 blendAmount = 2;
+			int32 blendAmount = 1;
 
 			//chech all neighbours of current vertex
 			for (int32 i1 = -blendAmount; i1 <= blendAmount; i1++) //loop through all neighbouring grid points
@@ -305,7 +307,7 @@ void UBiomeGenerationComponent::BiomeLerping()
 								if (i1 != 0 && j1 != 0)
 									alpha = 0.5f;//1- 0.5f / FMath::Max(FMath::Abs(i1), FMath::Abs(j1));
 								//	alpha = 0.25f;
-								float LerpedValue = FMath::Lerp(VertexValue, NeighbourValue, alpha); //for vertex directly next to the new biome
+								float LerpedValue = FMath::Lerp(VertexValue, NeighbourValue, 0.5f); //for vertex directly next to the new biome
 								TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
 								//check all neighbours of the neighbour of the current vertex
 								////for (int32 a = -blendAmount; a <= blendAmount; a++) //get neighbouring vertices of current one which are same biome
@@ -343,7 +345,7 @@ void UBiomeGenerationComponent::BiomeLerping()
 								//	alpha =1 - 0.5f / FVector2D::Distance(FVector2D(i, j), FVector2D(i1, j1));//Max(FMath::Abs(i1), FMath::Abs(j1));
 								//if (i1 == 3 || i1 == -3)
 								//	alpha = 0.75f;
-								float LerpedValue = FMath::Lerp(VertexValue, NeighbourValue, alpha); //for vertex directly next to the new biome
+								float LerpedValue = FMath::Lerp(VertexValue, NeighbourValue, 0.5f); //for vertex directly next to the new biome
 								TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
 								////for (int32 a = -blendAmount; a <= blendAmount; a++) //get neighbouring vertices of current one which are same biome
 								////{
@@ -450,8 +452,6 @@ void UBiomeGenerationComponent::BiomeLerping()
 			//		}
 			//	}
 			//}
-
-			TerrainGenerator->Vertices[VertexIndex].Z = FMath::RoundFromZero(TerrainGenerator->Vertices[VertexIndex].Z * TerrainGenerator->TerraceSize) / TerrainGenerator->TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 		}
 	}
 }

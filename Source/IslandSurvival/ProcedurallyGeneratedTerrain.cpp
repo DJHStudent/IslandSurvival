@@ -198,8 +198,8 @@ float AProcedurallyGeneratedTerrain::GenerateHeight(int32 XPosition, int32 YPosi
 
 	if(bDoIsland)
 		HeightValue -= SquareGradient(XPosition, YPosition); 	//determine how much the height will decrease based on the sqaure gradient map
-	////////if(bDoTerrace)
-	////////	HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+	if(bDoTerrace)
+		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 	BiomeGeneration->AddIslandPoint(XPosition, YPosition, HeightValue); //Calculate the island this point relates to for the biome generation
 
