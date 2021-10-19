@@ -132,8 +132,8 @@ USTRUCT() struct FBiomeHeight
 		if (bIsRigid)
 			HeightValue = 1 - FMath::Abs(HeightValue);
 
-		//if (bDoTerrace)
-			//HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+		if (bDoTerrace)
+			HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 		HeightValue *= PerlinScale; //give the Z position its final in game height
 

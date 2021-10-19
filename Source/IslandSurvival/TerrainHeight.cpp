@@ -39,8 +39,8 @@ float UTerrainHeight::DomainWarping(float XPosition, float YPosition) //for each
 float UTerrainHeight::SquareGradient(float XPosition, float YPosition) //determine a square gradient to reduce the border of the map by
 {
 	//determine the value of the vertex's X and Y positions between -1 and 0
-	float X = XPosition / 100 * 2 - 1;
-	float Y = YPosition / 100 * 2 - 1;
+	float X = XPosition / 300 * 2 - 1;
+	float Y = YPosition / 300 * 2 - 1;
 
 	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //for a sqaure gradient determine the positive value closest to the edge
 
