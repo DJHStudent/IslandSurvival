@@ -39,6 +39,9 @@ USTRUCT() struct FBiomeHeight
 	UPROPERTY(EditAnywhere)
 		float TerraceSize;
 	TArray<float> OcataveOffsets;
+
+	UPROPERTY(EditAnywhere)
+	UTerrainHeight* TerrainHeight;
 //private:
 	UPROPERTY(EditAnywhere)//the range of values perlin noise will return
 		float PerlinScale;
@@ -160,7 +163,38 @@ struct FBiomeStats//the stats for each biome which spawns in
 {
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(EditAnywhere) //the name of the biome to be displayed whenever in it
+	UPROPERTY(EditAnywhere) //the name of the biome to be displayed whenever in it
+	FString BiomeName;
+
+	UPROPERTY(EditAnywhere) //the colour of each vertex when inside the biome
+	FLinearColor BiomeColour;
+
+	UPROPERTY(EditAnywhere) //a list of the different meshes and their related components to spawn in in this biome
+	TArray<FBiomeMeshes> BiomeMeshes;
+
+	UPROPERTY(EditAnywhere) //a list containing the key of each biome which can spawn in next to this one
+	TArray<int32> NeighbourBiomeKeys;
+
+	UPROPERTY(EditAnywhere)
+	struct FBiomeHeight BiomeHeight;
+
+	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")
+	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
+
+	FBiomeStats()
+	{
+		//TerrainHeight = NewObject<UTerrainHeight>(GetOwner(), TEXT("Terrain Height"));
+		BiomeName = FString(TEXT(""));
+		BiomeColour = FLinearColor(0, 0, 0);
+	}
+};
+
+UCLASS(Blueprintable, EditInlineNew) //allow class to be instanced and assigned in the details panel
+class ISLANDSURVIVAL_API UBiomeStatsObject : public UObject
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere) //the name of the biome to be displayed whenever in it
 		FString BiomeName;
 
 	UPROPERTY(EditAnywhere) //the colour of each vertex when inside the biome
@@ -178,7 +212,7 @@ struct FBiomeStats//the stats for each biome which spawns in
 	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
 
-	FBiomeStats()
+	UBiomeStatsObject()
 	{
 		//TerrainHeight = NewObject<UTerrainHeight>(GetOwner(), TEXT("Terrain Height"));
 		BiomeName = FString(TEXT(""));

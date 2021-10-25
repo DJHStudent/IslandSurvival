@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS(DefaultToInstanced, EditInlineNew) //allow class to be instanced and assigned in the details panel
+UCLASS(Blueprintable, EditInlineNew) //allow class to be instanced and assigned in the details panel
 class ISLANDSURVIVAL_API UTerrainHeight : public UObject
 {
 	GENERATED_BODY()

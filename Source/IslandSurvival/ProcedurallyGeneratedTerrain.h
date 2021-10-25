@@ -71,7 +71,7 @@ public:
 	//UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
 	//float TerraceSize;
 private:
-	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")
+	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
 
 	//float GenerateHeight(int32 XPosition, int32 YPosition); //returns the height of each vertex in turn
