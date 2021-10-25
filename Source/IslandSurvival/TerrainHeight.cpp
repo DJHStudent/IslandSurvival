@@ -3,6 +3,16 @@
 
 #include "TerrainHeight.h"
 
+void UTerrainHeight::DeclareOffsetValues(FRandomStream Stream)
+{
+	OctaveOffsets.Empty(); //as resetting it will need to empty it
+	for (int32 i = 0; i < Octaves; i++) //for each octave use a different offset value for the noise 
+	{
+		float OffsetValue = Stream.FRandRange(-10000.0f, 10000.0f); //offset each noise octave so it will always produce a different random map
+		OctaveOffsets.Add(OffsetValue);
+	}
+}
+
 float UTerrainHeight::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 {
 	float HeightSum = 0; //the sum of the height at each octave
@@ -39,8 +49,8 @@ float UTerrainHeight::DomainWarping(float XPosition, float YPosition) //for each
 float UTerrainHeight::SquareGradient(float XPosition, float YPosition) //determine a square gradient to reduce the border of the map by
 {
 	//determine the value of the vertex's X and Y positions between -1 and 0
-	float X = XPosition / 100 * 2 - 1;
-	float Y = YPosition / 100 * 2 - 1;
+	float X = XPosition / 300 * 2 - 1;
+	float Y = YPosition / 300 * 2 - 1;
 
 	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //for a sqaure gradient determine the positive value closest to the edge
 
@@ -52,7 +62,11 @@ float UTerrainHeight::SquareGradient(float XPosition, float YPosition) //determi
 
 float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition) //all the functions for determining the height of a specific point
 {
-	float FBMValue = DomainWarping(XPosition, YPosition); //determine the inital value of the point using domain warping
+	float FBMValue;
+	if (bFullNoise)
+		FBMValue = DomainWarping(XPosition, YPosition); //determine the inital value of the point using domain warping
+	else
+		FBMValue = (DomainWarping(XPosition, YPosition) + 1) / 2; //convert the value so only goes between 0 and 1 as for an island so needs to be above water
 
 	float HeightValue = FBMValue;
 	if (bDoPower || bIsPower)

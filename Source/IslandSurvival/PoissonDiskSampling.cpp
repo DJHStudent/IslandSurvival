@@ -12,7 +12,7 @@ PoissonDiskSampling::~PoissonDiskSampling()
 {
 }
 
-TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, FBiomeStats>& DifferentBiomesMap, FRandomStream& Stream)
+TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream)
 {
 	TArray<TPair<int32, FVector2D>> BiomePoints; //a list of points which contain the key for a biome
 
@@ -126,14 +126,14 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	return BiomePoints; //return the list of points with appropriate biomes found
 }
 
-int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32, FBiomeStats>& DifferentBiomesMap, FRandomStream& Stream)
+int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream)
 {
 	if (NeighbourBiome == -1) //as no biome yet exists for the island just pick a random one
 		return Stream.RandRange(7, 12); //the keys for the biomes not bound by specific conditions
 	else
 	{
 		//pick random biome from list of neighbouring biomes
-		int32 RandBiome = Stream.RandRange(0, DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys.Num() - 1); //also tie in the rarity system somehow
-		return DifferentBiomesMap[NeighbourBiome].NeighbourBiomeKeys[RandBiome]; //return the value stored at the randomly choosen position within the array
+		int32 RandBiome = Stream.RandRange(0, DifferentBiomesMap[NeighbourBiome].GetDefaultObject()->NeighbourBiomeKeys.Num() - 1); //also tie in the rarity system somehow
+		return DifferentBiomesMap[NeighbourBiome].GetDefaultObject()->NeighbourBiomeKeys[RandBiome]; //return the value stored at the randomly choosen position within the array
 	}
 }

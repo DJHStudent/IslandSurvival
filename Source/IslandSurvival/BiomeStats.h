@@ -194,21 +194,25 @@ class ISLANDSURVIVAL_API UBiomeStatsObject : public UObject
 {
 	GENERATED_BODY()
 
+public:
 	UPROPERTY(EditAnywhere) //the name of the biome to be displayed whenever in it
-		FString BiomeName;
+	FString BiomeName;
 
 	UPROPERTY(EditAnywhere) //the colour of each vertex when inside the biome
-		FLinearColor BiomeColour;
+	FLinearColor BiomeColour;
 
 	UPROPERTY(EditAnywhere) //a list of the different meshes and their related components to spawn in in this biome
-		TArray<FBiomeMeshes> BiomeMeshes;
+	TArray<FBiomeMeshes> BiomeMeshes;
 
 	UPROPERTY(EditAnywhere) //a list containing the key of each biome which can spawn in next to this one
-		TArray<int32> NeighbourBiomeKeys;
+	TArray<int32> NeighbourBiomeKeys;
 
 	UPROPERTY(EditAnywhere)
 	struct FBiomeHeight BiomeHeight;
 
+	UPROPERTY(EditAnywhere, Category = "Terrain Height") //for each biome should it have a custom terrain
+	bool bCustomTerrain;
+	
 	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
 
@@ -217,5 +221,6 @@ class ISLANDSURVIVAL_API UBiomeStatsObject : public UObject
 		//TerrainHeight = NewObject<UTerrainHeight>(GetOwner(), TEXT("Terrain Height"));
 		BiomeName = FString(TEXT(""));
 		BiomeColour = FLinearColor(0, 0, 0);
+		bCustomTerrain = false;
 	}
 };

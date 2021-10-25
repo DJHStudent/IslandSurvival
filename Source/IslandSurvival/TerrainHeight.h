@@ -17,11 +17,18 @@ class ISLANDSURVIVAL_API UTerrainHeight : public UObject
 public:
 	// Called every frame
 	float GenerateHeight(int32 XPosition, int32 YPosition); //returns the height of each vertex in turn
-
+	
+	void DeclareOffsetValues(FRandomStream Stream); //probably should actually delcare them here
+	
+private:
 	TArray<float> OctaveOffsets;
+
+
+	UPROPERTY(EditAnywhere) //should the noise be between -1 and 1 or not(0 and 1)
+		bool bFullNoise;
+
 	UPROPERTY(EditAnywhere, Category = "FBM")//number of perlin noise maps to layer
 		int32 Octaves;
-private:
 	UPROPERTY(EditAnywhere)//the range of values perlin noise will return
 		float PerlinScale;
 	UPROPERTY(EditAnywhere)//how spiky or smooth the terrain will be

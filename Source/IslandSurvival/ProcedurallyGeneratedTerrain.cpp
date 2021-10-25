@@ -67,7 +67,8 @@ void AProcedurallyGeneratedTerrain::RegenerateMap()
 {
 	ClearMap(); //delete any previosuly stored values
 
-	BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //give each vertex a default biome of ocean
+	if(BiomeGeneration)
+		BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //give each vertex a default biome of ocean
 	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height); //give each vertex a default colour
 
 	GenerateSeed(); //determine seed
@@ -112,12 +113,16 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 	else
 		Stream.Initialize(Seed); //initilizes the RNG with a specific seed
 
-	for (int32 i = 0; i < TerrainHeight->Octaves; i++) //for each octave use a different offset value for the noise 
+	if (BiomeGeneration) 
 	{
-		float OffsetValue = Stream.FRandRange(-10000.0f, 10000.0f); //offset each noise octave so it will always produce a different random map
-		OcataveOffsets.Add(OffsetValue);
+		for (auto& BiomeStats : BiomeGeneration->BiomeStatsMap) //for each biome give a random offset for each noise value to use
+		{
+			if (BiomeStats.Value.GetDefaultObject()->TerrainHeight)
+				BiomeStats.Value.GetDefaultObject()->TerrainHeight->DeclareOffsetValues(Stream);
+		}
 	}
-	TerrainHeight->OctaveOffsets = OcataveOffsets;
+	if(TerrainHeight)
+		TerrainHeight->DeclareOffsetValues(Stream);
 }
 
 void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populating all the nessesary data

@@ -41,7 +41,7 @@ void UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition,
 	if (ZPosition < WaterLine) //must be underwater so not an island
 	{
 		TerrainGenerator->IslandNumber.Add(-1); //-1 means underwater and as a result do not need to check again
-		TerrainGenerator->VerticeColours[CurrentVertexPosition] = DifferentBiomesMap[1].BiomeColour; //as underwater set biome to ocean
+		TerrainGenerator->VerticeColours[CurrentVertexPosition] = BiomeStatsMap[1].GetDefaultObject()->BiomeColour; //as underwater set biome to ocean
 		BiomeAtEachPoint[CurrentVertexPosition] = 1; //the current biome of the vertex is ocean
 	}
 	else //must be above the water and as a result an island
@@ -194,7 +194,7 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 	float IslandHeight = (IslandVertexIdentifiers.Value.MaxYPosition - IslandVertexIdentifiers.Value.MinYPosition) * TerrainGenerator->GridSize;
 	
 	//use poisson disk sampling here to give a more even distribution of the biomes
-	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(SingleIslandMaxSize, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize, DifferentBiomesMap, TerrainGenerator->Stream);
+	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(SingleIslandMaxSize, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize, BiomeStatsMap, TerrainGenerator->Stream);
 
 
 	//using a voronoi noise method which for each vertice just determine the biome point it is nearest
@@ -224,7 +224,7 @@ bool UBiomeGenerationComponent::bHeightBiomes(float ZHeight, int32 Biome, int32 
 	if (ZHeight > 900) //check if the Z position of the point is above the specified value
 	{
 		//two heigh biomes have keys of 5 and 6 respectivly
-		for (int32 NeighbourBiome : DifferentBiomesMap[5].NeighbourBiomeKeys) //check the possible neighbour biomes for 5 first
+		for (int32 NeighbourBiome : BiomeStatsMap[5].GetDefaultObject()->NeighbourBiomeKeys) //check the possible neighbour biomes for 5 first
 		{
 			if (NeighbourBiome == Biome) //if the lower elevation biome is a neighbour then use 5 to update the list
 			{
@@ -234,7 +234,7 @@ bool UBiomeGenerationComponent::bHeightBiomes(float ZHeight, int32 Biome, int32 
 		}
 
 		//just do same again but as not biome 5 test it with biome 6
-		for (int32 NeighbourBiome : DifferentBiomesMap[6].NeighbourBiomeKeys)
+		for (int32 NeighbourBiome : BiomeStatsMap[6].GetDefaultObject()->NeighbourBiomeKeys)
 		{
 			if (NeighbourBiome == Biome)
 			{
@@ -249,19 +249,19 @@ bool UBiomeGenerationComponent::bHeightBiomes(float ZHeight, int32 Biome, int32 
 void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdentifier)
 {	
 
-	TerrainGenerator->VerticeColours[VertexIdentifier] = DifferentBiomesMap[Biome].BiomeColour; //for the specified biome assign the vertex the appropriate colour
+	TerrainGenerator->VerticeColours[VertexIdentifier] = BiomeStatsMap[Biome].GetDefaultObject()->BiomeColour; //for the specified biome assign the vertex the appropriate colour
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //also give each vertex the appropriate biome
 
 	//assign the appropriate height value to the vertex
 	//desert, alpine, forest, dryland, dead forest
-	if (Biome == 12 || Biome == 9 || Biome == 8 || Biome == 11 || Biome == 10)// || Biome == 12)
+	if (BiomeStatsMap[Biome].GetDefaultObject()->bCustomTerrain)// || Biome == 12)
 	{
-		//DifferentBiomesMap[Biome].BiomeHeight.TerraceSize = TerrainGenerator->TerraceSize;
-		DifferentBiomesMap[Biome].BiomeHeight.OcataveOffsets = TerrainGenerator->OcataveOffsets;
-
+		//BiomeStatsMap[Biome].BiomeHeight.TerraceSize = TerrainGenerator->TerraceSize;
 		int32 XPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
 		int32 YPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
-		TerrainGenerator->Vertices[VertexIdentifier].Z = DifferentBiomesMap[Biome].BiomeHeight.GenerateHeight(XPos, YPos);
+		float NewZPos = BiomeStatsMap[Biome].GetDefaultObject()->TerrainHeight->GenerateHeight(XPos, YPos);
+		//UE_LOG(LogTemp, Error, TEXT("Cusom BIome Mesh: %f"), ZPos)
+		TerrainGenerator->Vertices[VertexIdentifier].Z = NewZPos;
 		//TerrainGenerator->Vertices[VertexIdentifier].Z = FMath::RoundFromZero(TerrainGenerator->Vertices[VertexIdentifier].Z * TerrainGenerator->TerraceSize) / TerrainGenerator->TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 	}
 
@@ -298,7 +298,7 @@ void UBiomeGenerationComponent::BiomeLerping()
 						//check the biome around the point
 						int32 NeighbourIndex = (i + i1) * TerrainGenerator->Width + (j + j1); //this is the index of the value of the neighbouring biome
 						float NeighbourValue = TerrainGenerator->Vertices[NeighbourIndex].Z;
-						//float NeightbourValue = DifferentBiomesMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(i, j);//->GenerateHeight();
+						//float NeightbourValue = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(i, j);//->GenerateHeight();
 						int32 CurrBiome = BiomeAtEachPoint[VertexIndex];
 						if (BiomeAtEachPoint[VertexIndex] != BiomeAtEachPoint[NeighbourIndex] 
 							//&& BiomeAtEachPoint[VertexIndex] != 1 && BiomeAtEachPoint[NeighbourIndex] != 1
@@ -314,14 +314,14 @@ void UBiomeGenerationComponent::BiomeLerping()
 								if (i1 != 0 && j1 != 0)
 									alpha = 0.5f / (FMath::Pow(i1, 2) + FMath::Pow(j1, 2));//FMath::Max(FMath::Abs(i1), FMath::Abs(i1));
 								//	alpha = 0.25f;
-								//float OtherBiomeValueIfNeightbourOtherBiome = DifferentBiomesMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(j + j1, i + i1);
+								//float OtherBiomeValueIfNeightbourOtherBiome = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(j + j1, i + i1);
 								float LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.5f); //for vertex directly next to the new biome
 								TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
 								LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.75f); //for vertex directly next to the new biome
 								//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
 
-								FLinearColor vertexBiomeColor = DifferentBiomesMap[BiomeAtEachPoint[VertexIndex]].BiomeColour;
-								FLinearColor neighbourBiomeColor = DifferentBiomesMap[BiomeAtEachPoint[NeighbourIndex]].BiomeColour;
+								FLinearColor vertexBiomeColor = BiomeStatsMap[BiomeAtEachPoint[VertexIndex]].GetDefaultObject()->BiomeColour;
+								FLinearColor neighbourBiomeColor = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].GetDefaultObject()->BiomeColour;
 								TerrainGenerator->VerticeColours[VertexIndex] = FMath::Lerp(vertexBiomeColor, neighbourBiomeColor, 0.25f);//FLinearColor(0.5f, 0.5f, 0.5f);
 								//TerrainGenerator->VerticeColours[NeighbourIndex] = FMath::Lerp(neighbourBiomeColor, vertexBiomeColor, 0.25f);//FLinearColor(0.5f, 0.5f, 0.5f);
 
@@ -365,7 +365,7 @@ void UBiomeGenerationComponent::BiomeLerping()
 							//				//	alpha =1 - 0.5f / FVector2D::Distance(FVector2D(i, j), FVector2D(i1, j1));//Max(FMath::Abs(i1), FMath::Abs(j1));
 							//				//if (i1 == 3 || i1 == -3)
 							//				//	alpha = 0.75f;
-							//			//float OtherBiomeValueIfNeightbourOtherBiome = DifferentBiomesMap[CurrBiome].BiomeHeight.GenerateHeight(j + j1, i + i1);
+							//			//float OtherBiomeValueIfNeightbourOtherBiome = BiomeStatsMap[CurrBiome].BiomeHeight.GenerateHeight(j + j1, i + i1);
 							//			float LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.5f); //for vertex directly next to the new biome
 							//			TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
 
@@ -486,10 +486,10 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 {
 	for (auto& BiomePoints : VertexBiomeLocationsMap) //for each biome on the map
 	{
-		if (DifferentBiomesMap[BiomePoints.Key].BiomeMeshes.Num() > 0) //only do as long as biome contains meshes to be spawned in
+		if (BiomeStatsMap[BiomePoints.Key].GetDefaultObject()->BiomeMeshes.Num() > 0) //only do as long as biome contains meshes to be spawned in
 		{
 			int32 BiomeAmount = BiomePoints.Value.Num(); //number of points which make up the biome
-			for (FBiomeMeshes DifferentMeshes : DifferentBiomesMap[BiomePoints.Key].BiomeMeshes) //for each mesh which can spawn in at the current biome
+			for (FBiomeMeshes DifferentMeshes : BiomeStatsMap[BiomePoints.Key].GetDefaultObject()->BiomeMeshes) //for each mesh which can spawn in at the current biome
 			{
 				//calculate number of each mesh to spawn in based on its % density of total points
 				int32 MeshesDensity = FMath::CeilToInt(DifferentMeshes.Density / 100 * BiomeAmount);
