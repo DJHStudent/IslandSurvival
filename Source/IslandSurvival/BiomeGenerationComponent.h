@@ -78,12 +78,8 @@ public:
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
 	void VerticesBiomes(); //for each island determine the biome(s) residing within it
 
-
 	UPROPERTY(EditAnywhere)
-	TMap<int32, FBiomeStats> DifferentBiomesMap; //A map holding the various stats for each biome such as its name and colour, each having a specific key identofying it for fast lookup
-
-	UPROPERTY(EditAnywhere)
-		TMap<int32, TSubclassOf<UBiomeStatsObject>> BiomeStatsMap;
+	TMap<int32, TSubclassOf<UBiomeStatsObject>> BiomeStatsMap;
 
 
 	void SpawnMeshes(); //for each biome spawn in the appropriate meshes

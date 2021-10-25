@@ -72,6 +72,11 @@ void AProcedurallyGeneratedTerrain::RegenerateMap()
 	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height); //give each vertex a default colour
 
 	GenerateSeed(); //determine seed
+	if (TerrainHeight)
+	{
+		TerrainHeight->Width = Width;
+		TerrainHeight->Height = Height;
+	}
 	CreateMesh(); //generate the terrain mesh
 	bRegenerateMap = false;
 }
@@ -85,13 +90,14 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 
 	Triangles.Empty();
 
-	OcataveOffsets.Empty();
-
-	//reset all info on biomes
-	BiomeGeneration->IslandKeys = 0;
-	BiomeGeneration->IslandPointsMap.Empty();
-	BiomeGeneration->BiomeAtEachPoint.Empty();
-	BiomeGeneration->VertexBiomeLocationsMap.Empty();
+	if (BiomeGeneration)
+	{
+		//reset all info on biomes
+		BiomeGeneration->IslandKeys = 0;
+		BiomeGeneration->IslandPointsMap.Empty();
+		BiomeGeneration->BiomeAtEachPoint.Empty();
+		BiomeGeneration->VertexBiomeLocationsMap.Empty();
+	}
 
 	//destory any meshes placed on the terrain by using the array of all meshes which exist
 	for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0 ; i--)

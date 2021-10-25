@@ -20,7 +20,10 @@ public:
 	
 	void DeclareOffsetValues(FRandomStream Stream); //probably should actually delcare them here
 	
+	int32 Width; //width and height of of the terrain
+	int32 Height; 
 private:
+	//the random values to offset the perlin noise by in each octave, in order to introduce randomness
 	TArray<float> OctaveOffsets;
 
 
