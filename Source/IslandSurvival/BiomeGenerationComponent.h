@@ -87,6 +87,8 @@ public:
 	TArray<AActor*> MeshActors; //all meshes added into the world
 
 	void BiomeLerping();
+
+	void SpawnTents();
 private:
 
 	PoissonDiskSampling DiskSampling;
@@ -102,4 +104,7 @@ private:
 	float SingleIslandMaxSize; 
 
 	FVector MeshLocation(FVector VertexPosition);
+
+	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	UStaticMesh* Tent;
 };

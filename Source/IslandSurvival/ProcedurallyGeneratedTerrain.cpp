@@ -152,6 +152,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
 	BiomeGeneration->BiomeLerping();
+	BiomeGeneration->SpawnTents();
 	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material

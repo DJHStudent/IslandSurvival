@@ -481,6 +481,50 @@ void UBiomeGenerationComponent::BiomeLerping()
 
 }
 
+void UBiomeGenerationComponent::SpawnTents() 
+{
+	int32 TentAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 2000); // /2000 so if say 100 by 100 will get exactly 5 tents
+	for (int32 i = 0; i < TentAmount; i++)
+	{
+		int32 RandomLocation = TerrainGenerator->Stream.RandRange(0, TerrainGenerator->Vertices.Num() - 1);
+		FVector VertexLocation = TerrainGenerator->Vertices[RandomLocation];
+		UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %s"), *VertexLocation.ToString())
+
+		int32 XPosition = FMath::RoundToInt(VertexLocation.X / TerrainGenerator->GridSize);
+		int32 YPosition = FMath::RoundToInt(VertexLocation.Y / TerrainGenerator->GridSize);
+		//clamp the values so they don't fall outside of the size of the array of biome points
+		XPosition = FMath::Clamp(XPosition, 0, TerrainGenerator->Width - 1);
+		YPosition = FMath::Clamp(YPosition, 0, TerrainGenerator->Height - 1);
+
+		if (VertexLocation.Z < WaterLine)
+		{
+			TerrainGenerator->Vertices[RandomLocation].Z = WaterLine;
+			VertexLocation.Z = 0;
+		}
+
+		//ensure tent is on flat ground and not in a wall
+		for (int32 a = -1; a <= 1; a++) //get neighbouring vertices of current one which are same biome,    y
+		{
+			for (int32 b = -1; b <= 1; b++) //x
+			{
+				if (XPosition + b >= 0 && XPosition + b < TerrainGenerator->Width && YPosition + a >= 0 && YPosition + a < TerrainGenerator->Height)
+				{
+					int32 NeighbourIndex = (a + YPosition) * TerrainGenerator->Width + (b + XPosition);
+					TerrainGenerator->Vertices[NeighbourIndex].Z = TerrainGenerator->Vertices[RandomLocation].Z;
+				}
+			}
+		}
+
+		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
+		SpawnedMesh->SetMobility(EComponentMobility::Stationary);
+
+		SpawnedMesh->SetActorScale3D(FVector(40)); //give the mesh a random scale
+		SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Tent); //assign the appropriate mesh to the spawned in actor
+
+		MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
+	}
+}
+
 
 void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 {
