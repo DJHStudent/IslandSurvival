@@ -100,4 +100,6 @@ private:
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single biome
 	float SingleIslandMaxSize; 
+
+	FVector MeshLocation(FVector VertexPosition);
 };

@@ -499,7 +499,7 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 					int32 RandomLocation = TerrainGenerator->Stream.RandRange(0, BiomePoints.Value.Num() - 1);
 					if (BiomePoints.Value.Num() > 0) {
 						int32 VertexIndex = BiomePoints.Value[RandomLocation];
-						FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
+						FVector VertexLocation = MeshLocation(TerrainGenerator->Vertices[VertexIndex]);
 
 						FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
 						Rotation.Yaw = TerrainGenerator->Stream.FRandRange(0.0f, 360.0f);
@@ -521,4 +521,13 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 			}
 		}
 	}
+}
+
+FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a square around the vertex spawning at, randomly place the mesh
+{
+	float RandXPosition = TerrainGenerator->Stream.RandRange(VertexPosition.X - TerrainGenerator->GridSize / 2, VertexPosition.X + TerrainGenerator->GridSize / 2);
+	float RandYPosition = TerrainGenerator->Stream.RandRange(VertexPosition.Y - TerrainGenerator->GridSize / 2, VertexPosition.Y + TerrainGenerator->GridSize / 2);
+	VertexPosition.X = RandXPosition;
+	VertexPosition.Y = RandYPosition;
+	return VertexPosition;
 }
