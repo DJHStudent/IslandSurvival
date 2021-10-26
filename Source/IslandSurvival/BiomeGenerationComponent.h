@@ -106,5 +106,7 @@ private:
 	FVector MeshLocation(FVector VertexPosition);
 
 	UPROPERTY(EditAnywhere)//the mesh to spawn in
-	UStaticMesh* Tent;
+		UStaticMesh* Tent;
+	UPROPERTY(EditAnywhere)//the mesh to spawn in
+		UStaticMesh* Bouy;
 };

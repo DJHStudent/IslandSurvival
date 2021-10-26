@@ -484,13 +484,36 @@ void UBiomeGenerationComponent::BiomeLerping()
 void UBiomeGenerationComponent::SpawnTents() 
 {
 	int32 TentAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 2000); // /2000 so if say 100 by 100 will get exactly 5 tents
+	/*
+		for each island have number of tents which spawn on it already worked out
+		
+		based on that make a grid so both X and Y can support half that many tents
+
+		then using code below actually spawn in tent at random point on the created grid
+
+
+		grid itself:
+			say have 2 points to spawn in
+			for first point pick a random corner of the grid to spawn the point at
+			island width / number of points = point amound in X direction
+
+			algorithm to make a grid so in x + y direction have the right number of points I guess
+
+			if take simpler approach: island has grid points in x and y of the number of tents to spawn in
+				for best randomness the x and y will need to have no less than 3 points, so chance exists that no matter what can spawn in middle
+				then for each tent just pick a random point to use on the island
+
+
+	*/
+
+	TArray<FVector2D> GridPoints; //list of all points
 	for (int32 i = 0; i < TentAmount; i++)
 	{
 		int32 RandomLocation = TerrainGenerator->Stream.RandRange(0, TerrainGenerator->Vertices.Num() - 1);
 		FVector VertexLocation = TerrainGenerator->Vertices[RandomLocation];
 		UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %s"), *VertexLocation.ToString())
 
-		int32 XPosition = FMath::RoundToInt(VertexLocation.X / TerrainGenerator->GridSize);
+			int32 XPosition = FMath::RoundToInt(VertexLocation.X / TerrainGenerator->GridSize);
 		int32 YPosition = FMath::RoundToInt(VertexLocation.Y / TerrainGenerator->GridSize);
 		//clamp the values so they don't fall outside of the size of the array of biome points
 		XPosition = FMath::Clamp(XPosition, 0, TerrainGenerator->Width - 1);
@@ -498,28 +521,40 @@ void UBiomeGenerationComponent::SpawnTents()
 
 		if (VertexLocation.Z < WaterLine)
 		{
-			TerrainGenerator->Vertices[RandomLocation].Z = WaterLine;
+			//TerrainGenerator->Vertices[RandomLocation].Z = WaterLine;
 			VertexLocation.Z = 0;
 		}
-
-		//ensure tent is on flat ground and not in a wall
-		for (int32 a = -1; a <= 1; a++) //get neighbouring vertices of current one which are same biome,    y
+		else
 		{
-			for (int32 b = -1; b <= 1; b++) //x
+			//ensure tent is on flat ground and not in a wall
+			for (int32 a = -1; a <= 1; a++) //get neighbouring vertices of current one which are same biome,    y
 			{
-				if (XPosition + b >= 0 && XPosition + b < TerrainGenerator->Width && YPosition + a >= 0 && YPosition + a < TerrainGenerator->Height)
+				for (int32 b = -1; b <= 1; b++) //x
 				{
-					int32 NeighbourIndex = (a + YPosition) * TerrainGenerator->Width + (b + XPosition);
-					TerrainGenerator->Vertices[NeighbourIndex].Z = TerrainGenerator->Vertices[RandomLocation].Z;
+					if (XPosition + b >= 0 && XPosition + b < TerrainGenerator->Width && YPosition + a >= 0 && YPosition + a < TerrainGenerator->Height)
+					{
+						int32 NeighbourIndex = (a + YPosition) * TerrainGenerator->Width + (b + XPosition);
+						TerrainGenerator->Vertices[NeighbourIndex].Z = TerrainGenerator->Vertices[RandomLocation].Z;
+					}
 				}
 			}
 		}
-
+		if (TerrainGenerator->Vertices[RandomLocation].Z < 0)
+			VertexLocation.Z -= 90;
 		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
 		SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
-		SpawnedMesh->SetActorScale3D(FVector(40)); //give the mesh a random scale
-		SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Tent); //assign the appropriate mesh to the spawned in actor
+		if (TerrainGenerator->Vertices[RandomLocation].Z < 0)
+		{
+			SpawnedMesh->SetActorScale3D(FVector(10)); //give the mesh a random scale
+			//SetActorLocation(FVector(SpawnedMesh->GetActorLocation().X, SpawnedMesh->GetActorLocation().Y, -90));
+			SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Bouy); //assign the appropriate mesh to the spawned in actor
+		}
+		else
+		{
+			SpawnedMesh->SetActorScale3D(FVector(40)); //give the mesh a random scale
+			SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Tent); //assign the appropriate mesh to the spawned in actor
+		}
 
 		MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
 	}
