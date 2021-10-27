@@ -503,17 +503,36 @@ void UBiomeGenerationComponent::SpawnTents()
 				for best randomness the x and y will need to have no less than 3 points, so chance exists that no matter what can spawn in middle
 				then for each tent just pick a random point to use on the island
 
+		if have 100 by 100 grid then:
+			each direction would have a grid square which is 20 appart
+			this gets a 5 by 5 grid so 25 points in total
+
+		Need to figure out a way to spawn them in in the same ratio
 
 	*/
 
 	TArray<FVector2D> GridPoints; //list of all points
+	float XDistAppart = TerrainGenerator->Width / TentAmount;
+	float YDistAppart = TerrainGenerator->Height / TentAmount;
+	for (int32 y = 0; y < TentAmount; y++) //initilize the grid to place the items on
+	{
+		for (int32 x = 0; x < TentAmount; x++)
+		{
+			GridPoints.Add(FVector2D(x*XDistAppart, y*YDistAppart));
+		}
+	}
+
 	for (int32 i = 0; i < TentAmount; i++)
 	{
-		int32 RandomLocation = TerrainGenerator->Stream.RandRange(0, TerrainGenerator->Vertices.Num() - 1);
-		FVector VertexLocation = TerrainGenerator->Vertices[RandomLocation];
+		int32 RandomIndex = TerrainGenerator->Stream.RandRange(0, GridPoints.Num() - 1);
+		int32 X = FMath::Clamp(FMath::CeilToInt(GridPoints[RandomIndex].X), 0, TerrainGenerator->Width - 1);
+		int32 Y = FMath::Clamp(FMath::CeilToInt(GridPoints[RandomIndex].Y), 0, TerrainGenerator->Height - 1);
+
+		int32 VertexIndex = Y * TerrainGenerator->Width + X;
+		FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
 		UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %s"), *VertexLocation.ToString())
 
-			int32 XPosition = FMath::RoundToInt(VertexLocation.X / TerrainGenerator->GridSize);
+		int32 XPosition = FMath::RoundToInt(VertexLocation.X / TerrainGenerator->GridSize);
 		int32 YPosition = FMath::RoundToInt(VertexLocation.Y / TerrainGenerator->GridSize);
 		//clamp the values so they don't fall outside of the size of the array of biome points
 		XPosition = FMath::Clamp(XPosition, 0, TerrainGenerator->Width - 1);
@@ -534,17 +553,17 @@ void UBiomeGenerationComponent::SpawnTents()
 					if (XPosition + b >= 0 && XPosition + b < TerrainGenerator->Width && YPosition + a >= 0 && YPosition + a < TerrainGenerator->Height)
 					{
 						int32 NeighbourIndex = (a + YPosition) * TerrainGenerator->Width + (b + XPosition);
-						TerrainGenerator->Vertices[NeighbourIndex].Z = TerrainGenerator->Vertices[RandomLocation].Z;
+						TerrainGenerator->Vertices[NeighbourIndex].Z = TerrainGenerator->Vertices[VertexIndex].Z;
 					}
 				}
 			}
 		}
-		if (TerrainGenerator->Vertices[RandomLocation].Z < 0)
+		if (TerrainGenerator->Vertices[VertexIndex].Z < 0)
 			VertexLocation.Z -= 90;
 		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
 		SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
-		if (TerrainGenerator->Vertices[RandomLocation].Z < 0)
+		if (TerrainGenerator->Vertices[VertexIndex].Z < 0)
 		{
 			SpawnedMesh->SetActorScale3D(FVector(10)); //give the mesh a random scale
 			//SetActorLocation(FVector(SpawnedMesh->GetActorLocation().X, SpawnedMesh->GetActorLocation().Y, -90));
@@ -557,6 +576,7 @@ void UBiomeGenerationComponent::SpawnTents()
 		}
 
 		MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
+		GridPoints.RemoveAt(RandomIndex);
 	}
 }
 
