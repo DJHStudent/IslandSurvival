@@ -624,8 +624,63 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 
 FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a square around the vertex spawning at, randomly place the mesh
 {
+	//need way to determine the z height of the point picked or, just not offset it if z height different
+
+	int32 XIndex = FMath::FloorToInt(VertexPosition.X / TerrainGenerator->GridSize);
+	int32 YIndex = FMath::FloorToInt(VertexPosition.Y / TerrainGenerator->GridSize);
+
+	float MinX = VertexPosition.X; float MaxX = VertexPosition.X; float MinY = VertexPosition.Y; float MaxY = VertexPosition.Y;
+//	if(TerrainGenerator->Vertices[FMath::FloorToInt(VertexPosition.X / TerrainGenerator->GridSize) - 1])
+
 	float RandXPosition = TerrainGenerator->Stream.RandRange(VertexPosition.X - TerrainGenerator->GridSize / 2, VertexPosition.X + TerrainGenerator->GridSize / 2);
+	if (RandXPosition < VertexPosition.X)
+	{
+		if (XIndex - 1 >= 0)
+		{
+			float NeighbourZ = TerrainGenerator->Vertices[YIndex * TerrainGenerator->Width + (XIndex - 1)].Z;
+			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.X - RandXPosition) / TerrainGenerator->GridSize);
+			VertexPosition.Z = NewZPosition;
+		}
+	}
+	else if (RandXPosition > VertexPosition.X)
+	{
+		if (XIndex + 1 < TerrainGenerator->Width)
+		{
+			float NeighbourZ = TerrainGenerator->Vertices[YIndex * TerrainGenerator->Width + (XIndex + 1)].Z;
+			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.X - RandXPosition) / TerrainGenerator->GridSize);
+			VertexPosition.Z = NewZPosition;
+		}
+	}
+
+
+
 	float RandYPosition = TerrainGenerator->Stream.RandRange(VertexPosition.Y - TerrainGenerator->GridSize / 2, VertexPosition.Y + TerrainGenerator->GridSize / 2);
+	if (RandYPosition < VertexPosition.Y)
+	{
+		if (YIndex - 1 >= 0)
+		{
+			float NeighbourZ = TerrainGenerator->Vertices[(YIndex - 1) * TerrainGenerator->Width + XIndex].Z;
+			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize);
+			VertexPosition.Z = NewZPosition;
+		}
+	}	
+	else if (RandYPosition > VertexPosition.Y)
+	{
+		if (YIndex + 1 < TerrainGenerator->Height) 
+		{
+			float NeighbourZ = TerrainGenerator->Vertices[(YIndex + 1) * TerrainGenerator->Width + XIndex].Z;
+			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize);
+			VertexPosition.Z = NewZPosition;
+		}
+	}
+
+	float test = FMath::Lerp(10, 10, 0.5f);
+	UE_LOG(LogTemp, Warning, TEXT("TEST VALUE: %f, %f, %f"), FMath::Abs((VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize), VertexPosition.Y, RandYPosition)
+
 	VertexPosition.X = RandXPosition;
 	VertexPosition.Y = RandYPosition;
 	return VertexPosition;
