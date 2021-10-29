@@ -252,13 +252,14 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	TerrainGenerator->VerticeColours[VertexIdentifier] = BiomeStatsMap[Biome].GetDefaultObject()->BiomeColour; //for the specified biome assign the vertex the appropriate colour
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //also give each vertex the appropriate biome
 
+	int32 XPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
+	int32 YPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
+
 	//assign the appropriate height value to the vertex
 	//desert, alpine, forest, dryland, dead forest
 	if (BiomeStatsMap[Biome].GetDefaultObject()->bCustomTerrain)// || Biome == 12)
 	{
 		//BiomeStatsMap[Biome].BiomeHeight.TerraceSize = TerrainGenerator->TerraceSize;
-		int32 XPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
-		int32 YPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
 		float NewZPos = BiomeStatsMap[Biome].GetDefaultObject()->TerrainHeight->GenerateHeight(XPos, YPos);
 		//UE_LOG(LogTemp, Error, TEXT("Cusom BIome Mesh: %f"), ZPos)
 		TerrainGenerator->Vertices[VertexIdentifier].Z = NewZPos;
@@ -273,15 +274,16 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 		VertexBiomeLocationsMap.Add(Biome, TArray<int32>());
 		VertexBiomeLocationsMap[Biome].Add(VertexIdentifier);
 	}
+
+	BiomeLerping(YPos, XPos); //also blend with a neighbour biome to get good transitions
 }
 
-void UBiomeGenerationComponent::BiomeLerping()
+void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j)
 {
-	TArray<bool> bBeenLerped;
-	bBeenLerped.Init(false, TerrainGenerator->Width * TerrainGenerator->Height);
-	for (int32 i = 0; i < TerrainGenerator->Height; i++)
+	//TArray<bool> bBeenLerped;
+	//for (int32 i = 0; i < TerrainGenerator->Height; i++)
 	{
-		for (int32 j = 0; j < TerrainGenerator->Width; j++)
+		//for (int32 j = 0; j < TerrainGenerator->Width; j++)
 		{
 			int32 VertexIndex = i * TerrainGenerator->Width + j; //this is the current point at which is being checked
 			float VertexValue = TerrainGenerator->Vertices[VertexIndex].Z;
@@ -306,23 +308,30 @@ void UBiomeGenerationComponent::BiomeLerping()
 							&& BiomeAtEachPoint[VertexIndex] != 5 && BiomeAtEachPoint[NeighbourIndex] != 5
 							&& BiomeAtEachPoint[VertexIndex] != 6 && BiomeAtEachPoint[NeighbourIndex] != 6
 							&& BiomeAtEachPoint[VertexIndex] != 2 && BiomeAtEachPoint[NeighbourIndex] != 2
-							&& BiomeAtEachPoint[VertexIndex] != 3 && BiomeAtEachPoint[NeighbourIndex] != 3)
+							&& BiomeAtEachPoint[VertexIndex] != 3 && BiomeAtEachPoint[NeighbourIndex] != 3
+							&& BiomeAtEachPoint[VertexIndex] != -1 && BiomeAtEachPoint[NeighbourIndex] != -1)
 						{
 							if (!bBeenLerped[VertexIndex])// && !bBeenLerped[NeighbourIndex])
 							{
 								float alpha = 0.5f;
 								if (i1 != 0 && j1 != 0)
-									alpha = 0.5f / (FMath::Pow(i1, 2) + FMath::Pow(j1, 2));//FMath::Max(FMath::Abs(i1), FMath::Abs(i1));
+									alpha = 0.5f / FMath::Abs(FMath::Max(i1, j1));//FMath::Max(FMath::Abs(i1), FMath::Abs(i1));
 								//	alpha = 0.25f;
 								//float OtherBiomeValueIfNeightbourOtherBiome = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(j + j1, i + i1);
-								float LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.5f); //for vertex directly next to the new biome
+								float LerpedValue = FMath::Lerp(TerrainGenerator->Vertices[NeighbourIndex].Z, VertexValue, 0.5f); //for vertex directly next to the new biome
 								TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
-								LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.75f); //for vertex directly next to the new biome
+								//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+
+								//UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %f, %f, %f, %i"), VertexValue, NeighbourValue, alpha, FMath::Abs(FMath::Max(i1, j1)))
+
+								//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+								//LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.75f); //for vertex directly next to the new biome
 								//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
 
 								FLinearColor vertexBiomeColor = BiomeStatsMap[BiomeAtEachPoint[VertexIndex]].GetDefaultObject()->BiomeColour;
 								FLinearColor neighbourBiomeColor = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].GetDefaultObject()->BiomeColour;
 								TerrainGenerator->VerticeColours[VertexIndex] = FMath::Lerp(vertexBiomeColor, neighbourBiomeColor, 0.25f);//FLinearColor(0.5f, 0.5f, 0.5f);
+								//TerrainGenerator->VerticeColours[NeighbourIndex] = FMath::Lerp(vertexBiomeColor, neighbourBiomeColor, 0.75f);
 								//TerrainGenerator->VerticeColours[NeighbourIndex] = FMath::Lerp(neighbourBiomeColor, vertexBiomeColor, 0.25f);//FLinearColor(0.5f, 0.5f, 0.5f);
 
 								//check all neighbours of the neighbour of the current vertex
@@ -352,6 +361,56 @@ void UBiomeGenerationComponent::BiomeLerping()
 
 								bBeenLerped[VertexIndex] = true;
 								//bBeenLerped[NeighbourIndex] = true;
+							}
+							if (!bBeenLerped[NeighbourIndex])// && !bBeenLerped[NeighbourIndex])
+							{
+								float alpha = 0.5f;
+								if (i1 != 0 && j1 != 0)
+									alpha = 0.5f / FMath::Abs(FMath::Max(i1, j1));//FMath::Max(FMath::Abs(i1), FMath::Abs(i1));
+								//	alpha = 0.25f;
+								//float OtherBiomeValueIfNeightbourOtherBiome = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(j + j1, i + i1);
+								float LerpedValue = FMath::Lerp(TerrainGenerator->Vertices[NeighbourIndex].Z, VertexValue, 0.5f); //for vertex directly next to the new biome
+								TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+								//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+
+								//UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %f, %f, %f, %i"), VertexValue, NeighbourValue, alpha, FMath::Abs(FMath::Max(i1, j1)))
+
+									//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+									//LerpedValue = FMath::Lerp(VertexValue, TerrainGenerator->Vertices[NeighbourIndex].Z, 0.75f); //for vertex directly next to the new biome
+									//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+
+									FLinearColor vertexBiomeColor = BiomeStatsMap[BiomeAtEachPoint[VertexIndex]].GetDefaultObject()->BiomeColour;
+								FLinearColor neighbourBiomeColor = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].GetDefaultObject()->BiomeColour;
+								TerrainGenerator->VerticeColours[NeighbourIndex] = FMath::Lerp(vertexBiomeColor, neighbourBiomeColor, 0.75f);//FLinearColor(0.5f, 0.5f, 0.5f);
+								//TerrainGenerator->VerticeColours[NeighbourIndex] = FMath::Lerp(vertexBiomeColor, neighbourBiomeColor, 0.75f);
+								//TerrainGenerator->VerticeColours[NeighbourIndex] = FMath::Lerp(neighbourBiomeColor, vertexBiomeColor, 0.25f);//FLinearColor(0.5f, 0.5f, 0.5f);
+
+								//check all neighbours of the neighbour of the current vertex
+								////for (int32 a = -blendAmount; a <= blendAmount; a++) //get neighbouring vertices of current one which are same biome
+								////{
+								////	for (int32 b = -blendAmount; b <= blendAmount; b++)
+								////	{
+								////		if (j1 + b >= 0 && j1 + b < TerrainGenerator->Width && i1 + a >= 0 && i1 + a < TerrainGenerator->Height)
+								////		{
+								////			int32 SameNeighbourIndex = (i1 + a) * TerrainGenerator->Width + (j1 + b);
+								////			//lerp between the two values
+								////			if (BiomeAtEachPoint[VertexIndex] == BiomeAtEachPoint[SameNeighbourIndex] && !bBeenLerped[SameNeighbourIndex])// && !bBeenLerped[SameNeighbourIndex])
+								////			{
+								////				//UE_LOG(LogTemp, Error, TEXT("Same Biome"))
+								////				//if (i1 == 3 || i1 == -3)
+								////				//	alpha = 0.75f;
+								////				if (a != 0 && b != 0)
+								////					alpha = 0.5f / FMath::Max(FMath::Abs(a), FMath::Abs(b));//FVector2D::DistSquared(FVector2D(a, b), FVector2D(i1, j1));//FMath::Max(FMath::Abs(a), FMath::Abs(b));
+								////				float NewLerpedValue = FMath::Lerp(NeighbourValue, TerrainGenerator->Vertices[SameNeighbourIndex].Z, alpha); //for vertex directly next to the new biome
+								////				TerrainGenerator->Vertices[SameNeighbourIndex].Z = NewLerpedValue;
+								////				bBeenLerped[SameNeighbourIndex] = true;
+
+								////			}
+								////		}
+								////	}
+								////}
+
+								bBeenLerped[NeighbourIndex] = true;
 							}
 							//if (!bBeenLerped[NeighbourIndex])
 							//{
@@ -530,7 +589,7 @@ void UBiomeGenerationComponent::SpawnTents()
 
 		int32 VertexIndex = Y * TerrainGenerator->Width + X;
 		FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
-		UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %s"), *VertexLocation.ToString())
+		//UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %s"), *VertexLocation.ToString())
 
 		int32 XPosition = FMath::RoundToInt(VertexLocation.X / TerrainGenerator->GridSize);
 		int32 YPosition = FMath::RoundToInt(VertexLocation.Y / TerrainGenerator->GridSize);

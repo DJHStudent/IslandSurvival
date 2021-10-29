@@ -67,8 +67,11 @@ void AProcedurallyGeneratedTerrain::RegenerateMap()
 {
 	ClearMap(); //delete any previosuly stored values
 
-	if(BiomeGeneration)
-		BiomeGeneration->BiomeAtEachPoint.Init(1, Width * Height); //give each vertex a default biome of ocean
+	if (BiomeGeneration)
+	{
+		BiomeGeneration->BiomeAtEachPoint.Init(-1, Width * Height); //give each vertex a default biome of ocean
+		BiomeGeneration->bBeenLerped.Init(false, Width * Height);
+	}
 	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height); //give each vertex a default colour
 
 	GenerateSeed(); //determine seed
@@ -97,6 +100,7 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 		BiomeGeneration->IslandPointsMap.Empty();
 		BiomeGeneration->BiomeAtEachPoint.Empty();
 		BiomeGeneration->VertexBiomeLocationsMap.Empty();
+		BiomeGeneration->bBeenLerped.Empty();
 	}
 
 	//destory any meshes placed on the terrain by using the array of all meshes which exist
@@ -151,7 +155,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 		}
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
-	BiomeGeneration->BiomeLerping();
+	//BiomeGeneration->BiomeLerping();
 	BiomeGeneration->SpawnTents();
 	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 

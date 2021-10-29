@@ -84,9 +84,11 @@ public:
 
 	void SpawnMeshes(); //for each biome spawn in the appropriate meshes
 	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where the key is the biomes key it relates to and the index of every vertex held within 
+	UPROPERTY()
 	TArray<AActor*> MeshActors; //all meshes added into the world
 
-	void BiomeLerping();
+	void BiomeLerping(int32 i, int32 j);
+	TArray<bool> bBeenLerped;
 
 	void SpawnTents();
 private:
