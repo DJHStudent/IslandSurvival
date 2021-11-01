@@ -19,15 +19,30 @@ bool UMainMenuWidget::Initialize() //run when the widget gets created
 void UMainMenuWidget::OnHostButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Host Button Pressed"))
-	if (MainGameInstance)
-		MainGameInstance->HostSession();
+
+		//Attempt to create a new session
+		if (UMainGameInstance* GameInstance = Cast<UMainGameInstance>(GetGameInstance()))
+		{
+			GameInstance->CreateSession(TEXT("Test Session"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Unable to find the GameInstance"))
+		}
+
 }
 
 void UMainMenuWidget::OnJoinButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Join Button Pressed"))
-	if (MainGameInstance)
-		MainGameInstance->JoinSession();
+		if (UMainGameInstance* GameInstance = Cast<UMainGameInstance>(GetGameInstance()))
+		{
+			GameInstance->FindSession(TEXT("Test Session"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Unable to find GameInstance"))
+		}
 }
 
 void UMainMenuWidget::OnQuitButtonPressed()

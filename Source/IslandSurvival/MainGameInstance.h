@@ -26,11 +26,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadMenu(); //whenever mainmenu scene loads up call this function
 
-	void HostSession();
-	void JoinSession();
+	void CreateSession(FName SessionName);
+	void DestroySession(FName SessionName);
+	void FindSession(FName SessionName);
+	void JoinSession(FName SessionName);
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
-	class UMainMenuWidget* MainMenu;
+	class UMainMenuWidget* Menu;
 
 	IOnlineSubsystem* Subsystem;
 	//shorthand way of writting a TSharedPointer

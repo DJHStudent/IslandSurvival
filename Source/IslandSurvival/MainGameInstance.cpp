@@ -3,77 +3,136 @@
 
 #include "MainGameInstance.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Blueprint/UserWidget.h"
+#include "MainMenuWidget.h"
+#include "PlayerCharacter.h"
+#include "GameFramework/PlayerController.h"
+#include "Interfaces/OnlineSessionInterface.h"
 
-UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
+UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitializer)
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuWidgetObject(TEXT("/Game/Widgets/MainMenuWidget"));
-	MainMenuWidgetClass = MainMenuWidgetObject.Class; //get the file location of the widget blueprint class and store it in this variable
-}
-
-void UMainGameInstance::Init() //setup connection to specific online system
-{
-	Subsystem = IOnlineSubsystem::Get(); //gets the subsystem for a service, in this case null as in editor
-	if (Subsystem)
-	{
-		SessionInterface = Subsystem->GetSessionInterface();
-
-		if (SessionInterface.IsValid())//add all the other delegates here
-		{
-			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnCreateSessionComplete); //makes delegate so when session created calls this function
-			//note must have this added
-			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnDestroySessionComplete);
-			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMainGameInstance::OnFindSessionComplete);
-			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnJoinSessionComplete);
-		}
-
-		UE_LOG(LogTemp, Warning, TEXT("Online Subsystem found: %s"), *Subsystem->GetSubsystemName().ToString())
-	}
-	else
-		UE_LOG(LogTemp, Error, TEXT("Unable to find Online Subsystem"))
+	MainMenuWidgetClass = MainMenuWidgetObject.Class;
 }
 
 void UMainGameInstance::LoadMenu()
 {
-	if (MainMenuWidgetClass != nullptr)
-		MainMenu = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetClass); //spawn in a new widget
-
-	if (MainMenu) //as exists now, add it to the viewport
+	if (MainMenuWidgetClass)
 	{
-		MainMenu->AddToViewport();
-
-		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		InputMode.SetWidgetToFocus(MainMenu->TakeWidget());
-
-		APlayerController* PlayerController;
-		PlayerController = GetFirstLocalPlayerController();
-		if (PlayerController)
+		Menu = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetClass);
+		if (Menu)
 		{
-			PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
-			PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
+			Menu->AddToViewport();
+
+			APlayerController* PlayerController = GetFirstLocalPlayerController();
+			if (PlayerController)
+			{
+				// Set up the settings for the input mode.
+				FInputModeUIOnly InputMode;
+				InputMode.SetWidgetToFocus(Menu->TakeWidget());
+				InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+				PlayerController->bShowMouseCursor = true;
+				PlayerController->SetInputMode(InputMode);
+			}
+		}
+	}
+}
+
+void UMainGameInstance::Init()
+{
+	Subsystem = IOnlineSubsystem::Get();
+	if (Subsystem)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Found Online Subsystem: %s"), *Subsystem->GetSubsystemName().ToString())
+
+			SessionInterface = Subsystem->GetSessionInterface();
+
+		if (SessionInterface.IsValid())
+		{
+			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnCreateSessionComplete);
+			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnDestroySessionComplete);
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMainGameInstance::OnFindSessionComplete);
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnJoinSessionComplete);
+			//CreateSession(TEXT("Test Session"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Unable to find SessionInterface"))
 		}
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
-}
-
-void UMainGameInstance::HostSession()
-{
-	FName SessionName = "PLayerChoosenName"; //have actual input to choose this, from a UI element
-	if (Subsystem && SessionInterface.IsValid()) //make a new session with current player as host
 	{
-		FOnlineSessionSettings SessionSettings;
-		SessionSettings.bIsLANMatch = true; //only joinable on LAN networks
-		SessionSettings.NumPublicConnections = 4;
-		SessionSettings.bShouldAdvertise = true; //allows session to be public and joinable
-
-		SessionInterface->CreateSession(0, SessionName, SessionSettings); //will now call the session complete delegate regardless of success or failure
+		UE_LOG(LogTemp, Error, TEXT("Unable to find Online Subsystem"))
 	}
 }
 
-void UMainGameInstance::JoinSession() //look up sessions to find one looking for, and then print list of them to UI
+void UMainGameInstance::CreateSession(FName SessionName)
 {
-	SessionSearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
+	UE_LOG(LogTemp, Warning, TEXT("Creating Session"))
+		if (SessionInterface.IsValid())
+		{
+			FOnlineSessionSettings SessionSettings;
+			SessionSettings.bIsLANMatch = true;
+			SessionSettings.NumPublicConnections = 3;
+			SessionSettings.bShouldAdvertise = true;
+			SessionInterface->CreateSession(0, SessionName, SessionSettings);
+		}
+}
+
+void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess)
+{
+	if (bSuccess)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Session Created Successfully"))
+			// Client travel to the MultiplayerMap
+			if (APlayerController* PlayerController = GetPrimaryPlayerController())
+			{
+				//Change player input back before travelling.
+				FInputModeGameOnly InputMode;
+				//InputMode.SetWidgetToFocus(Menu->TakeWidget());
+				//InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+				PlayerController->bShowMouseCursor = false;
+				PlayerController->SetInputMode(InputMode);
+				UWorld* World = GetWorld();
+				if (World)
+				{
+					World->ServerTravel(TEXT("/Game/Maps/ServerLobby?listen"));
+				}
+			}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"))
+			// Destroy the session with this name.
+			DestroySession(SessionName);
+	}
+}
+
+void UMainGameInstance::DestroySession(FName SessionName)
+{
+	if (SessionInterface.IsValid())
+	{
+		SessionInterface->DestroySession(SessionName);
+	}
+}
+
+void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
+{
+	if (bSuccess)
+	{
+		// If it is successfully destroyed then attempt to create a new session with the same name.
+		CreateSession(SessionName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"))
+	}
+}
+
+void UMainGameInstance::FindSession(FName SessionName)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Finding Session %s"), *SessionName.ToString())
+		SessionSearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
 	if (SessionSearch.IsValid() && SessionInterface.IsValid())
 	{
 		SessionSearch->bIsLanQuery = true;
@@ -81,53 +140,19 @@ void UMainGameInstance::JoinSession() //look up sessions to find one looking for
 	}
 }
 
-void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess)
-{
-	if (bSuccess)
-	{
-		//session sucessful so client travel to the correct map
-		APlayerController* PlayerController;
-		PlayerController = GetPrimaryPlayerController(); //for this machine get primary, likly only player controller
-		if (PlayerController) //travel the player to a different map, while keeping the server active
-		{
-			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			PlayerController->bShowMouseCursor = false;
-			PlayerController->SetInputMode(InputMode);
-
-			GetWorld()->ServerTravel(TEXT("/Game/Maps/ServerLobby?listen")); //make a new server, but still allow it to listen so others can join it
-		}
-	}
-	else
-	{ //need to display warning to user as likly session with name already in use
-		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"))
-		if (SessionInterface.IsValid())
-			SessionInterface->DestroySession(SessionName);
-	}
-}
-
-void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
-{
-	if (bSuccess)
-		HostSession(); //as session did exist before make a new one
-	else
-		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"))
-}
-
-void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually print all sessions avaliable to a list
+void UMainGameInstance::OnFindSessionComplete(bool bSuccess)
 {
 	if (bSuccess && SessionSearch.IsValid())
 	{
 		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
-		FName SessionFoundName = "";
-		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) //loop through all possible sessions setting name to last one found
+		UE_LOG(LogTemp, Warning, TEXT("Found %i sessions"), SearchResults.Num())
+			FName SessionFoundName = "";
+		for (const FOnlineSessionSearchResult& SearchResult : SearchResults)
 		{
-			SessionFoundName = FName(*SearchResult.GetSessionIdStr());
-			UE_LOG(LogTemp, Error, TEXT("Found Session %i"), SearchResult.Session.SessionSettings.NumPublicConnections)
+			UE_LOG(LogTemp, Warning, TEXT("Found Session %s"), *SearchResult.GetSessionIdStr())
+				SessionFoundName = FName(*SearchResult.GetSessionIdStr());
 		}
-		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
-		{
-			SessionInterface->JoinSession(0, "PLayerChoosenName", SessionSearch->SearchResults[0]);
-		}
+		JoinSession(SessionFoundName);
 	}
 	else
 	{
@@ -135,21 +160,28 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 	}
 }
 
+
+void UMainGameInstance::JoinSession(FName SessionName)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Attempting to join session: %s"), *SessionName.ToString())
+		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
+		{
+			SessionInterface->JoinSession(0, SessionName, SessionSearch->SearchResults[0]);
+		}
+}
+
 void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
-	if (Result == EOnJoinSessionCompleteResult::Success && SessionInterface.IsValid())
+	if (SessionInterface.IsValid())
 	{
-		APlayerController* PlayerController;
 		FString Address;
-		SessionInterface->GetResolvedConnectString(SessionName, Address); //get platform specific info for joining match
-		PlayerController = GetPrimaryPlayerController();
-		if (PlayerController) //travel the player to a different map, while keeping the server active
+		SessionInterface->GetResolvedConnectString(SessionName, Address);
+		APlayerController* PlayerController = GetFirstLocalPlayerController();
+		if (PlayerController)
 		{
-			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			PlayerController->bShowMouseCursor = false;
+			FInputModeGameOnly InputMode;
 			PlayerController->SetInputMode(InputMode);
-
-			PlayerController->ClientTravel(TEXT("ServerLobby"), ETravelType::TRAVEL_Absolute);
+			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}
 	}
 }
