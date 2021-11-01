@@ -42,7 +42,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DisplayPointBiome();
+	//DisplayPointBiome();
 }
 
 // Called to bind functionality to input
@@ -87,7 +87,7 @@ void APlayerCharacter::LookUp(float Value)
 	FRotator LookUpRotation = FRotator::ZeroRotator;//FRotator(0.0f, 0.0f, 0.0f); both sets an FRotator to zero
 	LookUpRotation.Pitch = Value * LookSensitivity;
 
-	if (Camera != nullptr && Camera->RelativeRotation.Pitch + LookUpRotation.Pitch < 90 
+	if (Camera && Camera->RelativeRotation.Pitch + LookUpRotation.Pitch < 90 
 		&& Camera->RelativeRotation.Pitch + LookUpRotation.Pitch > -90)//stops juttering if the camera moved beyond these values
 	{
 		Camera->AddRelativeRotation(LookUpRotation);//applies the rotation to the camera and allows only the pitch 
