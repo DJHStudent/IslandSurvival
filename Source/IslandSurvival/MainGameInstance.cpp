@@ -59,7 +59,7 @@ void UMainGameInstance::LoadMenu()
 
 void UMainGameInstance::HostSession()
 {
-	FName SessionName = "PLayerChoosenName"; //have actual input to choose this, from a UI element
+	FName SessionName = TEXT("PLayerChoosenName"); //have actual input to choose this, from a UI element
 	if (Subsystem && SessionInterface.IsValid()) //make a new session with current player as host
 	{
 		FOnlineSessionSettings SessionSettings;
@@ -118,7 +118,7 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 	if (bSuccess && SessionSearch.IsValid())
 	{
 		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
-		FName SessionFoundName = "";
+		FName SessionFoundName;
 		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) //loop through all possible sessions setting name to last one found
 		{
 			SessionFoundName = FName(*SearchResult.GetSessionIdStr());
@@ -126,7 +126,7 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		}
 		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
 		{
-			SessionInterface->JoinSession(0, "PLayerChoosenName", SessionSearch->SearchResults[0]);
+			SessionInterface->JoinSession(0, SessionFoundName, SessionSearch->SearchResults[0]);
 		}
 	}
 	else
@@ -149,7 +149,7 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 			PlayerController->bShowMouseCursor = false;
 			PlayerController->SetInputMode(InputMode);
 
-			PlayerController->ClientTravel(TEXT("ServerLobby"), ETravelType::TRAVEL_Absolute);
+			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}
 	}
 }
