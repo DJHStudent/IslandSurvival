@@ -2,58 +2,31 @@
 
 
 #include "MainGameState.h"
-#include "LobbyWidget.h"
-#include "MainGameInstance.h"
-#include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 
 AMainGameState::AMainGameState()
 {
-	TerrainWidth = 300;
-	TerrainHeight = 300;
-	Seed = 0;
+	ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
 }
 
-void AMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void AMainGameState::GenerateTerrain(int32 Seed, int32 Width, int32 Height)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMainGameState, TerrainWidth);	
-	DOREPLIFETIME(AMainGameState, TerrainHeight);
-	DOREPLIFETIME(AMainGameState, Seed);
-}
-
-void AMainGameState::UpdateHeight()
-{
-	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
+	if (ProceduralTerrain)
 	{
-		PlayerInstance->Lobby->SetHeight(TerrainHeight);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainHeight)
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
-}
+		ProceduralTerrain->Seed = Seed;
+		ProceduralTerrain->Width = Width;
+		ProceduralTerrain->Height = Height;
 
-void AMainGameState::UpdateWidth()
-{
-	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
-		PlayerInstance->Lobby->SetWidth(TerrainWidth);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainWidth)
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
-}
+		ProceduralTerrain->RegenerateMap();
 
-void AMainGameState::UpdateSeed()
-{
-	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
-		PlayerInstance->Lobby->SetSeed(Seed);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), Seed)
+		/* Steps on how the terrain should actually get generated
+			1. Generate Vertices Array on Server
+			2. Move the Vertices Array to each and every client
+			3. Using the Seed I Guess can do the rest
+
+			Or
+			1. Pass in the seed using as determined by the server, then do 100% of rest on the clients and it will be the right stuff
+
+		*/
 	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
 }

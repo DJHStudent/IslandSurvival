@@ -45,6 +45,10 @@ public:
 	//UPROPERTY(Replicated)
 	EGameState CurrentGameState;
 
+	//these variables will only actually be on the server version
+	int32 TerrainWidth;
+	int32 TerrainHeight;
+	int32 Seed;
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	class UMainMenuWidget* MainMenu;

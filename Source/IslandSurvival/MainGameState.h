@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "ProcedurallyGeneratedTerrain.h"
 #include "MainGameState.generated.h"
 
 /**
@@ -16,22 +17,7 @@ class ISLANDSURVIVAL_API AMainGameState : public AGameState
 
 public:
 	AMainGameState();
-
-	UPROPERTY(ReplicatedUsing = UpdateWidth)
-	int32 TerrainWidth;
-	UPROPERTY(ReplicatedUsing = UpdateHeight)
-	int32 TerrainHeight;
-	UPROPERTY(ReplicatedUsing = UpdateSeed)
-	int32 Seed;
-
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
-
+	void GenerateTerrain(int32 Seed, int32 Width, int32 Height);
 private:
-
-	UFUNCTION()
-		void UpdateSeed();	
-	UFUNCTION()
-		void UpdateWidth();	
-	UFUNCTION()
-		void UpdateHeight();
+	AProcedurallyGeneratedTerrain* ProceduralTerrain;
 };

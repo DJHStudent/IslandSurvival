@@ -17,13 +17,13 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 	SpinBoxSeed->OnValueChanged.AddDynamic(this, &ULobbyWidget::OnSeedChanged);
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
-	MainGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
+	LobbyGameState = Cast<ALobbyGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
 
-	if (MainGameState) //for each widget variant set the default values
+	if (LobbyGameState) //for each widget variant set the default values
 	{
-		SetSeed(MainGameState->Seed);
-		SetWidth(MainGameState->TerrainWidth);
-		SetHeight(MainGameState->TerrainHeight);
+		SetSeed(LobbyGameState->Seed);
+		SetWidth(LobbyGameState->TerrainWidth);
+		SetHeight(LobbyGameState->TerrainHeight);
 	}
 	return true;
 }
@@ -44,10 +44,18 @@ void ULobbyWidget::SetEditability(APawn* Player) //come back to eventually once 
 	}
 }
 
-void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the terrain gen map
+void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the terrain gen map, can only actually be called on server 
 {
 	if (MainGameInstance)
+	{
+		if (LobbyGameState) //copy the variables to the host version
+		{
+			MainGameInstance->Seed = LobbyGameState->Seed;
+			MainGameInstance->TerrainHeight = LobbyGameState->TerrainHeight;
+			MainGameInstance->TerrainWidth = LobbyGameState->TerrainWidth;
+		}
 		MainGameInstance->StartGame();
+	}
 }
 
 void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from the server
@@ -72,19 +80,19 @@ void ULobbyWidget::OnSeedChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	MainGameState->Seed = RoundValue;
+	LobbyGameState->Seed = RoundValue;
 }
 
 void ULobbyWidget::OnWidthChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	MainGameState->TerrainWidth = RoundValue;
+	LobbyGameState->TerrainWidth = RoundValue;
 }
 
 void ULobbyWidget::OnHeightChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	MainGameState->TerrainHeight = RoundValue;
+	LobbyGameState->TerrainHeight = RoundValue;
 }

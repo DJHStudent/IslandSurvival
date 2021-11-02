@@ -4,6 +4,8 @@
 #include "MainGameInstance.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "MainGameState.h"
+#include "Kismet/GameplayStatics.h"
 
 UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 {
@@ -219,6 +221,16 @@ void UMainGameInstance::LoadGame(APawn* Player)
 
 		///////*if (Lobby)
 		//////	Lobby->RemoveFromViewport();*/
+
+		//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
+		////if (Player->GetLocalRole() == ROLE_Authority)
+		////{
+		////	AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+		////	if (MainGame)
+		////	{
+		////		MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
+		////	}
+		////}
 	}
 }
 
