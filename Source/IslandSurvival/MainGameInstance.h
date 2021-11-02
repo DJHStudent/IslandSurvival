@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Net/UnrealNetwork.h"
 #include "MainMenuWidget.h"
 #include "LobbyWidget.h"
 #include "OnlineSubsystem.h"
@@ -12,9 +13,12 @@
 #include "Blueprint/UserWidget.h"
 #include "MainGameInstance.generated.h"
 
-/**
- * 
- */
+UENUM() //just a macro specifying its an enum class
+enum class EGameState : uint8 //should be called EAgentState as an enum and Unreal convention
+{
+	LOBBY UMETA(DisplayName = "Lobby"),
+	GAME UMETA(DisplayName = "Game"),
+};
 UCLASS()
 class ISLANDSURVIVAL_API UMainGameInstance : public UGameInstance
 {
@@ -31,8 +35,14 @@ public:
 
 	void HostSession();
 	void JoinSession();
+
+	void StartGame();
 	
 	class ULobbyWidget* Lobby;
+
+	UPROPERTY(Replicated)
+	EGameState CurrentGameState;
+
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	class UMainMenuWidget* MainMenu;
@@ -49,4 +59,8 @@ private:
 	void OnCreateSessionComplete(FName SessionName, bool bSuccess); //when hosting and joined session
 	void OnDestroySessionComplete(FName SessionName, bool bSuccess); //when deleted session
 
+	UFUNCTION(NetMulticast, Reliable)
+	void LoadGame();
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all the variables to be replicated
 };

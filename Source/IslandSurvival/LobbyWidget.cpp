@@ -18,6 +18,13 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
 	MainGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
+
+	if (MainGameState) //for each widget variant set the default values
+	{
+		SetSeed(MainGameState->Seed);
+		SetWidth(MainGameState->TerrainWidth);
+		SetHeight(MainGameState->TerrainHeight);
+	}
 	return true;
 }
 
@@ -39,16 +46,24 @@ void ULobbyWidget::SetEditability(APawn* Player) //come back to eventually once 
 
 void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the terrain gen map
 {
-
+	if (MainGameInstance)
+		MainGameInstance->StartGame();
 }
 
 void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from the server
 {
 }
 
+void ULobbyWidget::SetSeed(int32 Value)
+{
+	SpinBoxSeed->SetValue(Value);
+}
+void ULobbyWidget::SetWidth(int32 Value)
+{
+	SpinBoxWidth->SetValue(Value);
+}
 void ULobbyWidget::SetHeight(int32 Value)
 {
-	//if (SpinBoxHeight != nullptr)
 	SpinBoxHeight->SetValue(Value);
 }
 

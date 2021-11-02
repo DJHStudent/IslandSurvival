@@ -39,7 +39,7 @@ void APlayerCharacter::BeginPlay()
 	if (SkeletalMesh)//ensures no null pointer and will only work if it exists
 		AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
 
-	if (MainGameInstance) //if though called before constructor set this will never be called, or if say Lobby is null also never called even though it should
+	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY) //if though called before constructor set this will never be called, or if say Lobby is null also never called even though it should
 		MainGameInstance->LoadLobby(this);
 	////////else
 	////////	UE_LOG(LogTemp, Error, TEXT("All Up failed Missesabily"))

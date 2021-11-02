@@ -21,6 +21,9 @@ class ISLANDSURVIVAL_API ULobbyWidget : public UUserWidget
 public:
 	void SetEditability(APawn* Player); //set conditions so only host can actually press / edit these elements
 
+	//on every client these will be called to update the text whenever values change
+	void SetSeed(int32 Value);
+	void SetWidth(int32 Value);
 	void SetHeight(int32 Value);
 private:
 	virtual bool Initialize() override;

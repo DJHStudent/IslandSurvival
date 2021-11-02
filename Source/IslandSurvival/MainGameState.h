@@ -7,7 +7,7 @@
 #include "MainGameState.generated.h"
 
 /**
- * 
+ the state of the current level / game in
  */
 UCLASS()
 class ISLANDSURVIVAL_API AMainGameState : public AGameState
@@ -15,16 +15,23 @@ class ISLANDSURVIVAL_API AMainGameState : public AGameState
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Replicated)
+	AMainGameState();
+
+	UPROPERTY(ReplicatedUsing = UpdateWidth)
 	int32 TerrainWidth;
 	UPROPERTY(ReplicatedUsing = UpdateHeight)
 	int32 TerrainHeight;
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = UpdateSeed)
 	int32 Seed;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 
 private:
+
 	UFUNCTION()
-	void UpdateHeight();
+		void UpdateSeed();	
+	UFUNCTION()
+		void UpdateWidth();	
+	UFUNCTION()
+		void UpdateHeight();
 };
