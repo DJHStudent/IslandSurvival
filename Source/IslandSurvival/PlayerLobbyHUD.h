@@ -18,37 +18,37 @@ class ISLANDSURVIVAL_API APlayerLobbyHUD : public AHUD
 	GENERATED_BODY()
 	
 public:
-	APlayerLobbyHUD();
+	//APlayerLobbyHUD();
 
 private:
-	TSubclassOf<UUserWidget> LobbyWidgetClass;
-	class ULobbyWidget* Lobby;
+	//TSubclassOf<UUserWidget> LobbyHUDClass;
+	//class UUserWidget* PlayerLobbyHUDWidget;
 
 
-	void SetEditability(); //set conditions so only host can actually press / edit these elements
+	//void SetEditability(); //set conditions so only host can actually press / edit these elements
 
-	UPROPERTY(meta = (BindWidget))
-		UButton* ButtonLeave;
-	UPROPERTY(meta = (BindWidget))
-		UButton* ButtonStart;
+	//UPROPERTY(meta = (BindWidget))
+	//	UButton* ButtonLeave;
+	//UPROPERTY(meta = (BindWidget))
+	//	UButton* ButtonStart;
 
-	UPROPERTY(meta = (BindWidget))
-		USpinBox* SpinBoxSeed;
-	UPROPERTY(meta = (BindWidget))
-		USpinBox* SpinBoxWidth;
-	UPROPERTY(meta = (BindWidget))
-		USpinBox* SpinBoxHeight;
+	//UPROPERTY(meta = (BindWidget))
+	//	USpinBox* SpinBoxSeed;
+	//UPROPERTY(meta = (BindWidget))
+	//	USpinBox* SpinBoxWidth;
+	//UPROPERTY(meta = (BindWidget))
+	//	USpinBox* SpinBoxHeight;
 
-	//class UMainGameInstance* MainGameInstance;
+	////class UMainGameInstance* MainGameInstance;
 
-	UFUNCTION()
-		void OnStartButtonPressed();
-	UFUNCTION()
-		void OnLeaveButtonPressed();
-	UFUNCTION()
-		void OnSeedChanged(float InValue); //when host changes seed
-	UFUNCTION()
-		void OnWidthChanged(float InValue); //when host changed width
-	UFUNCTION()
-		void OnHeightChanged(float InValue); //when host changes height
+	//UFUNCTION()
+	//	void OnStartButtonPressed();
+	//UFUNCTION()
+	//	void OnLeaveButtonPressed();
+	//UFUNCTION()
+	//	void OnSeedChanged(float InValue); //when host changes seed
+	//UFUNCTION()
+	//	void OnWidthChanged(float InValue); //when host changed width
+	//UFUNCTION()
+	//	void OnHeightChanged(float InValue); //when host changes height
 };

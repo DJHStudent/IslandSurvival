@@ -60,13 +60,15 @@ void UMainGameInstance::LoadMenu()
 		UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
 }
 
-void UMainGameInstance::LoadLobby(APawn* Player)
+void UMainGameInstance::LoadLobby()
 {
-	if (Player)
+	APlayerController* PlayerController;
+	PlayerController = GetFirstLocalPlayerController();
+	if (PlayerController)
 	{
 		APawn* PlayerPawn = PlayerController->GetPawn();
 
-		if (PlayerPawn && PlayerPawn->IsLocallyControlled() && PlayerPawn->GetLocalRole() == ROLE_AutonomousProxy) //only make a new widget if the player is local
+		if (PlayerPawn && PlayerPawn->IsLocallyControlled() && PlayerPawn->GetLocalRole() == ROLE_Authority) //only make a new widget if the player is local
 		{
 			if (LobbyWidgetClass != nullptr)
 				Lobby = CreateWidget<ULobbyWidget>(GetWorld(), LobbyWidgetClass); //spawn in a new widget

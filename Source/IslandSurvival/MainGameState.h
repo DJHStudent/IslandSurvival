@@ -17,10 +17,14 @@ class ISLANDSURVIVAL_API AMainGameState : public AGameState
 public:
 	UPROPERTY(Replicated)
 	int32 TerrainWidth;
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = UpdateHeight)
 	int32 TerrainHeight;
 	UPROPERTY(Replicated)
 	int32 Seed;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
+
+private:
+	UFUNCTION()
+	void UpdateHeight();
 };

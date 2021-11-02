@@ -27,7 +27,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadMenu(); //whenever mainmenu scene loads up call this function
 	UFUNCTION(BlueprintCallable)
-	void LoadLobby(APawn* Player);
+	void LoadLobby();
 
 	void HostSession();
 	void JoinSession();

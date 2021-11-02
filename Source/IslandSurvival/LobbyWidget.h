@@ -7,6 +7,7 @@
 #include "Components/Button.h"
 #include "Components/SpinBox.h"
 #include "MainGameInstance.h"
+#include "MainGameState.h"
 #include "LobbyWidget.generated.h"
 
 /**
@@ -18,8 +19,9 @@ class ISLANDSURVIVAL_API ULobbyWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetEditability(APlayerController* PlayerController); //set conditions so only host can actually press / edit these elements
+	void SetEditability(AActor* Player); //set conditions so only host can actually press / edit these elements
 
+	void SetHeight(int32 Value);
 private:
 	virtual bool Initialize() override;
 
@@ -36,6 +38,7 @@ private:
 	USpinBox* SpinBoxHeight;
 
 	class UMainGameInstance* MainGameInstance;
+	AMainGameState* MainGameState;
 
 	UFUNCTION()
 	void OnStartButtonPressed();

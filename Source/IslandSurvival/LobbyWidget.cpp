@@ -17,21 +17,25 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 	SpinBoxSeed->OnValueChanged.AddDynamic(this, &ULobbyWidget::OnSeedChanged);
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
+	MainGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
 	return true;
 }
 
-void ULobbyWidget::SetEditability(APlayerController* PlayerController)
+void ULobbyWidget::SetEditability(AActor* Player) //come back to eventually once rest of code setup as no idea about this
 {
-	AActor* PlayerOwner = PlayerController->GetOwner();
-	if (PlayerOwner && PlayerOwner->GetLocalRole() == ROLE_AutonomousProxy) //if controlled player not on server
+	if (Player && Player->GetLocalRole() == ROLE_AutonomousProxy) //if controlled player not on server
 	{
-		ButtonStart->Visibility = ESlateVisibility::HitTestInvisible;
-		SpinBoxSeed->Visibility = ESlateVisibility::HitTestInvisible;
-		SpinBoxWidth->Visibility = ESlateVisibility::HitTestInvisible;
-		SpinBoxHeight->Visibility = ESlateVisibility::HitTestInvisible;
-		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability"))
+		if(ButtonStart)
+			ButtonStart->SetVisibility(ESlateVisibility::HitTestInvisible);
+		if(SpinBoxSeed)
+			SpinBoxSeed->SetVisibility(ESlateVisibility::HitTestInvisible);
+		if (SpinBoxWidth)
+			SpinBoxWidth->SetVisibility(ESlateVisibility::HitTestInvisible);
+		if (SpinBoxHeight)
+			SpinBoxHeight->SetVisibility(ESlateVisibility::HitTestInvisible);
+		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability: %s"), *Player->GetName())
 	}
-	else if(PlayerOwner)
+	else if(Player)
 		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability failed as no owner exists ever"))
 
 }
@@ -45,18 +49,30 @@ void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from 
 {
 }
 
+void ULobbyWidget::SetHeight(int32 Value)
+{
+	if (SpinBoxHeight != nullptr)
+		SpinBoxHeight->SetValue(Value);
+}
+
 
 void ULobbyWidget::OnSeedChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
+	//call game state to update all clients
+	MainGameState->Seed = RoundValue;
 }
 
 void ULobbyWidget::OnWidthChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
+	//call game state to update all clients
+	MainGameState->TerrainWidth = RoundValue;
 }
 
 void ULobbyWidget::OnHeightChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
+	//call game state to update all clients
+	MainGameState->TerrainHeight = RoundValue;
 }

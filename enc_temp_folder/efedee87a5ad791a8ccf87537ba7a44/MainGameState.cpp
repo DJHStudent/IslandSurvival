@@ -23,6 +23,4 @@ void AMainGameState::UpdateHeight()
 		PlayerInstance->Lobby->SetHeight(TerrainHeight);
 		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainHeight)
 	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
 }
