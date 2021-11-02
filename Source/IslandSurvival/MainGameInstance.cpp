@@ -57,6 +57,33 @@ void UMainGameInstance::LoadMenu()
 		UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
 }
 
+void UMainGameInstance::LoadLobby()
+{
+	if (LobbyWidgetClass != nullptr)
+		Lobby = CreateWidget<ULobbyWidget>(GetWorld(), LobbyWidgetClass); //spawn in a new widget
+
+	if (Lobby) //as exists now, add it to the viewport
+	{
+		Lobby->AddToViewport();
+
+		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		InputMode.SetWidgetToFocus(Lobby->TakeWidget());
+
+		APlayerController* PlayerController;
+		PlayerController = GetPrimaryPlayerController();
+		if (PlayerController)
+		{
+			Lobby->SetEditability(PlayerController);
+
+			PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
+			PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
+}
+
 void UMainGameInstance::HostSession()
 {
 	FName SessionName = TEXT("PLayerChoosenName"); //have actual input to choose this, from a UI element
@@ -90,9 +117,9 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 		PlayerController = GetPrimaryPlayerController(); //for this machine get primary, likly only player controller
 		if (PlayerController) //travel the player to a different map, while keeping the server active
 		{
-			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			PlayerController->bShowMouseCursor = false;
-			PlayerController->SetInputMode(InputMode);
+			//FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			//PlayerController->bShowMouseCursor = false;
+			//PlayerController->SetInputMode(InputMode);
 
 			GetWorld()->ServerTravel(TEXT("/Game/Maps/ServerLobby?listen")); //make a new server, but still allow it to listen so others can join it
 		}
@@ -145,9 +172,9 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 		PlayerController = GetPrimaryPlayerController();
 		if (PlayerController) //travel the player to a different map, while keeping the server active
 		{
-			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			PlayerController->bShowMouseCursor = false;
-			PlayerController->SetInputMode(InputMode);
+			//FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			//PlayerController->bShowMouseCursor = false;
+			//PlayerController->SetInputMode(InputMode);
 
 			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "MainMenuWidget.h"
+#include "LobbyWidget.h"
 #include "OnlineSubsystem.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
@@ -25,6 +26,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void LoadMenu(); //whenever mainmenu scene loads up call this function
+	UFUNCTION(BlueprintCallable)
+	void LoadLobby();
 
 	void HostSession();
 	void JoinSession();
