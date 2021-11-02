@@ -67,4 +67,6 @@ private: //i.e a member variable
 	void DisplayPointBiome(); //displays the biome at the specified point
 
 	UMainGameInstance* MainGameInstance;
+
+	void UISetup();
 };

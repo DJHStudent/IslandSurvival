@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacterAnimInstance.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/EngineTypes.h"
 #include "Kismet/GameplayStatics.h"
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -39,12 +40,26 @@ void APlayerCharacter::BeginPlay()
 	if (SkeletalMesh)//ensures no null pointer and will only work if it exists
 		AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
 
-	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY) //if though called before constructor set this will never be called, or if say Lobby is null also never called even though it should
-		MainGameInstance->LoadLobby(this);
+	UISetup();
 	////////else
 	////////	UE_LOG(LogTemp, Error, TEXT("All Up failed Missesabily"))
 }
-
+void APlayerCharacter::UISetup() 
+{
+	if (MainGameInstance) //timmer so if failed try it again
+	{
+		if (MainGameInstance->CurrentGameState == EGameState::LOBBY) //if though called before constructor set this will never be called, or if say Lobby is null also never called even though it should
+			MainGameInstance->LoadLobby(this);
+		else if (MainGameInstance->CurrentGameState == EGameState::GAME && IsLocallyControlled())
+			MainGameInstance->LoadGame(this);
+	}
+	else
+	{
+		float RespawnTime = 1.0f;
+		FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::UISetup, RespawnTime, false);
+	}
+}
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {

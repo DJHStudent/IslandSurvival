@@ -3,6 +3,7 @@
 
 #include "MainGameInstance.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 
 UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 {
@@ -79,7 +80,7 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 			InputMode.SetWidgetToFocus(Lobby->TakeWidget());
 
 			APlayerController* PlayerController;
-			PlayerController = GetFirstLocalPlayerController();
+			PlayerController = Cast<APlayerController>(Player->GetController());
 			if (PlayerController)
 			{
 				PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
@@ -87,6 +88,7 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 
 				UE_LOG(LogTemp, Warning, TEXT("A Pawn does actually exist for this player"))
 				Lobby->SetEditability(Player);
+				CurrentGameState = EGameState::GAME; //as in the lobby now when do next loading will be in game
 			}
 		}
 		else
@@ -185,28 +187,38 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 			//FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 			//PlayerController->bShowMouseCursor = false;
 			//PlayerController->SetInputMode(InputMode);
-
+			CurrentGameState = EGameState::LOBBY;
 			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}
 	}
 }
 
 
-void UMainGameInstance::StartGame()
+void UMainGameInstance::StartGame() //call on server only here
 {
-	LoadGame();
 	CurrentGameState = EGameState::GAME;
-	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain"));
+	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
 }
 
-void UMainGameInstance::LoadGame_Implementation()
+void UMainGameInstance::LoadGame(APawn* Player)
 {
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if (PlayerController) //travel the player to a different map, while keeping the server active
+	if (Player && Player->IsLocallyControlled()) //travel the player to a different map, while keeping the server active
 	{
-		FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-		PlayerController->bShowMouseCursor = false;
-		PlayerController->SetInputMode(InputMode);
+		APlayerController* PlayerController;
+		PlayerController = Cast<APlayerController>(Player->GetController());
+		if (PlayerController)
+		{
+			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			PlayerController->bShowMouseCursor = false;
+			PlayerController->SetInputMode(InputMode);
+		}
+		
+		UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
+
+		//now can go about adding in the player HUD widget
+
+		///////*if (Lobby)
+		//////	Lobby->RemoveFromViewport();*/
 	}
 }
 

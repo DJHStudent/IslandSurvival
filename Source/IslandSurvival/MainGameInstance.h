@@ -37,10 +37,12 @@ public:
 	void JoinSession();
 
 	void StartGame();
+	UFUNCTION(BlueprintCallable)
+	void LoadGame(APawn* Player);
 	
 	class ULobbyWidget* Lobby;
 
-	UPROPERTY(Replicated)
+	//UPROPERTY(Replicated)
 	EGameState CurrentGameState;
 
 private:
@@ -58,9 +60,6 @@ private:
 	void OnFindSessionComplete(bool bSuccess); //when searching and found sessions
 	void OnCreateSessionComplete(FName SessionName, bool bSuccess); //when hosting and joined session
 	void OnDestroySessionComplete(FName SessionName, bool bSuccess); //when deleted session
-
-	UFUNCTION(NetMulticast, Reliable)
-	void LoadGame();
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all the variables to be replicated
 };
