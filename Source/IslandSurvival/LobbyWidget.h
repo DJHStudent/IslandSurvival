@@ -19,7 +19,7 @@ class ISLANDSURVIVAL_API ULobbyWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void SetEditability(AActor* Player); //set conditions so only host can actually press / edit these elements
+	void SetEditability(APawn* Player); //set conditions so only host can actually press / edit these elements
 
 	void SetHeight(int32 Value);
 private:

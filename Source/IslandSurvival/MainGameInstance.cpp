@@ -62,38 +62,33 @@ void UMainGameInstance::LoadMenu()
 
 void UMainGameInstance::LoadLobby(APawn* Player)
 {
-	if (Player)
+
+	if (Player && Player->IsLocallyControlled()) //only make a new widget if the player is local
 	{
-		APawn* PlayerPawn = PlayerController->GetPawn();
+		if (LobbyWidgetClass != nullptr)
+			Lobby = CreateWidget<ULobbyWidget>(GetWorld(), LobbyWidgetClass); //spawn in a new widget
 
-		if (PlayerPawn && PlayerPawn->IsLocallyControlled() && PlayerPawn->GetLocalRole() == ROLE_AutonomousProxy) //only make a new widget if the player is local
+		if (Lobby) //as exists now, add it to the viewport
 		{
-			if (LobbyWidgetClass != nullptr)
-				Lobby = CreateWidget<ULobbyWidget>(GetWorld(), LobbyWidgetClass); //spawn in a new widget
+			Lobby->AddToViewport();
 
-			if (Lobby) //as exists now, add it to the viewport
+			FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			InputMode.SetWidgetToFocus(Lobby->TakeWidget());
+
+			APlayerController* PlayerController;
+			PlayerController = GetFirstLocalPlayerController();
+			if (PlayerController)
 			{
-				Lobby->AddToViewport();
+				PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
+				PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
 
-				FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-				InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-				InputMode.SetWidgetToFocus(Lobby->TakeWidget());
-
-				if (PlayerController)
-				{
-					PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
-					PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
-
-					if (PlayerPawn)
-					{
-						UE_LOG(LogTemp, Warning, TEXT("A Pawn does actually exist for this player"))
-						Lobby->SetEditability(PlayerPawn);
-					}
-				}
+				UE_LOG(LogTemp, Warning, TEXT("A Pawn does actually exist for this player"))
+					Lobby->SetEditability(Player);
 			}
-			else
-				UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
 		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
 	}
 }
 

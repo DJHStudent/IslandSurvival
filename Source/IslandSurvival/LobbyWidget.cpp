@@ -21,7 +21,7 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 	return true;
 }
 
-void ULobbyWidget::SetEditability(AActor* Player) //come back to eventually once rest of code setup as no idea about this
+void ULobbyWidget::SetEditability(APawn* Player) //come back to eventually once rest of code setup as no idea about this
 {
 	if (Player && Player->GetLocalRole() == ROLE_AutonomousProxy) //if controlled player not on server
 	{
@@ -35,9 +35,6 @@ void ULobbyWidget::SetEditability(AActor* Player) //come back to eventually once
 			SpinBoxHeight->SetVisibility(ESlateVisibility::HitTestInvisible);
 		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability: %s"), *Player->GetName())
 	}
-	else if(Player)
-		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability failed as no owner exists ever"))
-
 }
 
 void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the terrain gen map
@@ -51,8 +48,8 @@ void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from 
 
 void ULobbyWidget::SetHeight(int32 Value)
 {
-	if (SpinBoxHeight != nullptr)
-		SpinBoxHeight->SetValue(Value);
+	//if (SpinBoxHeight != nullptr)
+	SpinBoxHeight->SetValue(Value);
 }
 
 
