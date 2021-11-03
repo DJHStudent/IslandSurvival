@@ -23,12 +23,12 @@ public:
 
 	UPROPERTY(ReplicatedUsing = HasStreamRepliacted)
 	FRandomStream Stream;
-	UPROPERTY(ReplicatedUsing = HasSeedRepliacted)
-	int32 TerrainSeed;
-	UPROPERTY(ReplicatedUsing = HasWidthRepliacted)
-	int32 TerrainWidth;
-	UPROPERTY(ReplicatedUsing = HasHeightRepliacted)
-	int32 TerrainHeight;
+	UPROPERTY(ReplicatedUsing = UpdateWidth)
+		int32 TerrainWidth;
+	UPROPERTY(ReplicatedUsing = UpdateHeight)
+		int32 TerrainHeight;
+	UPROPERTY(ReplicatedUsing = UpdateSeed)
+		int32 TerrainSeed;
 
 	bool bStreamRep;
 	bool bSeedRep;
@@ -38,9 +38,22 @@ public:
 private:
 	void CalculateSeed(int32 Seed);
 
-	//UFUNCTION(NetMultiCast, Reliable)
+	UFUNCTION()
+		void UpdateSeed();
+	UFUNCTION()
+		void UpdateWidth();
+	UFUNCTION()
+		void UpdateHeight();
+
+
+
+	UFUNCTION(NetMultiCast, Reliable)
 	void MakeMap();
 	void EnsureReplicated();
+
+
+
+
 
 	UFUNCTION()
 	void HasStreamRepliacted();

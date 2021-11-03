@@ -135,7 +135,7 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 			//PlayerController->bShowMouseCursor = false;
 			//PlayerController->SetInputMode(InputMode);
 
-			GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen")); //make a new server, but still allow it to listen so others can join it
+			GetWorld()->ServerTravel(TEXT("/Game/Maps/ServerLobby?listen")); //make a new server, but still allow it to listen so others can join it
 		}
 	}
 	else
@@ -199,43 +199,37 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 void UMainGameInstance::StartGame() //call on server only here
 {
 	CurrentGameState = EGameState::GAME;
-
-	//GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
+	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
 }
 
-void UMainGameInstance::LoadGame() //called on all players when loading the MainGame level
+void UMainGameInstance::LoadGame(APawn* Player) //called on all players when loading the MainGame level
 {
-	APlayerController* PlayerController = GetPrimaryPlayerController();
-	if (PlayerController)
+	if (Player && Player->IsLocallyControlled()) //travel the player to a different map, while keeping the server active
 	{
-		APawn* Player = Cast<APawn>(PlayerController->GetOwner());
-		if (Player && Player->IsLocallyControlled()) //travel the player to a different map, while keeping the server active
+		APlayerController* PlayerController;
+		PlayerController = Cast<APlayerController>(Player->GetController());
+		if (PlayerController)
 		{
-			APlayerController* PlayerController;
-			PlayerController = Cast<APlayerController>(Player->GetController());
-			if (PlayerController)
+			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			PlayerController->bShowMouseCursor = false;
+			PlayerController->SetInputMode(InputMode);
+		}
+		
+		UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
+
+		//now can go about adding in the player HUD widget
+
+		///////*if (Lobby)
+		//////	Lobby->RemoveFromViewport();*/
+
+		//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
+		if (Player->GetLocalRole() == ROLE_Authority)
+		{
+			AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+			if (MainGame)
 			{
-				FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-				PlayerController->bShowMouseCursor = false;
-				PlayerController->SetInputMode(InputMode);
-			}
-
-			UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
-
-			//now can go about adding in the player HUD widget
-
-			///////*if (Lobby)
-			//////	Lobby->RemoveFromViewport();*/
-
-			//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
-			if (Player->GetLocalRole() == ROLE_Authority)
-			{
-				AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-				if (MainGame)
-				{
-					MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
-					//UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
-				}
+				MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
+				UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
 			}
 		}
 	}

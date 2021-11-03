@@ -2,15 +2,15 @@
 
 
 #include "MainGameState.h"
+#include "MainGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "ProcedurallyGeneratedTerrain.h"
 
 AMainGameState::AMainGameState()
 {
-	///////*bStreamRep = false;
-	//////bHeightRep = false;
-	//////bWidthRep = false;
-	//////bSeedRep = false;*/
+	TerrainWidth = 300;
+	TerrainHeight = 300;
+	TerrainSeed = 0;
 }
 void AMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -78,11 +78,11 @@ void AMainGameState::CalculateSeed(int32 Seed)
 	}
 	bSeedRep = true;
 	bStreamRep = true;
-	////MakeMap();
+	MakeMap();
 	UE_LOG(LogTemp, Error, TEXT("Code to begin terrain gen actually gets called on clients: %i"), TerrainSeed)
 }
 
-void AMainGameState::MakeMap()
+void AMainGameState::MakeMap_Implementation()
 {
 	//on server version find procedural terrain and spawn it in
 	// 
@@ -110,4 +110,42 @@ void AMainGameState::HasWidthRepliacted()
 void AMainGameState::HasHeightRepliacted()
 {
 	bHeightRep = true;
+}
+
+
+
+void AMainGameState::UpdateHeight()
+{
+	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
+	if (PlayerInstance && PlayerInstance->Lobby)
+	{
+		PlayerInstance->Lobby->SetHeight(TerrainHeight);
+		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainHeight)
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
+}
+
+void AMainGameState::UpdateWidth()
+{
+	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
+	if (PlayerInstance && PlayerInstance->Lobby)
+	{
+		PlayerInstance->Lobby->SetWidth(TerrainWidth);
+		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainWidth)
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
+}
+
+void AMainGameState::UpdateSeed()
+{
+	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
+	if (PlayerInstance && PlayerInstance->Lobby)
+	{
+		PlayerInstance->Lobby->SetSeed(TerrainSeed);
+		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainSeed)
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
 }

@@ -64,7 +64,7 @@ void AProcedurallyGeneratedTerrain::BeginPlay()
 	//}
 	//RegenerateMap();
 	GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	SpawnMap();
+	//SpawnMap();
 }
 
 void AProcedurallyGeneratedTerrain::SpawnMap()

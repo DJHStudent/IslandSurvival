@@ -17,11 +17,11 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 	SpinBoxSeed->OnValueChanged.AddDynamic(this, &ULobbyWidget::OnSeedChanged);
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
-	LobbyGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
+	LobbyGameState = Cast<ALobbyGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
 
 	if (LobbyGameState) //for each widget variant set the default values
 	{
-		SetSeed(LobbyGameState->TerrainSeed);
+		SetSeed(LobbyGameState->Seed);
 		SetWidth(LobbyGameState->TerrainWidth);
 		SetHeight(LobbyGameState->TerrainHeight);
 	}
@@ -50,7 +50,7 @@ void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the 
 	{
 		if (LobbyGameState) //copy the variables to the host version
 		{
-			MainGameInstance->Seed = LobbyGameState->TerrainSeed;
+			MainGameInstance->Seed = LobbyGameState->Seed;
 			MainGameInstance->TerrainHeight = LobbyGameState->TerrainHeight;
 			MainGameInstance->TerrainWidth = LobbyGameState->TerrainWidth;
 		}
@@ -80,7 +80,7 @@ void ULobbyWidget::OnSeedChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	LobbyGameState->TerrainSeed = RoundValue;
+	LobbyGameState->Seed = RoundValue;
 }
 
 void ULobbyWidget::OnWidthChanged(float InValue)
