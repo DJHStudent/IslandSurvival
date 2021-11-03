@@ -47,7 +47,7 @@ void AMainGameState::GenerateTerrain(int32 Seed, int32 Width, int32 Height)
 
 void AMainGameState::EnsureReplicated()
 {
-	if (GWorld()->HasBegunPlay()) //only replicate if all actors actually spawned in and started
+	if (GetWorld()->HasBegunPlay()) //only replicate if all actors actually spawned in and started
 	{
 		TerrainWidth = TempWidth;
 		bWidthRep = true;

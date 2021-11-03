@@ -7,7 +7,7 @@
 #include "Components/Button.h"
 #include "Components/SpinBox.h"
 #include "MainGameInstance.h"
-#include "LobbyGameState.h"
+#include "MainGameState.h"
 #include "LobbyWidget.generated.h"
 
 /**
@@ -41,7 +41,7 @@ private:
 	USpinBox* SpinBoxHeight;
 
 	class UMainGameInstance* MainGameInstance;
-	ALobbyGameState* LobbyGameState;
+	AMainGameState* LobbyGameState;
 
 	UFUNCTION()
 	void OnStartButtonPressed();
