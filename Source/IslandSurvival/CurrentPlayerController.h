@@ -15,7 +15,7 @@ class ISLANDSURVIVAL_API ACurrentPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
-	void ServerUpdateUI();
+	void ServerUpdateUI(); //on the server, this function gets called
 	UFUNCTION(Client, Reliable)
-		void ClientUpdateUI();
+		void ClientUpdateUI(); //Called on server, finds client whichs owns it and runs the code
 };
