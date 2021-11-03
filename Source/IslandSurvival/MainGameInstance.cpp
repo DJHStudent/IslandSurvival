@@ -202,7 +202,7 @@ void UMainGameInstance::StartGame() //call on server only here
 	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
 }
 
-void UMainGameInstance::LoadGame(APawn* Player)
+void UMainGameInstance::LoadGame(APawn* Player) //called on all players when loading the MainGame level
 {
 	if (Player && Player->IsLocallyControlled()) //travel the player to a different map, while keeping the server active
 	{
@@ -223,14 +223,15 @@ void UMainGameInstance::LoadGame(APawn* Player)
 		//////	Lobby->RemoveFromViewport();*/
 
 		//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
-		////if (Player->GetLocalRole() == ROLE_Authority)
-		////{
-		////	AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-		////	if (MainGame)
-		////	{
-		////		MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
-		////	}
-		////}
+		if (Player->GetLocalRole() == ROLE_Authority)
+		{
+			AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+			if (MainGame)
+			{
+				MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
+				//UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
+			}
+		}
 	}
 }
 

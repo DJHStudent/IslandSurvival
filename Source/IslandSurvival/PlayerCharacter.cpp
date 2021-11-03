@@ -33,14 +33,17 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//gets the camera component added to the AActor
-	Camera = FindComponentByClass<UCameraComponent>();
+	if (this && this->GetLocalRole() == ROLE_AutonomousProxy ||this && this->IsLocallyControlled()) //only do if controlled
+	{
+		Camera = FindComponentByClass<UCameraComponent>();
 
-	//get the skeletal mesh from the sub object arms of this object
-	USkeletalMeshComponent* SkeletalMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("Arms")));
-	if (SkeletalMesh)//ensures no null pointer and will only work if it exists
-		AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
+		//get the skeletal mesh from the sub object arms of this object
+		USkeletalMeshComponent* SkeletalMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("Arms")));
+		if (SkeletalMesh)//ensures no null pointer and will only work if it exists
+			AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
 
-	UISetup();
+		UISetup();
+	}
 	////////else
 	////////	UE_LOG(LogTemp, Error, TEXT("All Up failed Missesabily"))
 }
@@ -51,7 +54,10 @@ void APlayerCharacter::UISetup()
 		if (MainGameInstance->CurrentGameState == EGameState::LOBBY) //if though called before constructor set this will never be called, or if say Lobby is null also never called even though it should
 			MainGameInstance->LoadLobby(this);
 		else if (MainGameInstance->CurrentGameState == EGameState::GAME && IsLocallyControlled())
+		{
 			MainGameInstance->LoadGame(this);
+			BiomeList = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass())); //seed, width, height
+		}
 	}
 	else
 	{
