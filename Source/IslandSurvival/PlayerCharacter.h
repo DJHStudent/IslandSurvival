@@ -69,4 +69,5 @@ private: //i.e a member variable
 	UMainGameInstance* MainGameInstance;
 
 	void UISetup();
+	void GenerateMap();
 };

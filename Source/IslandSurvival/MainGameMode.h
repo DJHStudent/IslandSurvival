@@ -18,5 +18,9 @@ class ISLANDSURVIVAL_API AMainGameMode : public AGameMode
 private:
 	void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessages) override;
 
-	AMainGameState* GameState;
+	//AMainGameState* GameState;
+
+	virtual void PostSeamlessTravel() override;
+
+	void CalculateSeed();
 };

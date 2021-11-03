@@ -72,10 +72,11 @@ void AProcedurallyGeneratedTerrain::SpawnMap()
 	if (GameState)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Waiting for Game to begin"))
-		if (GameState->bStreamRep && GameState->bSeedRep && GameState->bWidthRep && GameState->bHeightRep) //if all values properly replicated
+		if (GameState->bSeedRep) //if all values properly replicated
 			RegenerateMap(); //update the map
 		else //otherwise wait some time and try updating map again
 		{
+			GameState->EnsureReplicated(); //re-replicate everything down to the client
 			float RepWaitTime = 1.0f;
 			FTimerHandle Timer; //timer to handle spawning of player after death
 			GetWorldTimerManager().SetTimer(Timer, this, &AProcedurallyGeneratedTerrain::SpawnMap, RepWaitTime, false);
@@ -125,7 +126,7 @@ void AProcedurallyGeneratedTerrain::RegenerateMap()
 		TerrainHeight->Height = Height;
 	}
 	CreateMesh(); //generate the terrain mesh
-	bRegenerateMap = false;
+	//bRegenerateMap = false;
 }
 
 void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all data for it

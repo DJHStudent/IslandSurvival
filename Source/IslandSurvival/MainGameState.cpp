@@ -8,9 +8,10 @@
 
 AMainGameState::AMainGameState()
 {
-	TerrainWidth = 300;
-	TerrainHeight = 300;
-	TerrainSeed = 0;
+	///////*bStreamRep = false;
+	//////bHeightRep = false;
+	//////bWidthRep = false;
+	//////bSeedRep = false;*/
 }
 void AMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -19,16 +20,18 @@ void AMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AMainGameState, TerrainHeight);
 	DOREPLIFETIME(AMainGameState, TerrainSeed);
 	DOREPLIFETIME(AMainGameState, Stream);
+	DOREPLIFETIME(AMainGameState, bSeedRep);
+	DOREPLIFETIME(AMainGameState, bUIRep);
 }
 //both these 2 functions only actually get called once host presses start button, so only ever called on server
 void AMainGameState::GenerateTerrain(int32 Seed, int32 Width, int32 Height)
 {
-	TempWidth = Width;
-	//bWidthRep = true;
-	TempHeight = Height;
-	//bHeightRep = true;
-	TempSeed = Seed;
-	//CalculateSeed(Seed);
+	TerrainWidth = Width;
+	bWidthRep = true;
+	TerrainHeight = Height;
+	bHeightRep = true;
+	TerrainSeed = Seed;
+	////CalculateSeed(Seed);
 
 	//GetWorld()->HasBegunPlay();
 
@@ -45,41 +48,42 @@ void AMainGameState::GenerateTerrain(int32 Seed, int32 Width, int32 Height)
 	*/
 }
 
-void AMainGameState::EnsureReplicated()
+void AMainGameState::UpdatePlayerUI_Implementation()
 {
-	if (GetWorld()->HasBegunPlay()) //only replicate if all actors actually spawned in and started
-	{
-		TerrainWidth = TempWidth;
-		bWidthRep = true;
-		TerrainHeight = TempHeight;
-		bHeightRep = true;
-		TerrainSeed = TempSeed;
-		CalculateSeed(TerrainSeed);
-	}
-	else
-	{
-		float RepWaitTime = 1.0f;
-		FTimerHandle Timer; //timer to handle spawning of player after death
-		GetWorldTimerManager().SetTimer(Timer, this, &AMainGameState::EnsureReplicated, RepWaitTime, false);
-	}
+	//UE_LOG(LogTemp, Error, TEXT("On This Player Updating its UI"))
+	//UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	//if (MainGameInstance)
+	//	MainGameInstance->LoadGame();
 }
 
-void AMainGameState::CalculateSeed(int32 Seed)
+void AMainGameState::EnsureReplicated_Implementation()
 {
-	if (Seed == 0)
+	TerrainWidth = TerrainWidth;
+	bWidthRep = bWidthRep;
+	TerrainHeight = TerrainHeight;
+	bHeightRep = bHeightRep;
+	TerrainSeed = TerrainSeed;
+	bSeedRep = bSeedRep;
+	Stream = Stream;
+	bStreamRep = bStreamRep;
+}
+
+void AMainGameState::CalculateSeed()
+{
+	if (TerrainSeed == 0)
 	{
 		Stream.GenerateNewSeed(); //this generates us a new random seed for the stream
 		TerrainSeed = Stream.GetCurrentSeed(); //assign the seed the streams seed
 	}
 	else
 	{
-		Stream.Initialize(Seed);
-		TerrainSeed = Seed;
+		Stream.Initialize(TerrainSeed);
+		TerrainSeed = TerrainSeed;
 	}
 	bSeedRep = true;
 	bStreamRep = true;
 	MakeMap();
-	UE_LOG(LogTemp, Error, TEXT("Code to begin terrain gen actually gets called on clients: %i"), TerrainSeed)
+	UE_LOG(LogTemp, Error, TEXT("Code to begin terrain gen actually gets called on clients: %i"), TerrainWidth)
 }
 
 void AMainGameState::MakeMap_Implementation()
@@ -90,6 +94,11 @@ void AMainGameState::MakeMap_Implementation()
 	if (ProceduralTerrain)
 		ProceduralTerrain->RegenerateMap();
 	//RegenerateMap(); //as on server 
+}
+
+void AMainGameState::HasUIRepliacted()
+{
+	UE_LOG(LogTemp, Error, TEXT("On This Player Updating its UI"))
 }
 
 void AMainGameState::HasStreamRepliacted()
@@ -110,42 +119,4 @@ void AMainGameState::HasWidthRepliacted()
 void AMainGameState::HasHeightRepliacted()
 {
 	bHeightRep = true;
-}
-
-
-
-void AMainGameState::UpdateHeight()
-{
-	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
-		PlayerInstance->Lobby->SetHeight(TerrainHeight);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainHeight)
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
-}
-
-void AMainGameState::UpdateWidth()
-{
-	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
-		PlayerInstance->Lobby->SetWidth(TerrainWidth);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainWidth)
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
-}
-
-void AMainGameState::UpdateSeed()
-{
-	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
-		PlayerInstance->Lobby->SetSeed(TerrainSeed);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainSeed)
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
 }

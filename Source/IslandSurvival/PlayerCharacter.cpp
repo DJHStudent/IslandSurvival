@@ -33,7 +33,7 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//gets the camera component added to the AActor
-	if (this && this->GetLocalRole() == ROLE_AutonomousProxy ||this && this->IsLocallyControlled()) //only do if controlled
+	if (this && this->GetLocalRole() == ROLE_AutonomousProxy || this && this->IsLocallyControlled()) //only do if controlled
 	{
 		Camera = FindComponentByClass<UCameraComponent>();
 
@@ -43,11 +43,12 @@ void APlayerCharacter::BeginPlay()
 			AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
 
 		UISetup();
+		//GenerateMap();
 	}
 	////////else
 	////////	UE_LOG(LogTemp, Error, TEXT("All Up failed Missesabily"))
 }
-void APlayerCharacter::UISetup() 
+void APlayerCharacter::UISetup()
 {
 	if (MainGameInstance) //timmer so if failed try it again
 	{
@@ -55,8 +56,9 @@ void APlayerCharacter::UISetup()
 			MainGameInstance->LoadLobby(this);
 		else if (MainGameInstance->CurrentGameState == EGameState::GAME && IsLocallyControlled())
 		{
-			MainGameInstance->LoadGame(this);
+			//MainGameInstance->LoadGame(this);
 			BiomeList = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass())); //seed, width, height
+			//BiomeList->RegenerateMap();
 		}
 	}
 	else
@@ -65,6 +67,33 @@ void APlayerCharacter::UISetup()
 		FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
 		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::UISetup, RespawnTime, false);
 	}
+}
+
+void APlayerCharacter::GenerateMap()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Doing Some Generation Stuff"))
+	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::GAME) //timmer so if failed try it again
+	{
+		if (BiomeList)
+		{
+			AMainGameState* GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+			if(GameState && GameState->bSeedRep && BiomeList)
+				BiomeList->RegenerateMap();
+			else
+			{
+				float RespawnTime = 1.0f;
+				FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+				GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
+			}
+		}
+		else
+		{
+			float RespawnTime = 1.0f;
+			FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+			GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
+		}
+	}
+	
 }
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)

@@ -19,42 +19,42 @@ public:
 	AMainGameState();
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 
-	void GenerateTerrain(int32 Seed, int32 Width, int32 Height);
+	void GenerateTerrain(int32 Seed, int32 Width, int32 Height); //call to setup the values
 
 	UPROPERTY(ReplicatedUsing = HasStreamRepliacted)
 	FRandomStream Stream;
-	UPROPERTY(ReplicatedUsing = UpdateWidth)
-		int32 TerrainWidth;
-	UPROPERTY(ReplicatedUsing = UpdateHeight)
-		int32 TerrainHeight;
-	UPROPERTY(ReplicatedUsing = UpdateSeed)
-		int32 TerrainSeed;
+	UPROPERTY(ReplicatedUsing = HasSeedRepliacted)
+	int32 TerrainSeed;
+	UPROPERTY(ReplicatedUsing = HasWidthRepliacted)
+	int32 TerrainWidth;
+	UPROPERTY(ReplicatedUsing = HasHeightRepliacted)
+	int32 TerrainHeight;
 
 	bool bStreamRep;
-	bool bSeedRep;
+	UPROPERTY(Replicated)
+		bool bSeedRep;
 	bool bWidthRep;
 	bool bHeightRep;
 
+	UFUNCTION(Server, Reliable)
+		void EnsureReplicated();
+
+	UPROPERTY(ReplicatedUsing = HasUIRepliacted)
+		bool bUIRep;
+
+
+	//UFUNCTION()
+	//	void UpdatePlayerUI();	
+	UFUNCTION(Client, Reliable)
+		void UpdatePlayerUI();
+
+	void CalculateSeed();
 private:
-	void CalculateSeed(int32 Seed);
-
-	UFUNCTION()
-		void UpdateSeed();
-	UFUNCTION()
-		void UpdateWidth();
-	UFUNCTION()
-		void UpdateHeight();
-
-
-
-	UFUNCTION(NetMultiCast, Reliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void MakeMap();
-	void EnsureReplicated();
 
-
-
-
-
+	UFUNCTION()
+	void HasUIRepliacted();	
 	UFUNCTION()
 	void HasStreamRepliacted();
 	UFUNCTION()
@@ -63,6 +63,7 @@ private:
 	void HasWidthRepliacted();
 	UFUNCTION()
 	void HasHeightRepliacted();
+
 
 	int32 TempWidth;
 	int32 TempHeight;

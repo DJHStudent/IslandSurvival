@@ -38,7 +38,7 @@ public:
 
 	void StartGame();
 	UFUNCTION(BlueprintCallable)
-	void LoadGame(APawn* Player);
+	void LoadGame();
 	
 	class ULobbyWidget* Lobby;
 

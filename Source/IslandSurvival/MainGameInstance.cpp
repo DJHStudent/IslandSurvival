@@ -202,37 +202,37 @@ void UMainGameInstance::StartGame() //call on server only here
 	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
 }
 
-void UMainGameInstance::LoadGame(APawn* Player) //called on all players when loading the MainGame level
+void UMainGameInstance::LoadGame() //called on all players when loading the MainGame level
 {
-	if (Player && Player->IsLocallyControlled()) //travel the player to a different map, while keeping the server active
+	//if (Player)// && (Player->IsLocallyControlled() || Player->GetLocalRole() == ROLE_Authority)) //travel the player to a different map, while keeping the server active
+
+	APlayerController* PlayerController;
+	PlayerController = GetFirstLocalPlayerController();//Cast<APlayerController>(Player->GetController());
+	if (PlayerController)
 	{
-		APlayerController* PlayerController;
-		PlayerController = Cast<APlayerController>(Player->GetController());
-		if (PlayerController)
+		FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		PlayerController->bShowMouseCursor = false;
+		PlayerController->SetInputMode(InputMode);
+	}
+
+	UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
+
+	//now can go about adding in the player HUD widget
+
+	///////*if (Lobby)
+	//////	Lobby->RemoveFromViewport();*/
+
+	//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
+	if (PlayerController->GetLocalRole() == ROLE_Authority)
+	{
+		AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+		if (MainGame)
 		{
-			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			PlayerController->bShowMouseCursor = false;
-			PlayerController->SetInputMode(InputMode);
-		}
-		
-		UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
-
-		//now can go about adding in the player HUD widget
-
-		///////*if (Lobby)
-		//////	Lobby->RemoveFromViewport();*/
-
-		//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
-		if (Player->GetLocalRole() == ROLE_Authority)
-		{
-			AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-			if (MainGame)
-			{
-				MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
-				UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
-			}
+			MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
+			UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
 		}
 	}
+
 }
 
 
