@@ -6,6 +6,7 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "MainGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/Engine.h"
 
 UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 {
@@ -140,7 +141,8 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 	}
 	else
 	{ //need to display warning to user as likly session with name already in use
-		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"))
+		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Session was not Created");
 		if (SessionInterface.IsValid())
 			SessionInterface->DestroySession(SessionName);
 	}
@@ -151,7 +153,8 @@ void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSucces
 	if (bSuccess)
 		HostSession(); //as session did exist before make a new one
 	else
-		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"))
+		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Unable to destroy session");
 }
 
 void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually print all sessions avaliable to a list
@@ -163,7 +166,9 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) //loop through all possible sessions setting name to last one found
 		{
 			SessionFoundName = FName(*SearchResult.GetSessionIdStr());
-			UE_LOG(LogTemp, Error, TEXT("Found Session %i"), SearchResult.Session.SessionSettings.NumPublicConnections)
+			UE_LOG(LogTemp, Error, TEXT("Found Session %i"), SearchResult.Session.SessionSettings.NumPublicConnections);
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found Session");
+
 		}
 		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
 		{
@@ -172,7 +177,8 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Find Sessions was not successful"))
+		UE_LOG(LogTemp, Warning, TEXT("Find Sessions was not successful"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Find Sessions was not successful");
 	}
 }
 
@@ -180,6 +186,7 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 {
 	if (Result == EOnJoinSessionCompleteResult::Success && SessionInterface.IsValid())
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Joining Session");
 		APlayerController* PlayerController;
 		FString Address;
 		SessionInterface->GetResolvedConnectString(SessionName, Address); //get platform specific info for joining match
@@ -235,7 +242,8 @@ void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can 
 	if (MainGame)
 	{
 		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
-		UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
+		UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Terrain is Being Updated");
 	}
 }
 
