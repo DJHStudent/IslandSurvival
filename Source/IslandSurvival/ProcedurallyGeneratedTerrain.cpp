@@ -93,10 +93,10 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bRegenerateMap) //if in editor and true regenerate map
-	{
-		//RegenerateMap();
-	}
+	//if (bRegenerateMap) //if in editor and true regenerate map
+	//{
+	//	//RegenerateMap();
+	//}
 }
 
 void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream)
