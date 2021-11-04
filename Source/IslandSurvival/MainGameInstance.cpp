@@ -4,7 +4,7 @@
 #include "MainGameInstance.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
-#include "MainGameState.h"
+#include "MainGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
@@ -225,16 +225,19 @@ void UMainGameInstance::LoadGame() //called on all players when loading the Main
 	//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
 	if (PlayerController->GetLocalRole() == ROLE_Authority)
 	{
-		AMainGameState* MainGame = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-		if (MainGame)
-		{
-			MainGame->GenerateTerrain(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
-			UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
-		}
+		UpdateTerrain();
 	}
 
 }
-
+void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can update the terrain on all players
+{
+	AMainGameMode* MainGame = Cast<AMainGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (MainGame)
+	{
+		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
+		UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"))
+	}
+}
 
 void UMainGameInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

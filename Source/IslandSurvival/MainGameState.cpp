@@ -30,8 +30,8 @@ void AMainGameState::GenerateTerrain(int32 Seed, int32 Width, int32 Height)
 	bWidthRep = true;
 	TerrainHeight = Height;
 	bHeightRep = true;
-	TerrainSeed = Seed;
-	////CalculateSeed(Seed);
+	//TerrainSeed = Seed;
+	CalculateSeed(Seed);
 
 	//GetWorld()->HasBegunPlay();
 
@@ -48,14 +48,6 @@ void AMainGameState::GenerateTerrain(int32 Seed, int32 Width, int32 Height)
 	*/
 }
 
-void AMainGameState::UpdatePlayerUI_Implementation()
-{
-	//UE_LOG(LogTemp, Error, TEXT("On This Player Updating its UI"))
-	//UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	//if (MainGameInstance)
-	//	MainGameInstance->LoadGame();
-}
-
 void AMainGameState::EnsureReplicated_Implementation()
 {
 	TerrainWidth = TerrainWidth;
@@ -68,17 +60,17 @@ void AMainGameState::EnsureReplicated_Implementation()
 	bStreamRep = bStreamRep;
 }
 
-void AMainGameState::CalculateSeed()
+void AMainGameState::CalculateSeed(int32 Seed)
 {
-	if (TerrainSeed == 0)
+	if (Seed == 0)
 	{
 		Stream.GenerateNewSeed(); //this generates us a new random seed for the stream
 		TerrainSeed = Stream.GetCurrentSeed(); //assign the seed the streams seed
 	}
 	else
 	{
-		Stream.Initialize(TerrainSeed);
-		TerrainSeed = TerrainSeed;
+		Stream.Initialize(Seed);
+		TerrainSeed = Seed;
 	}
 	bSeedRep = true;
 	bStreamRep = true;
@@ -90,9 +82,10 @@ void AMainGameState::MakeMap_Implementation()
 {
 	//on server version find procedural terrain and spawn it in
 	// 
+	UE_LOG(LogTemp, Warning, TEXT("Yep, Netmulticasts do actually work on the Terrain"))
 	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	if (ProceduralTerrain)
-		ProceduralTerrain->RegenerateMap();
+	//if (ProceduralTerrain)
+	//	ProceduralTerrain->RegenerateMap();
 	//RegenerateMap(); //as on server 
 }
 

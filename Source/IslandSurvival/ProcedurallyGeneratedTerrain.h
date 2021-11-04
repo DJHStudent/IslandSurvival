@@ -46,7 +46,7 @@ public:
 	TArray<int32> Triangles; //list of all meshes trianlges
 
 	//UFUNCTION(NetMulticast, Reliable)
-	void RegenerateMap(); //when UI button pressed regenerate the map
+	void RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream); //when UI button pressed regenerate the map
 	void CreateMesh();
 	void ClearMap(); //remove any data stored for the previous map
 
@@ -80,4 +80,6 @@ private:
 
 	class AMainGameState* GameState;
 	void SpawnMap();
+
+	bool bTerrainGenerated;
 };

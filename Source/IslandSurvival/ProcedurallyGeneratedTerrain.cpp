@@ -34,6 +34,7 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 	bRandomSeed = false;
 
 	bReplicates = true;
+	bTerrainGenerated = false;
 
 //	Octaves = 8;
 //	Lacunarity = 2.1f;
@@ -63,25 +64,24 @@ void AProcedurallyGeneratedTerrain::BeginPlay()
 	//	Stream = GameState->Stream;
 	//}
 	//RegenerateMap();
-	GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
 	//SpawnMap();
 }
 
 void AProcedurallyGeneratedTerrain::SpawnMap()
 {
-	if (GameState)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Waiting for Game to begin"))
-		if (GameState->bSeedRep) //if all values properly replicated
-			RegenerateMap(); //update the map
-		else //otherwise wait some time and try updating map again
-		{
-			GameState->EnsureReplicated(); //re-replicate everything down to the client
-			float RepWaitTime = 1.0f;
-			FTimerHandle Timer; //timer to handle spawning of player after death
-			GetWorldTimerManager().SetTimer(Timer, this, &AProcedurallyGeneratedTerrain::SpawnMap, RepWaitTime, false);
-		}
-	}
+	//if (GameState)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("Waiting for Game to begin"))
+	//	if (GameState->bSeedRep) //if all values properly replicated
+	//		RegenerateMap(); //update the map
+	//	else //otherwise wait some time and try updating map again
+	//	{
+	//		GameState->EnsureReplicated(); //re-replicate everything down to the client
+	//		float RepWaitTime = 1.0f;
+	//		FTimerHandle Timer; //timer to handle spawning of player after death
+	//		GetWorldTimerManager().SetTimer(Timer, this, &AProcedurallyGeneratedTerrain::SpawnMap, RepWaitTime, false);
+	//	}
+	//}
 }
 
 bool AProcedurallyGeneratedTerrain::ShouldTickIfViewportsOnly() const //run the code within the viewport when not running
@@ -99,17 +99,21 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 	}
 }
 
-void AProcedurallyGeneratedTerrain::RegenerateMap()
+void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Terrain Generated Succesfully"))
+	/*	GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
 	if (GameState)
 	{
 		Width = GameState->TerrainWidth;
 		Height = GameState->TerrainHeight;
 		Stream = GameState->Stream;
-		Seed = GameState->TerrainSeed;
-	}
+		Seed = GameState->TerrainSeed;*/
 
+	Seed = tSeed;
+	Width = tWidth;
+	Height = tHeight;
+	Stream = tStream;
 	ClearMap(); //delete any previosuly stored values
 
 	if (BiomeGeneration)
@@ -127,6 +131,7 @@ void AProcedurallyGeneratedTerrain::RegenerateMap()
 	}
 	CreateMesh(); //generate the terrain mesh
 	//bRegenerateMap = false;
+
 }
 
 void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all data for it

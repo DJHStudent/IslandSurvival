@@ -58,3 +58,8 @@ void ALobbyGameState::UpdateSeed()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
 }
+
+void ALobbyGameState::Test_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Yep, Netmulticasts do actually work on the Lobby"))
+}

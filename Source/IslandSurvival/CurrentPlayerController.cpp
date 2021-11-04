@@ -4,6 +4,7 @@
 #include "CurrentPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "MainGameInstance.h"
+#include "ProcedurallyGeneratedTerrain.h"
 
 void ACurrentPlayerController::ServerUpdateUI()
 {
@@ -21,7 +22,22 @@ void ACurrentPlayerController::ServerUpdateUI()
 void ACurrentPlayerController::ClientUpdateUI_Implementation()
 {
 	UE_LOG(LogTemp, Error, TEXT("On This Player Updating its UI"))
-		UMainGameInstance* MainGameInstancet = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	UMainGameInstance* MainGameInstancet = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (MainGameInstancet)
 		MainGameInstancet->LoadGame();
+	//AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	//if (ProceduralTerrain)
+	//	ProceduralTerrain->RegenerateMap();
+}
+
+void ACurrentPlayerController::ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream)
+{
+	ClientUpdateTerrain(Seed, Width, Height, Stream);
+}
+
+void ACurrentPlayerController::ClientUpdateTerrain_Implementation(int32 Seed, int32 Width, int32 Height, FRandomStream Stream)
+{
+	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	if (ProceduralTerrain)
+		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream);
 }

@@ -71,28 +71,28 @@ void APlayerCharacter::UISetup()
 
 void APlayerCharacter::GenerateMap()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Doing Some Generation Stuff"))
-	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::GAME) //timmer so if failed try it again
-	{
-		if (BiomeList)
-		{
-			AMainGameState* GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-			if(GameState && GameState->bSeedRep && BiomeList)
-				BiomeList->RegenerateMap();
-			else
-			{
-				float RespawnTime = 1.0f;
-				FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
-				GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
-			}
-		}
-		else
-		{
-			float RespawnTime = 1.0f;
-			FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
-			GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
-		}
-	}
+	//UE_LOG(LogTemp, Warning, TEXT("Doing Some Generation Stuff"))
+	//if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::GAME) //timmer so if failed try it again
+	//{
+	//	if (BiomeList)
+	//	{
+	//		AMainGameState* GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+	//		if(GameState && GameState->bSeedRep && BiomeList)
+	//			BiomeList->RegenerateMap();
+	//		else
+	//		{
+	//			float RespawnTime = 1.0f;
+	//			FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+	//			GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		float RespawnTime = 1.0f;
+	//		FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+	//		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
+	//	}
+	//}
 	
 }
 // Called every frame

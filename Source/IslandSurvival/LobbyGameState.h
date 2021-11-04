@@ -23,6 +23,9 @@ public:
 	UPROPERTY(ReplicatedUsing = UpdateSeed)
 		int32 Seed;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Test();
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 
 private:

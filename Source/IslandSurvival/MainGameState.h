@@ -42,13 +42,7 @@ public:
 	UPROPERTY(ReplicatedUsing = HasUIRepliacted)
 		bool bUIRep;
 
-
-	//UFUNCTION()
-	//	void UpdatePlayerUI();	
-	UFUNCTION(Client, Reliable)
-		void UpdatePlayerUI();
-
-	void CalculateSeed();
+	void CalculateSeed(int32 Seed);
 private:
 	UFUNCTION(NetMulticast, Reliable)
 	void MakeMap();

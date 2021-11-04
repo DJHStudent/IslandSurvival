@@ -60,6 +60,7 @@ void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the 
 
 void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from the server
 {
+	LobbyGameState->Test();
 }
 
 void ULobbyWidget::SetSeed(int32 Value)

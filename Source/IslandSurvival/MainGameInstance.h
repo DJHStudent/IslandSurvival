@@ -39,6 +39,8 @@ public:
 	void StartGame();
 	UFUNCTION(BlueprintCallable)
 	void LoadGame();
+
+	void UpdateTerrain();
 	
 	class ULobbyWidget* Lobby;
 

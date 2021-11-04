@@ -18,4 +18,11 @@ public:
 	void ServerUpdateUI(); //on the server, this function gets called
 	UFUNCTION(Client, Reliable)
 		void ClientUpdateUI(); //Called on server, finds client whichs owns it and runs the code
+
+	void ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream);
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream);
+	bool bTerrainUpdated;
+
+	//probably something in here to actually get the terrain generating properly
 };
