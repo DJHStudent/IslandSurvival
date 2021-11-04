@@ -197,7 +197,6 @@ void APlayerCharacter::SprintEnd()
 void APlayerCharacter::ServerSprintStart_Implementation()
 {
 	GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
-	GetCharacterMovement()->MaxSwimSpeed = SwimMovementSpeed;
 }
 
 void APlayerCharacter::ServerSprintEnd_Implementation()
