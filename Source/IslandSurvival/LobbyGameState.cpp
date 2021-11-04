@@ -29,10 +29,10 @@ void ALobbyGameState::UpdateHeight()
 	if (PlayerInstance && PlayerInstance->Lobby)
 	{
 		PlayerInstance->Lobby->SetHeight(TerrainHeight);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainHeight)
+		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainHeight);
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
+		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"));
 }
 
 void ALobbyGameState::UpdateWidth()
@@ -41,10 +41,10 @@ void ALobbyGameState::UpdateWidth()
 	if (PlayerInstance && PlayerInstance->Lobby)
 	{
 		PlayerInstance->Lobby->SetWidth(TerrainWidth);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainWidth)
+		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainWidth);
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
+		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"));
 }
 
 void ALobbyGameState::UpdateSeed()
@@ -53,13 +53,13 @@ void ALobbyGameState::UpdateSeed()
 	if (PlayerInstance && PlayerInstance->Lobby)
 	{
 		PlayerInstance->Lobby->SetSeed(Seed);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), Seed)
+		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), Seed);
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"))
+		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"));
 }
 
 void ALobbyGameState::Test_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Yep, Netmulticasts do actually work on the Lobby"))
+	UE_LOG(LogTemp, Warning, TEXT("Yep, Netmulticasts do actually work on the Lobby"));
 }

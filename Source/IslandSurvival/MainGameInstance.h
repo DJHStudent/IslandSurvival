@@ -51,6 +51,8 @@ public:
 	int32 TerrainWidth;
 	int32 TerrainHeight;
 	int32 Seed;
+
+	void QuitLobby();
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	class UMainMenuWidget* MainMenu;
