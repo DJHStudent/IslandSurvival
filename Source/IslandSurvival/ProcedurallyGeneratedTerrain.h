@@ -71,10 +71,8 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated
 
-	void InitilizeEnemySpawners();
-
 	UPROPERTY(EditAnywhere)//the mesh to spawn in
-		AActor* ZombieSpawner;
+	TSubclassOf<class AActor> ZombieSpawner;
 private:
 	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
