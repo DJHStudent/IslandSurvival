@@ -3,6 +3,7 @@
 
 #include "MainGameMode.h"
 #include "Engine/World.h"
+#include "ProcedurallyGeneratedTerrain.h"
 #include "Kismet/GameplayStatics.h"
 
 void AMainGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessages)
@@ -61,6 +62,24 @@ void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height)
 		if (PlayerController) //if found, update the UI to use the one for this level
 		{
 			PlayerController->ServerUpdateTerrain(Seed, Width, Height, Stream);
+		}
+	}
+
+	//as the terrain has successfully been generated in, at least on the server version can spawn in the enemy spawners
+	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	if (ProceduralTerrain)
+	{
+		for (auto& IslandPair : ProceduralTerrain->BiomeGeneration->IslandPointsMap)
+		{
+			float IslandWidths = (IslandPair.Value.MaxXPosition - IslandPair.Value.MinXPosition);
+			float IslandHeights = (IslandPair.Value.MaxYPosition - IslandPair.Value.MinYPosition);
+
+			//determine the actual size of the rectangular grid covering the island by using its min and max position * by grid size so its their actual real size
+			float IslandWidth = (IslandPair.Value.MaxXPosition - IslandPair.Value.MinXPosition) * ProceduralTerrain->GridSize;
+			float IslandHeight = (IslandPair.Value.MaxYPosition - IslandPair.Value.MinYPosition) * ProceduralTerrain->GridSize;
+
+			//use possion disk sampling for each island to determine optimal spawn location so get an even distribution
+			//AActor* SpawnedSpawner = GetWorld()->SpawnActor<AActor>(ProceduralTerrain->ZombieSpawner, FVector(100, 100, 0), FRotator::ZeroRotator);
 		}
 	}
 }

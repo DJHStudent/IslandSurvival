@@ -34,7 +34,6 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 	bRandomSeed = false;
 
 	bReplicates = true;
-	bTerrainGenerated = false;
 
 //	Octaves = 8;
 //	Lacunarity = 2.1f;

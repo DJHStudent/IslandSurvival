@@ -26,12 +26,12 @@ void AMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 //both these 2 functions only actually get called once host presses start button, so only ever called on server
 void AMainGameState::GenerateTerrain(int32 Seed, int32 Width, int32 Height)
 {
-	TerrainWidth = Width;
-	bWidthRep = true;
-	TerrainHeight = Height;
-	bHeightRep = true;
-	//TerrainSeed = Seed;
-	CalculateSeed(Seed);
+	//TerrainWidth = Width;
+	//bWidthRep = true;
+	//TerrainHeight = Height;
+	//bHeightRep = true;
+	////TerrainSeed = Seed;
+	//CalculateSeed(Seed);
 
 	//GetWorld()->HasBegunPlay();
 
@@ -62,29 +62,29 @@ void AMainGameState::EnsureReplicated_Implementation()
 
 void AMainGameState::CalculateSeed(int32 Seed)
 {
-	if (Seed == 0)
-	{
-		Stream.GenerateNewSeed(); //this generates us a new random seed for the stream
-		TerrainSeed = Stream.GetCurrentSeed(); //assign the seed the streams seed
-	}
-	else
-	{
-		Stream.Initialize(Seed);
-		TerrainSeed = Seed;
-	}
-	bSeedRep = true;
-	bStreamRep = true;
-	MakeMap();
-	UE_LOG(LogTemp, Error, TEXT("Code to begin terrain gen actually gets called on clients: %i"), TerrainWidth)
+	//if (Seed == 0)
+	//{
+	//	Stream.GenerateNewSeed(); //this generates us a new random seed for the stream
+	//	TerrainSeed = Stream.GetCurrentSeed(); //assign the seed the streams seed
+	//}
+	//else
+	//{
+	//	Stream.Initialize(Seed);
+	//	TerrainSeed = Seed;
+	//}
+	//bSeedRep = true;
+	//bStreamRep = true;
+	//MakeMap();
+	//UE_LOG(LogTemp, Error, TEXT("Code to begin terrain gen actually gets called on clients: %i"), TerrainWidth)
 }
 
 void AMainGameState::MakeMap_Implementation()
 {
 	//on server version find procedural terrain and spawn it in
 	// 
-	UE_LOG(LogTemp, Warning, TEXT("Yep, Netmulticasts do actually work on the Terrain"))
+/*	UE_LOG(LogTemp, Warning, TEXT("Yep, Netmulticasts do actually work on the Terrain"))
 	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	//if (ProceduralTerrain)
+	*///if (ProceduralTerrain)
 	//	ProceduralTerrain->RegenerateMap();
 	//RegenerateMap(); //as on server 
 }
