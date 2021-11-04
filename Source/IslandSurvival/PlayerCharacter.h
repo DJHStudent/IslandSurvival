@@ -43,7 +43,7 @@ public:
 	//the multiplayer functions for movement
 	float SprintMovementSpeed;
 	float NormalMovementSpeed;
-
+	float SwimMovementSpeed;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BlueprintReload(); //a function which will be made and editied in blueprints but callable in C++ code
