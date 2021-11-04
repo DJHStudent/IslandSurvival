@@ -177,6 +177,7 @@ void APlayerCharacter::SprintStart()
 {
 	//when sprinting starts change the walk speed and tell the animation to play the sprint
 	GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
+	GetCharacterMovement()->MaxSwimSpeed = SprintMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
 	ServerSprintStart();
 	if(AnimInstance)
 		AnimInstance->bIsSprinting = true;
@@ -186,6 +187,7 @@ void APlayerCharacter::SprintEnd()
 {
 	//reset the walk speed back to the walk value
 	GetCharacterMovement()->MaxWalkSpeed = NormalMovementSpeed;
+	GetCharacterMovement()->MaxSwimSpeed = NormalMovementSpeed;
 	ServerSprintEnd();
 	//set the animation is sprinting value to be false to stop sprinting and goe back to walk
 	if (AnimInstance)
@@ -194,11 +196,13 @@ void APlayerCharacter::SprintEnd()
 void APlayerCharacter::ServerSprintStart_Implementation()
 {
 	GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
+	GetCharacterMovement()->MaxSwimSpeed = SprintMovementSpeed;
 }
 
 void APlayerCharacter::ServerSprintEnd_Implementation()
 {
 	GetCharacterMovement()->MaxWalkSpeed = NormalMovementSpeed;
+	GetCharacterMovement()->MaxSwimSpeed = NormalMovementSpeed;
 }
 void APlayerCharacter::Reload()
 {
