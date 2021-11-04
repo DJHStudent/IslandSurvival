@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "MainGameInstance.h"
 #include "CurrentPlayerController.generated.h"
 
 /**
@@ -24,5 +25,6 @@ public:
 	void ClientUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream);
 	bool bTerrainUpdated;
 
+	UMainGameInstance* MainGameInstance;
 	//probably something in here to actually get the terrain generating properly
 };

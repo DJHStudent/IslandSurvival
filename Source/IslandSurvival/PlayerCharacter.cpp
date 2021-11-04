@@ -59,6 +59,7 @@ void APlayerCharacter::UISetup()
 		{
 			//MainGameInstance->LoadGame(this);
 			BiomeList = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass())); //seed, width, height
+			PlayerWidget = Cast<UPlayerGameHUD>(MainGameInstance->CurrentPlayerHUDWidget);
 			//BiomeList->RegenerateMap();
 		}
 	}
@@ -69,39 +70,12 @@ void APlayerCharacter::UISetup()
 		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::UISetup, RespawnTime, false);
 	}
 }
-
-void APlayerCharacter::GenerateMap()
-{
-	//UE_LOG(LogTemp, Warning, TEXT("Doing Some Generation Stuff"))
-	//if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::GAME) //timmer so if failed try it again
-	//{
-	//	if (BiomeList)
-	//	{
-	//		AMainGameState* GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	//		if(GameState && GameState->bSeedRep && BiomeList)
-	//			BiomeList->RegenerateMap();
-	//		else
-	//		{
-	//			float RespawnTime = 1.0f;
-	//			FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
-	//			GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
-	//		}
-	//	}
-	//	else
-	//	{
-	//		float RespawnTime = 1.0f;
-	//		FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
-	//		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
-	//	}
-	//}
-	
-}
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//DisplayPointBiome();
+	if(BiomeList && (GetLocalRole() == ROLE_AutonomousProxy || IsLocallyControlled())) //i.e only actually do it if on the game level
+		DisplayPointBiome();
 }
 
 // Called to bind functionality to input
@@ -232,4 +206,6 @@ void APlayerCharacter::DisplayPointBiome()
 	}
 	else
 		CurrentBiomeText = "Lookup Error"; //display an error as one occured when trying to access a biome as it didn't exist
+
+	PlayerWidget->UpdateBiomeTextBlock(CurrentBiomeText);
 }

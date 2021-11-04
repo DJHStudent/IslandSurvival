@@ -11,6 +11,7 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
 #include "Blueprint/UserWidget.h"
+#include "PlayerGameHUD.h"
 #include "MainGameInstance.generated.h"
 
 UENUM() //just a macro specifying its an enum class
@@ -43,6 +44,7 @@ public:
 	void UpdateTerrain();
 	
 	class ULobbyWidget* Lobby;
+	UPlayerGameHUD* CurrentPlayerHUDWidget;
 
 	//UPROPERTY(Replicated)
 	EGameState CurrentGameState;
@@ -56,7 +58,7 @@ private:
 	class UMainMenuWidget* MainMenu;
 	TSubclassOf<UUserWidget> LobbyWidgetClass;
 	
-
+	TSubclassOf<UUserWidget> PlayerHUDClass;
 
 	IOnlineSubsystem* Subsystem;
 	//shorthand way of writting a TSharedPointer
