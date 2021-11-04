@@ -36,7 +36,10 @@ public:
 
 	void SprintStart();
 	void SprintEnd();
-
+	UFUNCTION(Server, Reliable)
+		void ServerSprintStart();
+	UFUNCTION(Server, Reliable)
+		void ServerSprintEnd();
 	//the multiplayer functions for movement
 	float SprintMovementSpeed;
 	float NormalMovementSpeed;
