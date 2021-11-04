@@ -16,6 +16,9 @@ UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 	static ConstructorHelpers::FClassFinder<UUserWidget> LobbyWidgetObject(TEXT("/Game/Widgets/LobbyWidget"));
 	LobbyWidgetClass = LobbyWidgetObject.Class; //get the file location of the widget blueprint class and store it in this variable
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> PlayerHUDWidgetObject(TEXT("/Game/Widgets/PlayerHUDWidget"));
+	PlayerHUDClass = PlayerHUDWidgetObject.Class; //get the file location of the widget blueprint class and store it in this variable
+
 	CurrentGameState = EGameState::LOBBY;
 }
 
@@ -224,6 +227,10 @@ void UMainGameInstance::LoadGame() //called on all players when loading the Main
 
 	UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
 
+	if (PlayerHUDClass != nullptr)
+		CurrentPlayerHUDWidget = CreateWidget<UPlayerGameHUD>(GetWorld(), PlayerHUDClass); //spawn in a new widget
+	if (CurrentPlayerHUDWidget)
+		CurrentPlayerHUDWidget->AddToViewport();
 	//now can go about adding in the player HUD widget
 
 	///////*if (Lobby)

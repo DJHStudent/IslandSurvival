@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h" //much be above the generated.h file
 #include "ProcedurallyGeneratedTerrain.h"
 #include "MainGameInstance.h"
+#include "PlayerGameHUD.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
@@ -36,11 +37,14 @@ public:
 
 	void SprintStart();
 	void SprintEnd();
-
+	UFUNCTION(Server, Reliable)
+		void ServerSprintStart();
+	UFUNCTION(Server, Reliable)
+		void ServerSprintEnd();
 	//the multiplayer functions for movement
 	float SprintMovementSpeed;
 	float NormalMovementSpeed;
-
+	float SwimMovementSpeed;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BlueprintReload(); //a function which will be made and editied in blueprints but callable in C++ code
@@ -64,6 +68,8 @@ private: //i.e a member variable
 
 	UPROPERTY(EditAnywhere)
 	AProcedurallyGeneratedTerrain* BiomeList;
+	UPlayerGameHUD* PlayerWidget;
+
 	void DisplayPointBiome(); //displays the biome at the specified point
 
 	UMainGameInstance* MainGameInstance;
