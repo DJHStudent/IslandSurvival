@@ -7,6 +7,7 @@
 #include "ProceduralMeshComponent.h"
 #include "BiomeGenerationComponent.h"
 #include "TerrainHeight.h"
+#include "MainGameState.h"
 #include "ProcedurallyGeneratedTerrain.generated.h"
 
 UCLASS()
@@ -36,6 +37,7 @@ public:
 	UPROPERTY(EditAnywhere)//distance each vertex is appart
 	float GridSize; 
 
+	//need to be replicated variables
 	TArray<FVector> Vertices; //list of all vertices of mesh
 	TArray<FLinearColor> VerticeColours; //the colour of each vertex
 	TArray<int32> IslandNumber; //the key of the island each vertex relates to from the IslandsMap
@@ -43,8 +45,8 @@ public:
 
 	TArray<int32> Triangles; //list of all meshes trianlges
 
-	UFUNCTION(BlueprintCallable)
-	void RegenerateMap(); //when UI button pressed regenerate the map
+	//UFUNCTION(NetMulticast, Reliable)
+	void RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream); //when UI button pressed regenerate the map
 	void CreateMesh();
 	void ClearMap(); //remove any data stored for the previous map
 
@@ -63,8 +65,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")
 	int32 Seed; //seed to use in the map for seeded generation
+
+	UPROPERTY() //once got value from server will generate the map
 	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated
 private:
 	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
@@ -72,4 +77,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Seed")//if true will give a random seed on each generation
 	bool bRandomSeed; 
 	void GenerateSeed(); //determine the seed for the map
+
+	class AMainGameState* GameState;
+	void SpawnMap();
+
+	bool bTerrainGenerated;
 };

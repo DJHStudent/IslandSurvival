@@ -5,6 +5,8 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacterAnimInstance.h"
+#include "Net/UnrealNetwork.h"
+#include "Engine/EngineTypes.h"
 #include "Kismet/GameplayStatics.h"
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -21,6 +23,8 @@ APlayerCharacter::APlayerCharacter()
 	SprintMovementSpeed = GetCharacterMovement()->MaxWalkSpeed * SprintMultiplier;
 	NormalMovementSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	CurrentBiomeText = TEXT("");
+
+	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 }
 
 // Called when the game starts or when spawned
@@ -29,20 +33,74 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//gets the camera component added to the AActor
-	Camera = FindComponentByClass<UCameraComponent>();
+	if (this && this->GetLocalRole() == ROLE_AutonomousProxy || this && this->IsLocallyControlled()) //only do if controlled
+	{
+		Camera = FindComponentByClass<UCameraComponent>();
 
-	//get the skeletal mesh from the sub object arms of this object
-	USkeletalMeshComponent* SkeletalMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("Arms")));
-	if (SkeletalMesh)//ensures no null pointer and will only work if it exists
-		AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
+		//get the skeletal mesh from the sub object arms of this object
+		USkeletalMeshComponent* SkeletalMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("Arms")));
+		if (SkeletalMesh)//ensures no null pointer and will only work if it exists
+			AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
+
+		UISetup();
+		//GenerateMap();
+	}
+	////////else
+	////////	UE_LOG(LogTemp, Error, TEXT("All Up failed Missesabily"))
+}
+void APlayerCharacter::UISetup()
+{
+	if (MainGameInstance) //timmer so if failed try it again
+	{
+		if (MainGameInstance->CurrentGameState == EGameState::LOBBY) //if though called before constructor set this will never be called, or if say Lobby is null also never called even though it should
+			MainGameInstance->LoadLobby(this);
+		else if (MainGameInstance->CurrentGameState == EGameState::GAME && IsLocallyControlled())
+		{
+			//MainGameInstance->LoadGame(this);
+			BiomeList = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass())); //seed, width, height
+			//BiomeList->RegenerateMap();
+		}
+	}
+	else
+	{
+		float RespawnTime = 1.0f;
+		FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::UISetup, RespawnTime, false);
+	}
 }
 
+void APlayerCharacter::GenerateMap()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Doing Some Generation Stuff"))
+	//if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::GAME) //timmer so if failed try it again
+	//{
+	//	if (BiomeList)
+	//	{
+	//		AMainGameState* GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+	//		if(GameState && GameState->bSeedRep && BiomeList)
+	//			BiomeList->RegenerateMap();
+	//		else
+	//		{
+	//			float RespawnTime = 1.0f;
+	//			FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+	//			GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		float RespawnTime = 1.0f;
+	//		FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
+	//		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::GenerateMap, RespawnTime, false);
+	//	}
+	//}
+	
+}
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	DisplayPointBiome();
+	//DisplayPointBiome();
 }
 
 // Called to bind functionality to input
@@ -87,7 +145,7 @@ void APlayerCharacter::LookUp(float Value)
 	FRotator LookUpRotation = FRotator::ZeroRotator;//FRotator(0.0f, 0.0f, 0.0f); both sets an FRotator to zero
 	LookUpRotation.Pitch = Value * LookSensitivity;
 
-	if (Camera != nullptr && Camera->RelativeRotation.Pitch + LookUpRotation.Pitch < 90 
+	if (Camera && Camera->RelativeRotation.Pitch + LookUpRotation.Pitch < 90 
 		&& Camera->RelativeRotation.Pitch + LookUpRotation.Pitch > -90)//stops juttering if the camera moved beyond these values
 	{
 		Camera->AddRelativeRotation(LookUpRotation);//applies the rotation to the camera and allows only the pitch 
