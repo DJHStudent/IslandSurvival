@@ -70,6 +70,9 @@ public:
 	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated
+
+	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	TSubclassOf<class AActor> ZombieSpawner;
 private:
 	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
@@ -80,6 +83,4 @@ private:
 
 	class AMainGameState* GameState;
 	void SpawnMap();
-
-	bool bTerrainGenerated;
 };
