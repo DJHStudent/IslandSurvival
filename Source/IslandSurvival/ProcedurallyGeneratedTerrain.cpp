@@ -92,10 +92,10 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//if (bRegenerateMap) //if in editor and true regenerate map
-	//{
-	//	//RegenerateMap();
-	//}
+	if (bRegenerateMap) //if in editor and true regenerate map
+	{
+		RegenerateMap(Seed, Width, Height, Stream);
+	}
 }
 
 void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream)
@@ -129,7 +129,7 @@ void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int
 		TerrainHeight->Height = Height;
 	}
 	CreateMesh(); //generate the terrain mesh
-	//bRegenerateMap = false;
+	bRegenerateMap = false;
 
 }
 
@@ -150,17 +150,18 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 		BiomeGeneration->BiomeAtEachPoint.Empty();
 		BiomeGeneration->VertexBiomeLocationsMap.Empty();
 		BiomeGeneration->bBeenLerped.Empty();
-	}
 
-	//destory any meshes placed on the terrain by using the array of all meshes which exist
-	for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0 ; i--)
-	{
-		if(BiomeGeneration->MeshActors[i])
-			BiomeGeneration->MeshActors[i]->Destroy();
-	}
-	BiomeGeneration->MeshActors.Empty();
 
-	MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
+		//destory any meshes placed on the terrain by using the array of all meshes which exist
+		for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0; i--)
+		{
+			if (BiomeGeneration->MeshActors[i])
+				BiomeGeneration->MeshActors[i]->Destroy();
+		}
+		BiomeGeneration->MeshActors.Empty();
+
+		MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
+	}
 }
 
 void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwise use the specified one from editor
