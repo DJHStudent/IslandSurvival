@@ -621,7 +621,7 @@ void UBiomeGenerationComponent::SpawnTents()
 			VertexLocation.Z -= 90; //so bouys will spawn in slightly under the water
 		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
 		FVector SpawnerLocation = FVector(VertexLocation.X, VertexLocation.Y, VertexLocation.Z + 500);
-		GetWorld()->SpawnActor<AActor>(TerrainGenerator->ZombieSpawner, SpawnerLocation, FRotator::ZeroRotator);
+		AActor* ZombieSpawner = GetWorld()->SpawnActor<AActor>(TerrainGenerator->ZombieSpawner, SpawnerLocation, FRotator::ZeroRotator);
 		SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0)
@@ -637,6 +637,8 @@ void UBiomeGenerationComponent::SpawnTents()
 		}
 
 		MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
+		MeshActors.Add(ZombieSpawner);
+
 		GridPoints.RemoveAt(RandomIndex);
 	}
 }

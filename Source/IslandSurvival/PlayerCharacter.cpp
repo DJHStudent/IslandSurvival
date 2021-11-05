@@ -63,7 +63,7 @@ void APlayerCharacter::UISetup()
 			//BiomeList->RegenerateMap();
 		}
 		USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
-		if (BodyMesh)
+		if (BodyMesh && MainGameInstance->PlayerColour)
 		{
 			BodyMesh->SetMaterial(0, MainGameInstance->PlayerColour);
 			//if (GetLocalRole() == ROLE_Authority)
@@ -71,7 +71,7 @@ void APlayerCharacter::UISetup()
 			//	//PlayersColour = MainGameInstance->PlayerColour;
 			//}
 			//else
-				ServerUpdatePlayerColour(MainGameInstance->PlayerColour);
+			ServerUpdatePlayerColour(MainGameInstance->PlayerColour);
 		}
 	}
 	else
@@ -84,7 +84,7 @@ void APlayerCharacter::UISetup()
 void APlayerCharacter::ServerUpdatePlayerColour_Implementation(UMaterialInterface* Colour)
 {
 	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
-	if (BodyMesh)
+	if (BodyMesh && Colour)
 	{
 		BodyMesh->SetMaterial(0, Colour);
 		PlayersColour = Colour;
@@ -93,7 +93,7 @@ void APlayerCharacter::ServerUpdatePlayerColour_Implementation(UMaterialInterfac
 void APlayerCharacter::ReplicatedColourUpdate()
 {
 	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
-	if(BodyMesh)
+	if(BodyMesh && PlayersColour)
 		BodyMesh->SetMaterial(0, PlayersColour);
 }
 
@@ -101,7 +101,7 @@ void APlayerCharacter::ReplicatedColourUpdate()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if(BiomeList && (GetLocalRole() == ROLE_AutonomousProxy || IsLocallyControlled())) //i.e only actually do it if on the game level
+	if(BiomeList && BiomeList->BiomeGeneration && (GetLocalRole() == ROLE_AutonomousProxy || IsLocallyControlled())) //i.e only actually do it if on the game level
 		DisplayPointBiome();
 }
 

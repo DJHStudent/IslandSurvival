@@ -24,7 +24,7 @@ private:
 	//AMainGameState* GameState;
 
 	virtual void PostSeamlessTravel() override;
-	virtual void HandleMatchHasStarted();
+	void PlayerTerrainUpdate();
 
 	AMainGameState* MainGameState;
 	ACurrentPlayerController* HostController;

@@ -38,13 +38,6 @@ void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete, th
 	////
 }
 
-void AMainGameMode::HandleMatchHasStarted() //once seamless travel all complete, then can actually load the map
-{
-	AGameMode::HandleMatchHasStarted();
-	////////ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(HostController); //get the controller
-	////////HostController->ServerUpdateTerrain();
-}
-
 void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height)
 {
 	FRandomStream Stream;
@@ -62,7 +55,7 @@ void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height)
 	for (auto It = GetWorld()->GetControllerIterator(); It; ++It) //for all players which have appeared in this new level
 	{
 		ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(It->Get()); //get the controller
-		if (PlayerController) //if found, update the UI to use the one for this level
+		if (PlayerController && PlayerController->HasActorBegunPlay()) //if found, update the UI to use the one for this level
 		{
 			PlayerController->ServerUpdateTerrain(Seed, Width, Height, Stream);
 		}

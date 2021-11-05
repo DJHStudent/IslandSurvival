@@ -42,6 +42,7 @@ void ACurrentPlayerController::ServerUpdateTerrain(int32 Seed, int32 Width, int3
 void ACurrentPlayerController::ClientUpdateTerrain_Implementation(int32 Seed, int32 Width, int32 Height, FRandomStream Stream)
 {
 	ClientUpdateUI(); //just before the terrain loads in update the UI
+	UE_LOG(LogTemp, Warning, TEXT("Client beginning Process to make terrain"))
 	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
 	if (ProceduralTerrain)
 		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream);

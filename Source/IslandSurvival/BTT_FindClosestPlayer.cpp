@@ -17,19 +17,32 @@ EBTNodeResult::Type UBTT_FindClosestPlayer::ExecuteTask(UBehaviorTreeComponent& 
 {
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundActors);
-	for (int i = 0; i < FoundActors.Num(); i++)
+	if (FoundActors.Num() > 0)
 	{
-		float ReturnDistance = FoundActors[i]->GetDistanceTo(OwnerComp.GetOwner());
-		if (ReturnDistance < ClosestDistance)
+		for (int i = 0; i < FoundActors.Num(); i++)
 		{
-			APlayerCharacter* Character = Cast<APlayerCharacter>(FoundActors[i]);
-			ClosestPlayer = Character;
-			ClosestDistance = ReturnDistance;
+			float ReturnDistance = FoundActors[i]->GetDistanceTo(OwnerComp.GetOwner());
+			if (ReturnDistance < ClosestDistance)
+			{
+				APlayerCharacter* Character = Cast<APlayerCharacter>(FoundActors[i]);
+				if (Character)
+				{
+					ClosestPlayer = Character;
+					ClosestDistance = ReturnDistance;
+				}
 
+			}
+		}
+		if (ClosestPlayer)
+		{
+			UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
+			if (Blackboard)
+			{
+				Blackboard->SetValueAsObject("SelfActor", ClosestPlayer);
+				Blackboard->SetValueAsVector("TargetLocation", ClosestPlayer->GetActorLocation());
+				return EBTNodeResult::Succeeded;
+			}
 		}
 	}
-	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
-	Blackboard->SetValueAsObject("SelfActor", ClosestPlayer);
-	Blackboard->SetValueAsVector("TargetLocation", ClosestPlayer->GetActorLocation());
-	return EBTNodeResult::Succeeded;
+	return EBTNodeResult::Failed;
 }
