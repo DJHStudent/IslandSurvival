@@ -14,6 +14,7 @@ bool UMainMenuWidget::Initialize() //run when the widget gets created
 	ButtonQuit->OnClicked.AddDynamic(this, &UMainMenuWidget::OnQuitButtonPressed);
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
+	Loading->SetVisibility(ESlateVisibility::Hidden);
 	return true;
 }
 
@@ -30,6 +31,7 @@ void UMainMenuWidget::OnJoinButtonPressed()
 	UE_LOG(LogTemp, Warning, TEXT("Join Button Pressed"));
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Join Button Pressed");
 	if (MainGameInstance)
+		Loading->SetVisibility(ESlateVisibility::Visible);
 		MainGameInstance->JoinSession();
 }
 

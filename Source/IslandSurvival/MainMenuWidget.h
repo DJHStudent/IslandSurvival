@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanel.h"
 #include "MainGameInstance.h"
 #include "MainMenuWidget.generated.h"
 
@@ -25,6 +26,9 @@ private:
 	UButton* ButtonJoin;
 	UPROPERTY(meta = (BindWidget))
 	UButton* ButtonQuit;
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* Loading;
 
 	class UMainGameInstance* MainGameInstance;
 

@@ -122,6 +122,7 @@ void UMainGameInstance::JoinSession() //look up sessions to find one looking for
 	if (SessionSearch.IsValid() && SessionInterface.IsValid())
 	{
 		SessionSearch->bIsLanQuery = true;
+		
 		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 	}
 }
@@ -269,10 +270,6 @@ void UMainGameInstance::QuitLobby()
 	PlayerController = GetPrimaryPlayerController(); //for this machine get primary, likly only player controller
 	if (PlayerController) //travel the player to a different map, while keeping the server active
 	{
-		//FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-		//PlayerController->bShowMouseCursor = false;
-		//PlayerController->SetInputMode(InputMode);
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Map Loaded");
 		UGameplayStatics::OpenLevel(GetWorld(), "MainMenu");
 		FName SessionName = TEXT("PLayerChoosenName");
 		SessionInterface->DestroySession(SessionName);
