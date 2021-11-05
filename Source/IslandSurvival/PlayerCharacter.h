@@ -53,6 +53,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FString CurrentBiomeText;
 
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 private: //i.e a member variable
 	UPROPERTY(EditInstanceOnly)
 	float LookSensitivity;
@@ -75,5 +77,13 @@ private: //i.e a member variable
 	UMainGameInstance* MainGameInstance;
 
 	void UISetup();
+	UFUNCTION(Server, Reliable)
+	void ServerUpdatePlayerColour(UMaterialInterface* Colour);
+
+	UPROPERTY(ReplicatedUsing = ReplicatedColourUpdate)
+	UMaterialInterface* PlayersColour;
+	UFUNCTION()
+		void ReplicatedColourUpdate();
+
 	void GenerateMap();
 };

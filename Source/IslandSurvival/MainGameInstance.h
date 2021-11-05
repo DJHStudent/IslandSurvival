@@ -55,6 +55,8 @@ public:
 	int32 Seed;
 
 	void QuitLobby();
+
+	UMaterialInterface* PlayerColour;
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	class UMainMenuWidget* MainMenu;

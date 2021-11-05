@@ -237,10 +237,10 @@ void UMainGameInstance::LoadGame() //called on all players when loading the Main
 	//////	Lobby->RemoveFromViewport();*/
 
 	//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
-	if (PlayerController->GetLocalRole() == ROLE_Authority)
-	{
-		UpdateTerrain();
-	}
+	///////*if (PlayerController->GetLocalRole() == ROLE_Authority)
+	//////{
+	//////	UpdateTerrain();
+	//////}*/
 
 }
 void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can update the terrain on all players

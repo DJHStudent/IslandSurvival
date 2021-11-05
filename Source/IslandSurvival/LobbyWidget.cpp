@@ -32,14 +32,26 @@ void ULobbyWidget::SetEditability(APawn* Player) //come back to eventually once 
 {
 	if (Player && Player->GetLocalRole() == ROLE_AutonomousProxy) //if controlled player not on server
 	{
-		if(ButtonStart)
+		if (ButtonStart)
+		{
 			ButtonStart->SetVisibility(ESlateVisibility::HitTestInvisible);
-		if(SpinBoxSeed)
+			ButtonStart->SetRenderOpacity(0.5f);
+		}
+		if (SpinBoxSeed)
+		{
 			SpinBoxSeed->SetVisibility(ESlateVisibility::HitTestInvisible);
+			SpinBoxSeed->SetRenderOpacity(0.5f);
+		}
 		if (SpinBoxWidth)
+		{
 			SpinBoxWidth->SetVisibility(ESlateVisibility::HitTestInvisible);
+			SpinBoxWidth->SetRenderOpacity(0.5f);
+		}
 		if (SpinBoxHeight)
+		{
 			SpinBoxHeight->SetVisibility(ESlateVisibility::HitTestInvisible);
+			SpinBoxHeight->SetRenderOpacity(0.5f);
+		}
 		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability: %s"), *Player->GetName())
 	}
 }
@@ -60,7 +72,6 @@ void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the 
 
 void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from the server
 {
-	LobbyGameState->Test();
 	if (MainGameInstance)
 	{
 		MainGameInstance->QuitLobby();

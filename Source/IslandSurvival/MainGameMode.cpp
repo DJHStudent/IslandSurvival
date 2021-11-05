@@ -24,9 +24,12 @@ void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete, th
 		ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(It->Get()); //get the controller
 		if(PlayerController) //if found, update the UI to use the one for this level
 		{ 
-			PlayerController->ServerUpdateUI();
-			if (PlayerController->GetLocalRole() == ROLE_Authority)
+			//PlayerController->ServerUpdateUI(); //only call the update on the server
+			if (PlayerController->GetLocalRole() == ROLE_Authority && PlayerController->IsLocalController()) //find controller on server and update it
+			{
 				HostController = PlayerController;
+				PlayerController->ServerInitilizeTerrain();
+			}
 		}
 	}
 	////float RepWaitTime = 10.0f;

@@ -34,7 +34,7 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//gets the camera component added to the AActor
-	if (this && this->GetLocalRole() == ROLE_AutonomousProxy || this && this->IsLocallyControlled()) //only do if controlled
+	if (this->GetLocalRole() == ROLE_AutonomousProxy || this->IsLocallyControlled()) //only do if controlled
 	{
 		Camera = FindComponentByClass<UCameraComponent>();
 
@@ -62,6 +62,17 @@ void APlayerCharacter::UISetup()
 			PlayerWidget = Cast<UPlayerGameHUD>(MainGameInstance->CurrentPlayerHUDWidget);
 			//BiomeList->RegenerateMap();
 		}
+		USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
+		if (BodyMesh)
+		{
+			BodyMesh->SetMaterial(0, MainGameInstance->PlayerColour);
+			//if (GetLocalRole() == ROLE_Authority)
+			//{
+			//	//PlayersColour = MainGameInstance->PlayerColour;
+			//}
+			//else
+				ServerUpdatePlayerColour(MainGameInstance->PlayerColour);
+		}
 	}
 	else
 	{
@@ -70,6 +81,22 @@ void APlayerCharacter::UISetup()
 		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::UISetup, RespawnTime, false);
 	}
 }
+void APlayerCharacter::ServerUpdatePlayerColour_Implementation(UMaterialInterface* Colour)
+{
+	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
+	if (BodyMesh)
+	{
+		BodyMesh->SetMaterial(0, Colour);
+		PlayersColour = Colour;
+	}
+}
+void APlayerCharacter::ReplicatedColourUpdate()
+{
+	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
+	if(BodyMesh)
+		BodyMesh->SetMaterial(0, PlayersColour);
+}
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -208,4 +235,10 @@ void APlayerCharacter::DisplayPointBiome()
 		CurrentBiomeText = "Lookup Error"; //display an error as one occured when trying to access a biome as it didn't exist
 
 	PlayerWidget->UpdateBiomeTextBlock(CurrentBiomeText);
+}
+
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APlayerCharacter, PlayersColour);
 }
