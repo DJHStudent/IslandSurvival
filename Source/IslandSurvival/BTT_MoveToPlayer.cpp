@@ -3,11 +3,10 @@
 
 #include "BTT_MoveToPlayer.h"
 #include "ZombieAIController.h"
-
 EBTNodeResult::Type UBTT_MoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (AIController)
+	if (AIController && GetWorld()->IsServer())
 	{
 		UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
 		if (Blackboard)

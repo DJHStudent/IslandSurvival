@@ -6,7 +6,7 @@
 // Sets default values
 AZombieCharacter::AZombieCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	bUseControllerRotationYaw = false;
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AI Perception Component"));
 	AISense_Sight = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
@@ -27,26 +27,33 @@ AZombieCharacter::AZombieCharacter()
 void AZombieCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZombieCharacter::TargetPerceptionUpdated);
+	if (GetWorld()->IsServer())
+	{
+		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZombieCharacter::TargetPerceptionUpdated);
+	}
 }
 
 // Called to bind functionality to input
 void AZombieCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZombieCharacter::TargetPerceptionUpdated);
+	if (GetWorld()->IsServer())
+	{	
+		Super::SetupPlayerInputComponent(PlayerInputComponent);
+		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZombieCharacter::TargetPerceptionUpdated);
+	}
 }
 
 void AZombieCharacter::TargetPerceptionUpdated(AActor* actor, FAIStimulus stimulus)
 {
-	if (stimulus.WasSuccessfullySensed())
+	if (GetWorld()->IsServer())
 	{
-		ChangeEnum(1);
-	}
-	else
-	{
-		ChangeEnum(0);
+		if (stimulus.WasSuccessfullySensed())
+		{
+			ChangeEnum(1);
+		}
+		else
+		{
+			ChangeEnum(0);
+		}
 	}
 }

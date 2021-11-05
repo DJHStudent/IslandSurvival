@@ -15,32 +15,36 @@ UBTT_FindClosestPlayer::UBTT_FindClosestPlayer()
 
 EBTNodeResult::Type UBTT_FindClosestPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundActors);
-	if (FoundActors.Num() > 0)
+	if (GetWorld()->IsServer())
 	{
-		for (int i = 0; i < FoundActors.Num(); i++)
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundActors);
+		if (FoundActors.Num() > 0)
 		{
-			float ReturnDistance = FoundActors[i]->GetDistanceTo(OwnerComp.GetOwner());
-			if (ReturnDistance < ClosestDistance)
+			float ClosestPlayerDistance = TNumericLimits<float>::Max();
+			for (int i = 0; i < FoundActors.Num(); i++)
 			{
-				APlayerCharacter* Character = Cast<APlayerCharacter>(FoundActors[i]);
-				if (Character)
+				float ReturnDistance = FoundActors[i]->GetDistanceTo(OwnerComp.GetOwner());
+				if (ReturnDistance < ClosestDistance && ReturnDistance < ClosestPlayerDistance)
 				{
-					ClosestPlayer = Character;
-					ClosestDistance = ReturnDistance;
-				}
+					APlayerCharacter* Character = Cast<APlayerCharacter>(FoundActors[i]);
+					if (Character)
+					{
+						ClosestPlayer = Character;
+						ClosestPlayerDistance = ReturnDistance;
+					}
 
+				}
 			}
-		}
-		if (ClosestPlayer)
-		{
-			UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
-			if (Blackboard)
+			if (ClosestPlayer)
 			{
-				Blackboard->SetValueAsObject("SelfActor", ClosestPlayer);
-				Blackboard->SetValueAsVector("TargetLocation", ClosestPlayer->GetActorLocation());
-				return EBTNodeResult::Succeeded;
+				UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
+				if (Blackboard)
+				{
+					Blackboard->SetValueAsObject("SelfActor", ClosestPlayer);
+					Blackboard->SetValueAsVector("TargetLocation", ClosestPlayer->GetActorLocation());
+					return EBTNodeResult::Succeeded;
+				}
 			}
 		}
 	}

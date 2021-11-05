@@ -66,23 +66,6 @@ void AProcedurallyGeneratedTerrain::BeginPlay()
 	//SpawnMap();
 }
 
-void AProcedurallyGeneratedTerrain::SpawnMap()
-{
-	//if (GameState)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("Waiting for Game to begin"))
-	//	if (GameState->bSeedRep) //if all values properly replicated
-	//		RegenerateMap(); //update the map
-	//	else //otherwise wait some time and try updating map again
-	//	{
-	//		GameState->EnsureReplicated(); //re-replicate everything down to the client
-	//		float RepWaitTime = 1.0f;
-	//		FTimerHandle Timer; //timer to handle spawning of player after death
-	//		GetWorldTimerManager().SetTimer(Timer, this, &AProcedurallyGeneratedTerrain::SpawnMap, RepWaitTime, false);
-	//	}
-	//}
-}
-
 bool AProcedurallyGeneratedTerrain::ShouldTickIfViewportsOnly() const //run the code within the viewport when not running
 {
 	return true;
@@ -94,6 +77,16 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 
 	if (bRegenerateMap) //if in editor and true regenerate map
 	{
+		if (bRandomSeed)
+		{
+			Stream.GenerateNewSeed(); //this generates us a new random seed for the stream
+			Seed = Stream.GetCurrentSeed(); //assign the seed the streams seed
+		}
+		else
+		{
+			Stream.Initialize(Seed);
+			Seed = Seed;
+		}
 		RegenerateMap(Seed, Width, Height, Stream);
 	}
 }
