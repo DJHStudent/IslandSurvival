@@ -53,6 +53,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FString CurrentBiomeText;
 
+	void Paused();
+	void Resume();
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 private: //i.e a member variable
@@ -86,4 +88,6 @@ private: //i.e a member variable
 		void ReplicatedColourUpdate();
 
 	void GenerateMap();
+
+	bool bPaused;
 };

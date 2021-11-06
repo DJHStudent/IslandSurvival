@@ -42,6 +42,8 @@ public:
 	void LoadGame();
 
 	void UpdateTerrain();
+
+	void CancelFindSession();
 	
 	class ULobbyWidget* Lobby;
 	UPlayerGameHUD* CurrentPlayerHUDWidget;

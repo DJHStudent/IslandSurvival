@@ -29,6 +29,8 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* Loading;
+	UPROPERTY(meta = (BindWidget))
+	UButton* ButtonCancel;
 
 	class UMainGameInstance* MainGameInstance;
 
@@ -38,4 +40,6 @@ private:
 	void OnJoinButtonPressed();
 	UFUNCTION()
 	void OnQuitButtonPressed();	
+	UFUNCTION()
+	void OnCancelButtonPressed();
 };

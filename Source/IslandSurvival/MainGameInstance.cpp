@@ -278,3 +278,11 @@ void UMainGameInstance::QuitLobby()
 		SessionInterface->DestroySession(SessionName);
 	}
 }
+
+void UMainGameInstance::CancelFindSession()
+{
+	if (SessionInterface.IsValid())
+	{
+		SessionInterface->CancelFindSessions();
+	}
+}

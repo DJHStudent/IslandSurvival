@@ -26,6 +26,8 @@ APlayerCharacter::APlayerCharacter()
 	CurrentBiomeText = TEXT("");
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
+	bPaused = false;
 }
 
 // Called when the game starts or when spawned
@@ -123,6 +125,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	//sprinting start and end
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &APlayerCharacter::SprintStart);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &APlayerCharacter::SprintEnd);
+
+	PlayerInputComponent->BindAction(TEXT("Pause"), IE_Pressed, this, &APlayerCharacter::Paused);
 
 	////PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &APlayerCharacter::Reload);
 }
@@ -241,4 +245,26 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerCharacter, PlayersColour);
+}
+
+void APlayerCharacter::Paused()
+{
+	PlayerWidget->ShowPauseMenu();
+	DisableInput(Cast<APlayerController>(GetController()));
+	bPaused = true;
+	APlayerController* playerController = Cast<APlayerController>(GetController());
+	playerController->bShowMouseCursor = true;
+	playerController->bEnableClickEvents = true;
+	playerController->bEnableMouseOverEvents = true;
+}
+
+void APlayerCharacter::Resume()
+{
+	PlayerWidget->HidePauseMenu();
+	EnableInput(Cast<APlayerController>(GetController()));
+	bPaused = false;
+	APlayerController* playerController = Cast<APlayerController>(GetController());
+	playerController->bShowMouseCursor = false;
+	playerController->bEnableClickEvents = false;
+	playerController->bEnableMouseOverEvents = false;
 }

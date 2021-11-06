@@ -13,6 +13,8 @@ bool UMainMenuWidget::Initialize() //run when the widget gets created
 	ButtonJoin->OnClicked.AddDynamic(this, &UMainMenuWidget::OnJoinButtonPressed);
 	ButtonQuit->OnClicked.AddDynamic(this, &UMainMenuWidget::OnQuitButtonPressed);
 
+	ButtonCancel->OnClicked.AddDynamic(this, &UMainMenuWidget::OnCancelButtonPressed);
+
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
 	Loading->SetVisibility(ESlateVisibility::Hidden);
 	return true;
@@ -40,4 +42,15 @@ void UMainMenuWidget::OnQuitButtonPressed()
 	UE_LOG(LogTemp, Warning, TEXT("Quit Button Pressed"));
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Quit Button Pressed");
 	GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
+}
+
+void UMainMenuWidget::OnCancelButtonPressed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Cancel Button Pressed"));
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Cancel Button Pressed");
+	if (MainGameInstance)
+	{
+		MainGameInstance->CancelFindSession();
+		Loading->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
