@@ -319,7 +319,13 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j)
 								//	alpha = 0.25f;
 								//float OtherBiomeValueIfNeightbourOtherBiome = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(j + j1, i + i1);
 								float LerpedValue = FMath::Lerp(TerrainGenerator->Vertices[NeighbourIndex].Z, VertexValue, 0.5f); //for vertex directly next to the new biome
-								TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
+								if (BiomeAtEachPoint[VertexIndex] == 1)
+								{
+									TerrainGenerator->Vertices[VertexIndex].Z = WaterLine;
+									BiomeAtEachPoint[VertexIndex] = 13; //set the biome as a beach
+								}
+								else
+									TerrainGenerator->Vertices[VertexIndex].Z = LerpedValue;
 								//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
 
 								//UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %f, %f, %f, %i"), VertexValue, NeighbourValue, alpha, FMath::Abs(FMath::Max(i1, j1)))
@@ -370,7 +376,13 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j)
 								//	alpha = 0.25f;
 								//float OtherBiomeValueIfNeightbourOtherBiome = BiomeStatsMap[BiomeAtEachPoint[NeighbourIndex]].BiomeHeight.GenerateHeight(j + j1, i + i1);
 								float LerpedValue = FMath::Lerp(TerrainGenerator->Vertices[NeighbourIndex].Z, VertexValue, 0.5f); //for vertex directly next to the new biome
-								TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
+								if (BiomeAtEachPoint[NeighbourIndex] == 1)
+								{
+									TerrainGenerator->Vertices[NeighbourIndex].Z = WaterLine;
+									BiomeAtEachPoint[NeighbourIndex] = 13; //set the biome as a beach
+								}
+								else
+									TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
 								//TerrainGenerator->Vertices[NeighbourIndex].Z = LerpedValue;
 
 								//UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %f, %f, %f, %i"), VertexValue, NeighbourValue, alpha, FMath::Abs(FMath::Max(i1, j1)))
