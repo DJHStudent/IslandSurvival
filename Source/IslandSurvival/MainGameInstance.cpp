@@ -122,7 +122,6 @@ void UMainGameInstance::JoinSession() //look up sessions to find one looking for
 	if (SessionSearch.IsValid() && SessionInterface.IsValid())
 	{
 		SessionSearch->bIsLanQuery = true;
-		
 		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 	}
 }
@@ -148,16 +147,16 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"));
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Session was not Created");
-		if (SessionInterface.IsValid())
-			SessionInterface->DestroySession(SessionName);
+		/*if (SessionInterface.IsValid())
+			SessionInterface->DestroySession(SessionName);*/
 	}
 }
 
 void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
 {
-	if (bSuccess)
-		HostSession(); //as session did exist before make a new one
-	else
+	//if (bSuccess)
+		//HostSession(); //as session did exist before make a new one
+	//else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"));
 		if (GEngine)
@@ -211,11 +210,18 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to Join Session"));
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session as failed to join");
+	}
 }
 
 
 void UMainGameInstance::StartGame() //call on server only here
 {
+	//ALobbyGameMode
 	CurrentGameState = EGameState::GAME;
 	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
 }
@@ -239,17 +245,6 @@ void UMainGameInstance::LoadGame() //called on all players when loading the Main
 		CurrentPlayerHUDWidget = CreateWidget<UPlayerGameHUD>(GetWorld(), PlayerHUDClass); //spawn in a new widget
 	if (CurrentPlayerHUDWidget)
 		CurrentPlayerHUDWidget->AddToViewport();
-	//now can go about adding in the player HUD widget
-
-	///////*if (Lobby)
-	//////	Lobby->RemoveFromViewport();*/
-
-	//if the player is on the server and is controlled, don't forget to tell the world to use the main game state now
-	///////*if (PlayerController->GetLocalRole() == ROLE_Authority)
-	//////{
-	//////	UpdateTerrain();
-	//////}*/
-
 }
 void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can update the terrain on all players
 {
