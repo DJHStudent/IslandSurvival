@@ -32,9 +32,12 @@ void UMainMenuWidget::OnJoinButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Join Button Pressed"));
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Join Button Pressed");
+	UpdateJoinningText("Finding Nearest Session");
 	if (MainGameInstance)
+	{
 		Loading->SetVisibility(ESlateVisibility::Visible);
 		MainGameInstance->JoinSession();
+	}
 }
 
 void UMainMenuWidget::OnQuitButtonPressed()
@@ -48,9 +51,16 @@ void UMainMenuWidget::OnCancelButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Cancel Button Pressed"));
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Cancel Button Pressed");
+	UpdateJoinningText("Cancelling Session Joinning");
 	if (MainGameInstance)
 	{
 		MainGameInstance->CancelFindSession();
 		Loading->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+void UMainMenuWidget::UpdateJoinningText(FString Text)
+{
+	TextBlockJoining->SetText(FText::FromString(Text));
+
 }

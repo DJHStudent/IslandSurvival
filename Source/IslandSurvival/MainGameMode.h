@@ -24,7 +24,8 @@ private:
 	//AMainGameState* GameState;
 
 	virtual void PostSeamlessTravel() override;
-	void PlayerTerrainUpdate();
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+
 
 	AMainGameState* MainGameState;
 	ACurrentPlayerController* HostController;

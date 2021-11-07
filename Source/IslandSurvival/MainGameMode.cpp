@@ -24,7 +24,6 @@ void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete, th
 		ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(It->Get()); //get the controller
 		if(PlayerController) //if found, update the UI to use the one for this level
 		{ 
-			//PlayerController->ServerUpdateUI(); //only call the update on the server
 			if (PlayerController->GetLocalRole() == ROLE_Authority && PlayerController->IsLocalController()) //find controller on server and update it
 			{
 				HostController = PlayerController;
@@ -32,10 +31,6 @@ void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete, th
 			}
 		}
 	}
-	////float RepWaitTime = 10.0f;
-	////FTimerHandle Timer; //timer to handle spawning of player after death
-	////GetWorldTimerManager().SetTimer(Timer, this, &AMainGameMode::UpdateTerrain, RepWaitTime, false);
-	////
 }
 
 void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height)
@@ -60,22 +55,11 @@ void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height)
 			PlayerController->ServerUpdateTerrain(Seed, Width, Height, Stream);
 		}
 	}
+}
 
-	//////as the terrain has successfully been generated in, at least on the server version can spawn in the enemy spawners
-	////AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	////if (ProceduralTerrain)
-	////{
-	////	for (auto& IslandPair : ProceduralTerrain->BiomeGeneration->IslandPointsMap)
-	////	{
-	////		float IslandWidths = (IslandPair.Value.MaxXPosition - IslandPair.Value.MinXPosition);
-	////		float IslandHeights = (IslandPair.Value.MaxYPosition - IslandPair.Value.MinYPosition);
+void AMainGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	ErrorMessage = TEXT("Failed to Login"); //auto fail as on the wrong map
 
-	////		//determine the actual size of the rectangular grid covering the island by using its min and max position * by grid size so its their actual real size
-	////		float IslandWidth = (IslandPair.Value.MaxXPosition - IslandPair.Value.MinXPosition) * ProceduralTerrain->GridSize;
-	////		float IslandHeight = (IslandPair.Value.MaxYPosition - IslandPair.Value.MinYPosition) * ProceduralTerrain->GridSize;
-
-	////		//use possion disk sampling for each island to determine optimal spawn location so get an even distribution
-	////		//AActor* SpawnedSpawner = GetWorld()->SpawnActor<AActor>(ProceduralTerrain->ZombieSpawner, FVector(100, 100, 0), FRotator::ZeroRotator);
-	////	}
-	////}
+	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage);
 }

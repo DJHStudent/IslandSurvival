@@ -78,4 +78,6 @@ private:
 	void OnDestroySessionComplete(FName SessionName, bool bSuccess); //when deleted session
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all the variables to be replicated
+
+	void HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 };

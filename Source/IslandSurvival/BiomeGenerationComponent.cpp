@@ -554,7 +554,7 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j)
 
 void UBiomeGenerationComponent::SpawnTents() 
 {
-	int32 TentAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 2000); // /2000 so if say 100 by 100 will get exactly 5 tents
+	int32 TentAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1000); // /2000 so if say 100 by 100 will get exactly 5 tents
 	/*
 		for each island have number of tents which spawn on it already worked out
 		

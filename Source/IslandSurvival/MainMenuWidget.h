@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 #include "Components/CanvasPanel.h"
 #include "MainGameInstance.h"
 #include "MainMenuWidget.generated.h"
@@ -17,6 +18,8 @@ class ISLANDSURVIVAL_API UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	void UpdateJoinningText(FString Message);
 private:
 	virtual bool Initialize() override;
 
@@ -31,6 +34,9 @@ private:
 	UCanvasPanel* Loading;
 	UPROPERTY(meta = (BindWidget))
 	UButton* ButtonCancel;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TextBlockJoining;
 
 	class UMainGameInstance* MainGameInstance;
 

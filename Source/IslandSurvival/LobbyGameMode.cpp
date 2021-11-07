@@ -5,6 +5,9 @@
 #include "UObject/ConstructorHelpers.h"
 #include "CurrentPlayerController.h"
 #include "Materials/MaterialInstance.h"
+#include "GameFramework/GameSession.h"
+#include "Engine/Engine.h"
+#include "Net/OnlineEngineInterface.h"
 
 ALobbyGameMode::ALobbyGameMode()
 {
@@ -32,17 +35,6 @@ ALobbyGameMode::ALobbyGameMode()
 	PlayerColours.Add(Cast<UMaterialInterface>(PurpleObject.Object));
 	PlayerColours.Add(Cast<UMaterialInterface>(WhiteObject.Object));
 	PlayerColours.Add(Cast<UMaterialInterface>(YellowObject.Object));
-
-//	PlayerColours.Add(FLinearColor::Blue);
-//	PlayerColours.Add(FLinearColor::Gray);
-//	PlayerColours.Add(FLinearColor::Green);
-//	PlayerColours.Add(FLinearColor::White);
-//	PlayerColours.Add(FLinearColor::Yellow);
-//	PlayerColours.Add(FLinearColor(1, 0.63f, 0.06f));
-//	PlayerColours.Add(FLinearColor(1, 0.38f, 0.82f)); //purple
-//	PlayerColours.Add(FLinearColor(0.63f, 0.13f, 0.1f));
-//	PlayerColours.Add(FLinearColor(0.63f, 0.5f, 0.38f));
-//	PlayerColours.Add(FLinearColor(0.38f, 1, 0.5f));
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
@@ -58,7 +50,36 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 		{
 			int32 RandIndex = FMath::RandRange(0, PlayerColours.Num() - 1);
 			PlayerController->ServerUpdateColour(PlayerColours[RandIndex]);
+			UsedPlayerColours.Add(NewPlayer, PlayerColours[RandIndex]);
 			PlayerColours.RemoveAt(RandIndex);
 		}
 	}
+}
+
+void ALobbyGameMode::Logout(AController* Exiting)
+{
+	APlayerController* ExitingPlayer = Cast<APlayerController>(Exiting);
+	if (ExitingPlayer && UsedPlayerColours.Contains(ExitingPlayer))
+	{
+		PlayerColours.Add(UsedPlayerColours[ExitingPlayer]);
+		UsedPlayerColours.Remove(ExitingPlayer);
+	}
+	Super::Logout(Exiting);
+}
+
+void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	const bool bUniqueIdCheckOk = (!UniqueId.IsValid() || (UniqueId.GetType() == UOnlineEngineInterface::Get()->GetDefaultOnlineSubsystemName()));
+	if (PlayerColours.Num() > 0) //as long as a colour exists 
+	{
+		ErrorMessage = GameSession->ApproveLogin(Options);
+	}
+	else
+	{
+		ErrorMessage = TEXT("Failed to Login");
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Failed to Join Session " + NumPlayers);
+	}
+
+	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage);
 }
