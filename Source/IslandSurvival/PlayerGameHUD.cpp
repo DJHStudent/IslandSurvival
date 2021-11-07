@@ -7,22 +7,14 @@
 #include "PlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
-////////APlayerGameHUD::APlayerGameHUD()
-////////{
-////////	static ConstructorHelpers::FClassFinder<UUserWidget> PlayerHUDObject(TEXT("/Game/Widgets/PlayerHUDWidget")); //access the file location of the widget specified, so can access it in C++
-////////	PlayerHUDClass = PlayerHUDObject.Class; //get the object referenced above and save it to a veriable
-////////
-////////	if (PlayerHUDClass != nullptr)
-////////		CurrentPlayerHUDWidget = CreateWidget<UUserWidget>(GetWorld(), PlayerHUDClass); //spawn in a new widget
-////////}
 bool UPlayerGameHUD::Initialize()
 {
 	Super::Initialize();
 
 	ButtonResume->OnClicked.AddDynamic(this, &UPlayerGameHUD::OnResumeButtonPressed);
 	ButtonLeave->OnClicked.AddDynamic(this, &UPlayerGameHUD::OnLeaveButtonPressed);
-
-	PauseMenu->SetVisibility(ESlateVisibility::Hidden);
+	if(PauseMenu)
+		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	return true;
@@ -39,19 +31,29 @@ void UPlayerGameHUD::UpdateSeedTextBlock(FString Text)
 
 void UPlayerGameHUD::ShowPauseMenu()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
-	PauseMenu->SetVisibility(ESlateVisibility::Visible);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
+	if(PauseMenu)
+		PauseMenu->SetVisibility(ESlateVisibility::Visible);
+	else
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
 }
 
 void UPlayerGameHUD::HidePauseMenu()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
-	PauseMenu->SetVisibility(ESlateVisibility::Hidden);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
+	if (PauseMenu)
+		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
+	else
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
 }
 
 void UPlayerGameHUD::OnResumeButtonPressed()
 {
-	Cast<APlayerCharacter>(GetOwningPlayerPawn())->Resume();
+	APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwningPlayerPawn());
+	if (Player)
+		Player->Resume();
 }
 
 void UPlayerGameHUD::OnLeaveButtonPressed()

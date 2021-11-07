@@ -53,7 +53,7 @@ void UMainGameInstance::LoadMenu()
 	{
 		MainMenu->AddToViewport();
 
-		FInputModeGameAndUI InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 		InputMode.SetWidgetToFocus(MainMenu->TakeWidget());
 
@@ -80,21 +80,20 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 		if (Lobby) //as exists now, add it to the viewport
 		{
 			Lobby->AddToViewport();
+			Lobby->SetVisibility(ESlateVisibility::Hidden);
 
-			FInputModeGameAndUI InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			InputMode.SetWidgetToFocus(Lobby->TakeWidget());
+			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 
 			APlayerController* PlayerController;
 			PlayerController = Cast<APlayerController>(Player->GetController());
 			if (PlayerController)
 			{
 				PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
-				PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
+				PlayerController->bShowMouseCursor = false; //don't hide cursor on mouse down
 
 				UE_LOG(LogTemp, Warning, TEXT("A Pawn does actually exist for this player"))
 				Lobby->SetEditability(Player);
-				CurrentGameState = EGameState::GAME; //as in the lobby now when do next loading will be in game
+				//CurrentGameState = EGameState::GAME; //as in the lobby now when do next loading will be in game
 			}
 		}
 		else
@@ -154,9 +153,10 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 
 void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
 {
-	//if (bSuccess)
-		//HostSession(); //as session did exist before make a new one
-	//else
+	if (bSuccess)
+	{
+	}
+	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"));
 		if (GEngine)
@@ -183,7 +183,7 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 			SessionInterface->JoinSession(0, SessionFoundName, SessionSearch->SearchResults[0]);
 		}
 	}
-	else
+	else  //update the UI as failed, no session found
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Find Sessions was not successful"));
 		if (GEngine)
@@ -210,7 +210,7 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}
 	}
-	else
+	else //update the UI as failed finding session, none found
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to Join Session"));
 		if (GEngine)
@@ -222,14 +222,13 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 void UMainGameInstance::StartGame() //call on server only here
 {
 	//ALobbyGameMode
-	CurrentGameState = EGameState::GAME;
 	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
 }
 
 void UMainGameInstance::LoadGame() //called on all players when loading the MainGame level
 {
 	//if (Player)// && (Player->IsLocallyControlled() || Player->GetLocalRole() == ROLE_Authority)) //travel the player to a different map, while keeping the server active
-
+	CurrentGameState = EGameState::GAME;
 	APlayerController* PlayerController;
 	PlayerController = GetFirstLocalPlayerController();//Cast<APlayerController>(Player->GetController());
 	if (PlayerController)

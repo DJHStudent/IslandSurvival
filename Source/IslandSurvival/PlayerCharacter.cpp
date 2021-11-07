@@ -28,7 +28,8 @@ APlayerCharacter::APlayerCharacter()
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
-	bPaused = true;
+	bPaused = false;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
 }
 
 // Called when the game starts or when spawned
@@ -60,20 +61,13 @@ void APlayerCharacter::UISetup()
 			MainGameInstance->LoadLobby(this);
 		else if (MainGameInstance->CurrentGameState == EGameState::GAME && IsLocallyControlled())
 		{
-			//MainGameInstance->LoadGame(this);
 			BiomeList = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass())); //seed, width, height
 			PlayerWidget = Cast<UPlayerGameHUD>(MainGameInstance->CurrentPlayerHUDWidget);
-			//BiomeList->RegenerateMap();
 		}
 		USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
 		if (BodyMesh && MainGameInstance->PlayerColour)
 		{
 			BodyMesh->SetMaterial(0, MainGameInstance->PlayerColour);
-			//if (GetLocalRole() == ROLE_Authority)
-			//{
-			//	//PlayersColour = MainGameInstance->PlayerColour;
-			//}
-			//else
 			ServerUpdatePlayerColour(MainGameInstance->PlayerColour);
 		}
 	}
@@ -134,71 +128,70 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::MoveForward(float Value)
 {
-	//move the character forward by the value of the input axis already given
-	FRotator ForwardRotator = GetControlRotation();
-	ForwardRotator.Roll = 0;
-	ForwardRotator.Pitch = 0;
-	AddMovementInput(ForwardRotator.Vector(), Value);
+	if (!bPaused)
+	{
+		//move the character forward by the value of the input axis already given
+		FRotator ForwardRotator = GetControlRotation();
+		ForwardRotator.Roll = 0;
+		ForwardRotator.Pitch = 0;
+		AddMovementInput(ForwardRotator.Vector(), Value);
+	}
 }
 
 void APlayerCharacter::Strafe(float Value)
 {
-	AddMovementInput(GetActorRightVector(), Value);
+	if (!bPaused)
+		AddMovementInput(GetActorRightVector(), Value);
 }
 
 void APlayerCharacter::LookUp(float Value)
 {
-	//AddControllerPitchInput(Value * LookSensitivity); bad as rotates the entire character not just the camera so when looking straight down will slide as not toughing ground anymore
-	FRotator LookUpRotation = FRotator::ZeroRotator;//FRotator(0.0f, 0.0f, 0.0f); both sets an FRotator to zero
-	LookUpRotation.Pitch = Value * LookSensitivity;
-
-	if (Camera && Camera->RelativeRotation.Pitch + LookUpRotation.Pitch < 90 
-		&& Camera->RelativeRotation.Pitch + LookUpRotation.Pitch > -90)//stops juttering if the camera moved beyond these values
+	if (!bPaused)
 	{
-		Camera->AddRelativeRotation(LookUpRotation);//applies the rotation to the camera and allows only the pitch 
-		Camera->RelativeRotation.Yaw = 0.0f;
-		Camera->RelativeRotation.Roll = 0.0f;
+		FRotator LookUpRotation = FRotator::ZeroRotator;//FRotator(0.0f, 0.0f, 0.0f); both sets an FRotator to zero
+		LookUpRotation.Pitch = Value * LookSensitivity;
+
+		if (Camera && Camera->RelativeRotation.Pitch + LookUpRotation.Pitch < 90
+			&& Camera->RelativeRotation.Pitch + LookUpRotation.Pitch > -90)//stops juttering if the camera moved beyond these values
+		{
+			Camera->AddRelativeRotation(LookUpRotation);//applies the rotation to the camera and allows only the pitch 
+			Camera->RelativeRotation.Yaw = 0.0f;
+			Camera->RelativeRotation.Roll = 0.0f;
+		}
 	}
 }
 
 void APlayerCharacter::Turn(float Value)
 {
-	AddControllerYawInput(Value * LookSensitivity);
+	if (!bPaused)
+		AddControllerYawInput(Value * LookSensitivity);
 }
-
-/*
-	frame rate dependance is when the speed of a character etc changes based on the frame rate of the game as the tick function gets called once every frame
-	frame rate independence is when the speed of a character etc remains the same regardless of the frame rate of the game
-
-	why no delta time with movement
-	2. The value from the keyboard already includes delta time within it so it would work independently of the frame rate automatically
-
-	why no delta time for mouse input
-	3. The value comming in from the mouse is a delta value of how much it has changed since the previous frame so * by detlaTime is not needed
-	this link should help https://answers.unrealengine.com/questions/1000423/how-to-get-framerate-independent-pawn-rotation.html?sort=oldest
-	it is polling/ sampling every frame and the values are determined by the difference in position of the mouse per frame
-	controllers however are not frame rate independent so require it to be added
-*/
 
 void APlayerCharacter::SprintStart()
 {
-	//when sprinting starts change the walk speed and tell the animation to play the sprint
-	GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
-	GetCharacterMovement()->MaxSwimSpeed = SwimMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
-	ServerSprintStart();
-	if(AnimInstance)
-		AnimInstance->bIsSprinting = true;
+	if (!bPaused)
+	{
+		//when sprinting starts change the walk speed and tell the animation to play the sprint
+		GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
+		GetCharacterMovement()->MaxSwimSpeed = SwimMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
+		ServerSprintStart();
+		if (AnimInstance)
+			AnimInstance->bIsSprinting = true;
+	}
 }
 
 void APlayerCharacter::SprintEnd()
 {
-	//reset the walk speed back to the walk value
-	GetCharacterMovement()->MaxWalkSpeed = NormalMovementSpeed;
-	GetCharacterMovement()->MaxSwimSpeed = SwimMovementSpeed;
-	ServerSprintEnd();
-	//set the animation is sprinting value to be false to stop sprinting and goe back to walk
-	if (AnimInstance)
-		AnimInstance->bIsSprinting = false;
+	if (!bPaused)
+	{
+		//reset the walk speed back to the walk value
+		GetCharacterMovement()->MaxWalkSpeed = NormalMovementSpeed;
+		GetCharacterMovement()->MaxSwimSpeed = SwimMovementSpeed;
+		ServerSprintEnd();
+		//set the animation is sprinting value to be false to stop sprinting and goe back to walk
+		if (AnimInstance)
+			AnimInstance->bIsSprinting = false;
+	}
 }
 void APlayerCharacter::ServerSprintStart_Implementation()
 {
@@ -250,48 +243,51 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void APlayerCharacter::Paused()
 {
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Black, "Pause/ Unpause Game");
-	if (!bPaused)
+	if (IsLocallyControlled())
 	{
-		PlayerWidget->ShowPauseMenu();
-		//DisableInput(Cast<APlayerController>(GetController()));
-		bPaused = true;
-
-		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		if (MainGameInstance)
+		if (!bPaused)
 		{
-			if (MainGameInstance->CurrentGameState == EGameState::GAME)
+			bPaused = true;
+
+			FInputModeGameAndUI InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY)
 				MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Visible);
+			else if (PlayerWidget)
+				PlayerWidget->ShowPauseMenu();
 			else
-				MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
-		}
+			{
+				if (GEngine)
+					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Error");
+			}
 
-
-		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		if (PlayerController)
-		{
-			PlayerController->SetInputMode(InputMode);
-			PlayerController->bShowMouseCursor = true;
-			PlayerController->bEnableClickEvents = true;
-			PlayerController->bEnableMouseOverEvents = true;
+			APlayerController* PlayerController = Cast<APlayerController>(GetController());
+			if (PlayerController)
+			{
+				PlayerController->SetInputMode(InputMode);
+				PlayerController->bShowMouseCursor = true;
+				PlayerController->bEnableClickEvents = true;
+				PlayerController->bEnableMouseOverEvents = true;
+			}
 		}
+		else
+			Resume();
 	}
-	else
-		Resume();
 }
 
 void APlayerCharacter::Resume()
 {
-	PlayerWidget->HidePauseMenu();
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, "UnPause Game");
 	//EnableInput(Cast<APlayerController>(GetController()));
-	if (MainGameInstance)
+	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY)
+		MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden);
+	else if (PlayerWidget)
+		PlayerWidget->HidePauseMenu();
+	else
 	{
-		if (MainGameInstance->CurrentGameState == EGameState::GAME)
-			MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden);
-		else
-			MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Hidden);
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Error playing");
 	}
 
 	FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget

@@ -25,6 +25,9 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 		SetWidth(LobbyGameState->TerrainWidth);
 		SetHeight(LobbyGameState->TerrainHeight);
 	}
+
+	SetKeyboardFocus();
+	bIsFocusable = true;
 	return true;
 }
 
