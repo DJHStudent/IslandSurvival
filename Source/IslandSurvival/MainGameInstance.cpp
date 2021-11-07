@@ -53,7 +53,7 @@ void UMainGameInstance::LoadMenu()
 	{
 		MainMenu->AddToViewport();
 
-		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		FInputModeGameAndUI InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 		InputMode.SetWidgetToFocus(MainMenu->TakeWidget());
 
@@ -81,7 +81,7 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 		{
 			Lobby->AddToViewport();
 
-			FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			FInputModeGameAndUI InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 			InputMode.SetWidgetToFocus(Lobby->TakeWidget());
 

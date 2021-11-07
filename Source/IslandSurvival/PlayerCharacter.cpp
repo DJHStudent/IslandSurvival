@@ -255,15 +255,18 @@ void APlayerCharacter::Paused()
 	if (!bPaused)
 	{
 		PlayerWidget->ShowPauseMenu();
-		DisableInput(Cast<APlayerController>(GetController()));
+		//DisableInput(Cast<APlayerController>(GetController()));
 		bPaused = true;
 
 		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		if (MainGameInstance->CurrentGameState == EGameState::GAME)
-			MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Visible);
-		else
-			MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
+		if (MainGameInstance)
+		{
+			if (MainGameInstance->CurrentGameState == EGameState::GAME)
+				MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Visible);
+			else
+				MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
+		}
 
 
 		APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -283,10 +286,13 @@ void APlayerCharacter::Resume()
 {
 	PlayerWidget->HidePauseMenu();
 	//EnableInput(Cast<APlayerController>(GetController()));
-	if (MainGameInstance->CurrentGameState == EGameState::GAME)
-		MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden);
-	else
-		MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Hidden);
+	if (MainGameInstance)
+	{
+		if (MainGameInstance->CurrentGameState == EGameState::GAME)
+			MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden);
+		else
+			MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
 
 	FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 
