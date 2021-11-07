@@ -32,17 +32,6 @@ ALobbyGameMode::ALobbyGameMode()
 	PlayerColours.Add(Cast<UMaterialInterface>(PurpleObject.Object));
 	PlayerColours.Add(Cast<UMaterialInterface>(WhiteObject.Object));
 	PlayerColours.Add(Cast<UMaterialInterface>(YellowObject.Object));
-
-//	PlayerColours.Add(FLinearColor::Blue);
-//	PlayerColours.Add(FLinearColor::Gray);
-//	PlayerColours.Add(FLinearColor::Green);
-//	PlayerColours.Add(FLinearColor::White);
-//	PlayerColours.Add(FLinearColor::Yellow);
-//	PlayerColours.Add(FLinearColor(1, 0.63f, 0.06f));
-//	PlayerColours.Add(FLinearColor(1, 0.38f, 0.82f)); //purple
-//	PlayerColours.Add(FLinearColor(0.63f, 0.13f, 0.1f));
-//	PlayerColours.Add(FLinearColor(0.63f, 0.5f, 0.38f));
-//	PlayerColours.Add(FLinearColor(0.38f, 1, 0.5f));
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)

@@ -24,6 +24,8 @@ UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 
 void UMainGameInstance::Init() //setup connection to specific online system
 {
+	GEngine->OnNetworkFailure().AddUObject(this, &UMainGameInstance::HandleNetworkFailure);
+
 	Subsystem = IOnlineSubsystem::Get(); //gets the subsystem for a service, in this case null as in editor
 	if (Subsystem)
 	{
@@ -168,6 +170,8 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 {
 	if (bSuccess && SessionSearch.IsValid())
 	{
+		if (MainMenu)
+			MainMenu->UpdateJoinningText("Joinning Nearest Session");
 		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
 		FName SessionFoundName;
 		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) //loop through all possible sessions setting name to last one found
@@ -182,9 +186,16 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		{
 			SessionInterface->JoinSession(0, SessionFoundName, SessionSearch->SearchResults[0]);
 		}
+		else
+		{
+			if (MainMenu)
+				MainMenu->UpdateJoinningText("Error, No Sessions Found");
+		}
 	}
 	else  //update the UI as failed, no session found
 	{
+		if (MainMenu)
+			MainMenu->UpdateJoinningText("Error, No Sessions Found");
 		UE_LOG(LogTemp, Warning, TEXT("Find Sessions was not successful"));
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Find Sessions was not successful");
@@ -209,9 +220,16 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 			CurrentGameState = EGameState::LOBBY;
 			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 		}
+		else
+		{
+			if (MainMenu)
+				MainMenu->UpdateJoinningText("Error, Unable to Join Session");
+		}
 	}
 	else //update the UI as failed finding session, none found
 	{
+		if (MainMenu)
+			MainMenu->UpdateJoinningText("Error, Unable to Join Session");
 		UE_LOG(LogTemp, Warning, TEXT("Failed to Join Session"));
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session as failed to join");
@@ -263,6 +281,11 @@ void UMainGameInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(UMainGameInstance, CurrentGameState);
 }
 
+void UMainGameInstance::HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
+{
+	QuitLobby(); //if network fails for any reason disconnect the player
+}
+
 void UMainGameInstance::QuitLobby()
 {
 	CurrentGameState = EGameState::LOBBY;
@@ -274,7 +297,8 @@ void UMainGameInstance::QuitLobby()
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), "MainMenu");
 		FName SessionName = TEXT("PLayerChoosenName");
-		SessionInterface->DestroySession(SessionName);
+		if (GetWorld()->IsServer()) //only destory the session if the host, i.e on the server
+			SessionInterface->DestroySession(SessionName);
 	}
 }
 
