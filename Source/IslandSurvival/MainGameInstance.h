@@ -59,6 +59,8 @@ public:
 	void QuitLobby();
 
 	UMaterialInterface* PlayerColour;
+
+	void NetworkCrash(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailtureType, const FString& ErrorString);
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	class UMainMenuWidget* MainMenu;

@@ -56,6 +56,8 @@ public:
 	void Paused();
 	void Resume();
 
+	void ShowMouseCursor();
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 private: //i.e a member variable
 	UPROPERTY(EditInstanceOnly)

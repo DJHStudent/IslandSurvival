@@ -84,14 +84,18 @@ void APlayerCharacter::ServerUpdatePlayerColour_Implementation(UMaterialInterfac
 	if (BodyMesh && Colour)
 	{
 		BodyMesh->SetMaterial(0, Colour);
+		BodyMesh->SetMaterial(1, Colour);
 		PlayersColour = Colour;
 	}
 }
 void APlayerCharacter::ReplicatedColourUpdate()
 {
 	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
-	if(BodyMesh && PlayersColour)
+	if (BodyMesh && PlayersColour)
+	{
 		BodyMesh->SetMaterial(0, PlayersColour);
+		BodyMesh->SetMaterial(1, PlayersColour);
+	}
 }
 
 // Called every frame

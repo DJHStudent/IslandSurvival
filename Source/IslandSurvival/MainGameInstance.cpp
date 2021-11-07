@@ -38,10 +38,15 @@ void UMainGameInstance::Init() //setup connection to specific online system
 			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnJoinSessionComplete);
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("Online Subsystem found: %s"), *Subsystem->GetSubsystemName().ToString())
+		UE_LOG(LogTemp, Warning, TEXT("Online Subsystem found: %s"), *Subsystem->GetSubsystemName().ToString());
 	}
 	else
-		UE_LOG(LogTemp, Error, TEXT("Unable to find Online Subsystem"))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Unable to find Online Subsystem"));
+	}
+	UEngine* Engine = GetEngine();
+	if (!ensure(Engine != nullptr)) return;
+	Engine->OnNetworkFailure().AddUObject(this, &UMainGameInstance::NetworkCrash);
 }
 
 void UMainGameInstance::LoadMenu()
@@ -284,4 +289,9 @@ void UMainGameInstance::CancelFindSession()
 	{
 		SessionInterface->CancelFindSessions();
 	}
+}
+
+void UMainGameInstance::NetworkCrash(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailtureType, const FString& ErrorString)
+{
+	QuitLobby();
 }

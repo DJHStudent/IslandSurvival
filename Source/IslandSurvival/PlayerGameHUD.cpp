@@ -13,9 +13,10 @@ bool UPlayerGameHUD::Initialize()
 
 	ButtonResume->OnClicked.AddDynamic(this, &UPlayerGameHUD::OnResumeButtonPressed);
 	ButtonLeave->OnClicked.AddDynamic(this, &UPlayerGameHUD::OnLeaveButtonPressed);
-	if(PauseMenu)
+	if (PauseMenu)
+	{
 		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
-
+	}
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	return true;
 }
