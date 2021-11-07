@@ -7,6 +7,12 @@
 #include "PlayerGameHUD.h"
 #include "ProcedurallyGeneratedTerrain.h"
 
+void ACurrentPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+
 void ACurrentPlayerController::ServerInitilizeTerrain() //on the server controller update the terrain
 {
 	//ClientUpdateUI();

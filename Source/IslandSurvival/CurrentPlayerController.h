@@ -14,7 +14,9 @@ UCLASS()
 class ISLANDSURVIVAL_API ACurrentPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+protected:
+	virtual void BeginPlay() override;
+
 public:
 	void ServerInitilizeTerrain(); //on the server, this function gets called
 		void ClientUpdateUI(); //Called on server, finds client whichs owns it and runs the code

@@ -7,6 +7,8 @@
 #include "MainGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
+#include "MainPlayerState.h"
+#include "Interfaces/OnlineIdentityInterface.h"
 
 UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 {
@@ -110,7 +112,7 @@ void UMainGameInstance::HostSession()
 	{
 		FOnlineSessionSettings SessionSettings;
 		SessionSettings.bIsLANMatch = true; //only joinable on LAN networks
-		SessionSettings.NumPublicConnections = 4;
+		SessionSettings.NumPublicConnections = 12;
 		SessionSettings.bShouldAdvertise = true; //allows session to be public and joinable
 
 		SessionInterface->CreateSession(0, SessionName, SessionSettings); //will now call the session complete delegate regardless of success or failure
@@ -283,7 +285,7 @@ void UMainGameInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void UMainGameInstance::HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {
-	QuitLobby(); //if network fails for any reason disconnect the player
+	QuitLobby(); //if network fails for any reason, such as host closes server, disconnect the player
 }
 
 void UMainGameInstance::QuitLobby()
@@ -297,8 +299,8 @@ void UMainGameInstance::QuitLobby()
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), "MainMenu");
 		FName SessionName = TEXT("PLayerChoosenName");
-		if (GetWorld()->IsServer()) //only destory the session if the host, i.e on the server
-			SessionInterface->DestroySession(SessionName);
+		//if (GetWorld()->IsServer()) //only destory the session if the host, i.e on the server
+		SessionInterface->DestroySession(SessionName);
 	}
 }
 

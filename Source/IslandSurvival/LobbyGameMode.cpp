@@ -5,6 +5,9 @@
 #include "UObject/ConstructorHelpers.h"
 #include "CurrentPlayerController.h"
 #include "Materials/MaterialInstance.h"
+#include "GameFramework/GameSession.h"
+#include "Engine/Engine.h"
+#include "Net/OnlineEngineInterface.h"
 
 ALobbyGameMode::ALobbyGameMode()
 {
@@ -47,7 +50,36 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 		{
 			int32 RandIndex = FMath::RandRange(0, PlayerColours.Num() - 1);
 			PlayerController->ServerUpdateColour(PlayerColours[RandIndex]);
+			UsedPlayerColours.Add(NewPlayer, PlayerColours[RandIndex]);
 			PlayerColours.RemoveAt(RandIndex);
 		}
 	}
+}
+
+void ALobbyGameMode::Logout(AController* Exiting)
+{
+	APlayerController* ExitingPlayer = Cast<APlayerController>(Exiting);
+	if (ExitingPlayer && UsedPlayerColours.Contains(ExitingPlayer))
+	{
+		PlayerColours.Add(UsedPlayerColours[ExitingPlayer]);
+		UsedPlayerColours.Remove(ExitingPlayer);
+	}
+	Super::Logout(Exiting);
+}
+
+void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	const bool bUniqueIdCheckOk = (!UniqueId.IsValid() || (UniqueId.GetType() == UOnlineEngineInterface::Get()->GetDefaultOnlineSubsystemName()));
+	if (PlayerColours.Num() > 0) //as long as a colour exists 
+	{
+		ErrorMessage = GameSession->ApproveLogin(Options);
+	}
+	else
+	{
+		ErrorMessage = TEXT("Failed to Login");
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Failed to Join Session " + NumPlayers);
+	}
+
+	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage);
 }
