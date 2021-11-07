@@ -8,6 +8,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/EngineTypes.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/Engine.h"
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -27,7 +28,7 @@ APlayerCharacter::APlayerCharacter()
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
-	bPaused = false;
+	bPaused = true;
 }
 
 // Called when the game starts or when spawned
@@ -249,22 +250,53 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void APlayerCharacter::Paused()
 {
-	PlayerWidget->ShowPauseMenu();
-	DisableInput(Cast<APlayerController>(GetController()));
-	bPaused = true;
-	APlayerController* playerController = Cast<APlayerController>(GetController());
-	playerController->bShowMouseCursor = true;
-	playerController->bEnableClickEvents = true;
-	playerController->bEnableMouseOverEvents = true;
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Black, "Pause/ Unpause Game");
+	if (!bPaused)
+	{
+		PlayerWidget->ShowPauseMenu();
+		DisableInput(Cast<APlayerController>(GetController()));
+		bPaused = true;
+
+		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		if (MainGameInstance->CurrentGameState == EGameState::GAME)
+			MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Visible);
+		else
+			MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Visible);
+
+
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController)
+		{
+			PlayerController->SetInputMode(InputMode);
+			PlayerController->bShowMouseCursor = true;
+			PlayerController->bEnableClickEvents = true;
+			PlayerController->bEnableMouseOverEvents = true;
+		}
+	}
+	else
+		Resume();
 }
 
 void APlayerCharacter::Resume()
 {
 	PlayerWidget->HidePauseMenu();
-	EnableInput(Cast<APlayerController>(GetController()));
+	//EnableInput(Cast<APlayerController>(GetController()));
+	if (MainGameInstance->CurrentGameState == EGameState::GAME)
+		MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden);
+	else
+		MainGameInstance->CurrentPlayerHUDWidget->SetVisibility(ESlateVisibility::Hidden);
+
+	FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+
 	bPaused = false;
-	APlayerController* playerController = Cast<APlayerController>(GetController());
-	playerController->bShowMouseCursor = false;
-	playerController->bEnableClickEvents = false;
-	playerController->bEnableMouseOverEvents = false;
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		PlayerController->SetInputMode(InputMode);
+		PlayerController->bShowMouseCursor = false;
+		PlayerController->bEnableClickEvents = false;
+		PlayerController->bEnableMouseOverEvents = false;
+	}
 }
