@@ -464,8 +464,10 @@ void UBiomeGenerationComponent::SpawnTents()
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0)
 			VertexLocation.Z -= 90; //so bouys will spawn in slightly under the water
 		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
+		SpawnedMesh->SetNetDormancy(ENetDormancy::DORM_DormantAll);
 		FVector SpawnerLocation = FVector(VertexLocation.X + TerrainGenerator->GridSize, VertexLocation.Y, VertexLocation.Z + 500);
 		AActor* ZombieSpawner = GetWorld()->SpawnActor<AActor>(TerrainGenerator->ZombieSpawner, SpawnerLocation, FRotator::ZeroRotator);
+		ZombieSpawner->SetNetDormancy(ENetDormancy::DORM_DormantAll);
 		SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0)
@@ -512,6 +514,7 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 
 						//spawn in a new Actor in specified location, with random rotation
 						AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
+						SpawnedMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
 						SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
 						SpawnedMesh->SetActorScale3D(FVector(TerrainGenerator->Stream.FRandRange(15.0f, 45.0f))); //give the mesh a random scale

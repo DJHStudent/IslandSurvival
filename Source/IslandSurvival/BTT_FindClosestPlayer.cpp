@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Engine.h"
+#include "ZombieCharacter.h"
 
 UBTT_FindClosestPlayer::UBTT_FindClosestPlayer()
 {
@@ -15,10 +16,12 @@ UBTT_FindClosestPlayer::UBTT_FindClosestPlayer()
 
 EBTNodeResult::Type UBTT_FindClosestPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	AZombieCharacter* Zombie = Cast<AZombieCharacter>(OwnerComp.GetOwner()->GetOwner());
 	if (GetWorld()->IsServer())
 	{
 		TArray<AActor*> FoundActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundActors);
+		ClosestPlayer = nullptr;
 		if (FoundActors.Num() > 0)
 		{
 			float ClosestPlayerDistance = TNumericLimits<float>::Max();
@@ -38,6 +41,8 @@ EBTNodeResult::Type UBTT_FindClosestPlayer::ExecuteTask(UBehaviorTreeComponent& 
 			}
 			if (ClosestPlayer)
 			{
+				if(Zombie)
+					Zombie->SetNetDormancy(ENetDormancy::DORM_Awake);
 				UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
 				if (Blackboard)
 				{
@@ -48,5 +53,7 @@ EBTNodeResult::Type UBTT_FindClosestPlayer::ExecuteTask(UBehaviorTreeComponent& 
 			}
 		}
 	}
+	if (Zombie)
+		Zombie->SetNetDormancy(ENetDormancy::DORM_DormantAll);
 	return EBTNodeResult::Failed;
 }
