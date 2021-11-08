@@ -319,7 +319,7 @@ void UMainGameInstance::QuitLobby()
 
 		//SessionInterface->UnregisterPlayer(SessionName, *PlayerController->PlayerState->UniqueId);
 		SessionInterface->DestroySession(SessionJoined);
-		SessionInterface->RemoveNamedSession(SessionJoined);
+		//SessionInterface->RemoveNamedSession(SessionJoined);
 		//SessionInterface->EndSession(SessionName);
 		//SessionInterface->RemoveNamedSession(SessionName);
 		////const TSharedPtr<const FUniqueNetId> NetId = PlayerController->PlayerState->UniqueId.GetUniqueNetId();
