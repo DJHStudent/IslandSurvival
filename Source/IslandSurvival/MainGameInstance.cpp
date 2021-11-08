@@ -22,6 +22,8 @@ UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 	PlayerHUDClass = PlayerHUDWidgetObject.Class; //get the file location of the widget blueprint class and store it in this variable
 
 	CurrentGameState = EGameState::LOBBY;
+
+	bCrashed = false;
 }
 
 void UMainGameInstance::Init() //setup connection to specific online system
@@ -72,6 +74,10 @@ void UMainGameInstance::LoadMenu()
 		{
 			PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
 			PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
+		}
+		if (bCrashed)
+		{
+			MainMenu->ShowErrorMenu();
 		}
 	}
 	else
@@ -178,7 +184,7 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 	if (bSuccess && SessionSearch.IsValid())
 	{
 		if (MainMenu)
-			MainMenu->UpdateJoinningText("Joinning Nearest Session");
+			MainMenu->UpdateJoiningText("Joining Nearest Session");
 		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
 		FName SessionFoundName;
 		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) //loop through all possible sessions setting name to last one found
@@ -196,13 +202,13 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		else
 		{
 			if (MainMenu)
-				MainMenu->UpdateJoinningText("Error, No Sessions Found");
+				MainMenu->UpdateJoiningText("Error, No Sessions Found");
 		}
 	}
 	else  //update the UI as failed, no session found
 	{
 		if (MainMenu)
-			MainMenu->UpdateJoinningText("Error, No Sessions Found");
+			MainMenu->UpdateJoiningText("Error, No Sessions Found");
 		UE_LOG(LogTemp, Warning, TEXT("Find Sessions was not successful"));
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Find Sessions was not successful");
@@ -230,13 +236,13 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 		else
 		{
 			if (MainMenu)
-				MainMenu->UpdateJoinningText("Error, Unable to Join Session");
+				MainMenu->UpdateJoiningText("Error, Unable to Join Session");
 		}
 	}
 	else //update the UI as failed finding session, none found
 	{
 		if (MainMenu)
-			MainMenu->UpdateJoinningText("Error, Unable to Join Session");
+			MainMenu->UpdateJoiningText("Error, Unable to Join Session");
 		UE_LOG(LogTemp, Warning, TEXT("Failed to Join Session"));
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session as failed to join");
@@ -320,4 +326,5 @@ void UMainGameInstance::CancelFindSession()
 void UMainGameInstance::NetworkCrash(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailtureType, const FString& ErrorString)
 {
 	QuitLobby();
+	bCrashed = true;
 }

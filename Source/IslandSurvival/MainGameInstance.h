@@ -61,6 +61,8 @@ public:
 	UMaterialInterface* PlayerColour;
 
 	void NetworkCrash(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailtureType, const FString& ErrorString);
+
+	bool bCrashed;
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	class UMainMenuWidget* MainMenu;

@@ -19,7 +19,9 @@ class ISLANDSURVIVAL_API UMainMenuWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void UpdateJoinningText(FString Message);
+	void UpdateJoiningText(FString Message);
+	void ShowErrorMenu();
+
 private:
 	virtual bool Initialize() override;
 
@@ -38,6 +40,11 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TextBlockJoining;
 
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* ErrorMenu;
+	UPROPERTY(meta = (BindWidget))
+	UButton* ButtonOK;
+
 	class UMainGameInstance* MainGameInstance;
 
 	UFUNCTION()
@@ -48,4 +55,8 @@ private:
 	void OnQuitButtonPressed();	
 	UFUNCTION()
 	void OnCancelButtonPressed();
+	UFUNCTION()
+	void OnOKButtonPressed();
+
+	void HideLoadingMenu();
 };
