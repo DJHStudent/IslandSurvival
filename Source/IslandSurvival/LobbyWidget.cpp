@@ -26,6 +26,7 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 		SetSeed(LobbyGameState->Seed);
 		SetWidth(LobbyGameState->TerrainWidth);
 		SetHeight(LobbyGameState->TerrainHeight);
+		SetSmooth(LobbyGameState->bSmoothTerrain);
 	}
 
 	SetKeyboardFocus();
@@ -91,22 +92,28 @@ void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from 
 
 void ULobbyWidget::SetSeed(int32 Value)
 {
-	SpinBoxSeed->SetValue(Value);
+	if (SpinBoxSeed)
+		SpinBoxSeed->SetValue(Value);
 }
 void ULobbyWidget::SetWidth(int32 Value)
 {
-	SpinBoxWidth->SetValue(Value);
+	if (SpinBoxWidth)
+		SpinBoxWidth->SetValue(Value);
 }
 void ULobbyWidget::SetHeight(int32 Value)
 {
-	SpinBoxHeight->SetValue(Value);
+	if (SpinBoxHeight)
+		SpinBoxHeight->SetValue(Value);
 }
 void ULobbyWidget::SetSmooth(bool Value)
 {
-	if(Value)
-		CheckBoxSmooth->SetCheckedState(ECheckBoxState::Checked);
-	else
-		CheckBoxSmooth->SetCheckedState(ECheckBoxState::Unchecked);
+	if (CheckBoxSmooth)
+	{
+		if (Value)
+			CheckBoxSmooth->SetCheckedState(ECheckBoxState::Checked);
+		else
+			CheckBoxSmooth->SetCheckedState(ECheckBoxState::Unchecked);
+	}
 }
 
 
@@ -114,25 +121,29 @@ void ULobbyWidget::OnSeedChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	LobbyGameState->Seed = RoundValue;
+	if (LobbyGameState)
+		LobbyGameState->Seed = RoundValue;
 }
 
 void ULobbyWidget::OnWidthChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	LobbyGameState->TerrainWidth = RoundValue;
+	if (LobbyGameState)
+		LobbyGameState->TerrainWidth = RoundValue;
 }
 
 void ULobbyWidget::OnHeightChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	LobbyGameState->TerrainHeight = RoundValue;
+	if (LobbyGameState)
+		LobbyGameState->TerrainHeight = RoundValue;
 }
 
 void ULobbyWidget::OnSmoothChanged(bool bIsChecked)
 {
 	//call game state to update all clients
-	LobbyGameState->bSmoothTerrain = bIsChecked;
+	if (LobbyGameState)
+		LobbyGameState->bSmoothTerrain = bIsChecked;
 }
