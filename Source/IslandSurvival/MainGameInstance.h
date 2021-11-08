@@ -72,6 +72,8 @@ private:
 	//shorthand way of writting a TSharedPointer
 	IOnlineSessionPtr SessionInterface; //note this is a shared pointer
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+	FName SessionJoined;
+
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result); 
 	void OnFindSessionComplete(bool bSuccess); //when searching and found sessions
 	void OnCreateSessionComplete(FName SessionName, bool bSuccess); //when hosting and joined session

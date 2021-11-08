@@ -112,7 +112,7 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 
 void UMainGameInstance::HostSession()
 {
-	FName SessionName = TEXT("PLayerChoosenName"); //have actual input to choose this, from a UI element
+	SessionJoined = TEXT("PLayerChoosenName"); //have actual input to choose this, from a UI element
 	if (Subsystem && SessionInterface.IsValid()) //make a new session with current player as host
 	{
 		FOnlineSessionSettings SessionSettings;
@@ -120,7 +120,7 @@ void UMainGameInstance::HostSession()
 		SessionSettings.NumPublicConnections = 12;
 		SessionSettings.bShouldAdvertise = true; //allows session to be public and joinable
 
-		SessionInterface->CreateSession(0, SessionName, SessionSettings); //will now call the session complete delegate regardless of success or failure
+		SessionInterface->CreateSession(0, SessionJoined, SessionSettings); //will now call the session complete delegate regardless of success or failure
 	}
 }
 
@@ -129,6 +129,9 @@ void UMainGameInstance::JoinSession() //look up sessions to find one looking for
 	SessionSearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
 	if (SessionSearch.IsValid() && SessionInterface.IsValid())
 	{
+		if (SessionInterface->GetNumSessions() > 0)
+			SessionInterface->DestroySession(SessionJoined);
+
 		SessionSearch->bIsLanQuery = true;
 		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 	}
@@ -164,6 +167,7 @@ void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSucces
 {
 	if (bSuccess)
 	{
+		UE_LOG(LogTemp, Error, TEXT("Succesfully left the session"));
 	}
 	else
 	{
@@ -180,10 +184,12 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		if (MainMenu)
 			MainMenu->UpdateJoinningText("Joinning Nearest Session");
 		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
-		FName SessionFoundName;
+
+		FOnlineSessionSearchResult Result;
 		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) //loop through all possible sessions setting name to last one found
 		{
-			SessionFoundName = FName(*SearchResult.GetSessionIdStr());
+			SessionJoined = FName(*SearchResult.GetSessionIdStr());
+			Result = SearchResult;
 			UE_LOG(LogTemp, Error, TEXT("Found Session %i"), SearchResult.Session.SessionSettings.NumPublicConnections);
 			if (GEngine)
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found Session");
@@ -191,7 +197,7 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		}
 		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
 		{
-			SessionInterface->JoinSession(0, SessionFoundName, SessionSearch->SearchResults[0]);
+			SessionInterface->JoinSession(0, SessionJoined, Result);
 		}
 		else
 		{
@@ -211,7 +217,7 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 
 void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
-	if (Result == EOnJoinSessionCompleteResult::Success && SessionInterface.IsValid())
+	if ((Result == EOnJoinSessionCompleteResult::Success || Result == EOnJoinSessionCompleteResult::AlreadyInSession) && SessionInterface.IsValid())
 	{
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Joining Session");
@@ -233,13 +239,13 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 				MainMenu->UpdateJoinningText("Error, Unable to Join Session");
 		}
 	}
-	else //update the UI as failed finding session, none found
+	else if(Result == EOnJoinSessionCompleteResult::AlreadyInSession)//update the UI as failed finding session, none found
 	{
 		if (MainMenu)
 			MainMenu->UpdateJoinningText("Error, Unable to Join Session");
 		UE_LOG(LogTemp, Warning, TEXT("Failed to Join Session"));
 		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session as failed to join");
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session");
 	}
 }
 
@@ -303,9 +309,16 @@ void UMainGameInstance::QuitLobby()
 	if (PlayerController) //travel the player to a different map, while keeping the server active
 	{
 		UGameplayStatics::OpenLevel(GetWorld(), "MainMenu");
-		FName SessionName = TEXT("PLayerChoosenName");
-		//if (GetWorld()->IsServer()) //only destory the session if the host, i.e on the server
-		SessionInterface->DestroySession(SessionName);
+		//FName SessionName = TEXT("PLayerChoosenName");
+
+		//SessionInterface->UnregisterPlayer(SessionName, *PlayerController->PlayerState->UniqueId);
+		SessionInterface->DestroySession(SessionJoined);
+		SessionInterface->RemoveNamedSession(SessionJoined);
+		//SessionInterface->EndSession(SessionName);
+		//SessionInterface->RemoveNamedSession(SessionName);
+		////const TSharedPtr<const FUniqueNetId> NetId = PlayerController->PlayerState->UniqueId.GetUniqueNetId();
+		////FUniqueNetId ID = PlayerController->PlayerState->UniqueId;
+		//PlayerController->PlayerState->EndSess
 	}
 }
 

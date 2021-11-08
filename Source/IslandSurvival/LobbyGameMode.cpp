@@ -25,16 +25,19 @@ ALobbyGameMode::ALobbyGameMode()
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> YellowObject(TEXT("/Game/Materials/PlayerColours/YellowPlayer"));
 	HostColour = Cast<UMaterialInterface>(RedObject.Object);
 	PlayerColours.Add(Cast<UMaterialInterface>(BlackObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(BlueGreenObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(BlueObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(BrownObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(GrayObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(GreenObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(OrangeObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(PinkObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(PurpleObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(WhiteObject.Object));
-	PlayerColours.Add(Cast<UMaterialInterface>(YellowObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(BlueGreenObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(BlueObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(BrownObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(GrayObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(GreenObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(OrangeObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(PinkObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(PurpleObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(WhiteObject.Object));
+	//////PlayerColours.Add(Cast<UMaterialInterface>(YellowObject.Object));
+
+	InactivePlayerStateLifeSpan = 0.01;
+	MaxInactivePlayers = 0;
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
@@ -59,12 +62,19 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 void ALobbyGameMode::Logout(AController* Exiting)
 {
 	APlayerController* ExitingPlayer = Cast<APlayerController>(Exiting);
+
 	if (ExitingPlayer && UsedPlayerColours.Contains(ExitingPlayer))
 	{
 		PlayerColours.Add(UsedPlayerColours[ExitingPlayer]);
 		UsedPlayerColours.Remove(ExitingPlayer);
 	}
 	Super::Logout(Exiting);
+	FString Num = "the player has left";
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, Num);
+
+	if (ExitingPlayer)
+		ExitingPlayer->ClientEndOnlineSession();
 }
 
 void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
