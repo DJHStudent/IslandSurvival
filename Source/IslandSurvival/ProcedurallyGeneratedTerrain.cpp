@@ -32,7 +32,7 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 
 	Seed = 0;
 	bRandomSeed = false;
-
+	bSmoothTerrain = false;
 	bReplicates = true;
 
 //	Octaves = 8;
@@ -87,11 +87,11 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 			Stream.Initialize(Seed);
 			Seed = Seed;
 		}
-		RegenerateMap(Seed, Width, Height, Stream);
+		RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
 	}
 }
 
-void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream)
+void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Terrain Generated Succesfully"))
 	/*	GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
@@ -106,6 +106,7 @@ void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int
 	Width = tWidth;
 	Height = tHeight;
 	Stream = tStream;
+	bSmoothTerrain = tbSmoothTerrain;
 	ClearMap(); //delete any previosuly stored values
 
 	if (BiomeGeneration)
@@ -186,10 +187,10 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	{
 		for (int32 j = 0; j < Width; j++)
 		{
-			float ZPosition = TerrainHeight->GenerateHeight(j, i); //get the specific height for each point on the mesh
-			BiomeGeneration->AddIslandPoint(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
+			float ZPosition = TerrainHeight->GenerateHeight(j, i, bSmoothTerrain); //get the specific height for each point on the mesh
+			Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
 
-			Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition)); 
+			BiomeGeneration->AddIslandPoint(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
 
 			if (i + 1 < Height && j + 1 < Width) //add the appropriate triangles in the right positions within the array
 			{

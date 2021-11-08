@@ -13,6 +13,7 @@ ALobbyGameState::ALobbyGameState()
 	TerrainWidth = 300;
 	TerrainHeight = 300;
 	Seed = 0;
+	bSmoothTerrain = false;
 }
 
 void ALobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -21,6 +22,7 @@ void ALobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(ALobbyGameState, TerrainWidth);
 	DOREPLIFETIME(ALobbyGameState, TerrainHeight);
 	DOREPLIFETIME(ALobbyGameState, Seed);
+	DOREPLIFETIME(ALobbyGameState, bSmoothTerrain);
 }
 
 void ALobbyGameState::UpdateHeight()
@@ -57,4 +59,13 @@ void ALobbyGameState::UpdateSeed()
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"));
+}
+
+void ALobbyGameState::UpdateSmooth()
+{
+	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
+	if (PlayerInstance && PlayerInstance->Lobby)
+	{
+		PlayerInstance->Lobby->SetSmooth(bSmoothTerrain);
+	}
 }

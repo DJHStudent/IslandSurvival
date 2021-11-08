@@ -21,9 +21,9 @@ public:
 	void ServerInitilizeTerrain(); //on the server, this function gets called
 		void ClientUpdateUI(); //Called on server, finds client whichs owns it and runs the code
 
-	void ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream);
+	void ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain);
 	UFUNCTION(Client, Reliable)
-	void ClientUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream);
+	void ClientUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain);
 	bool bTerrainUpdated;
 
 	void ServerUpdateColour(UMaterialInterface* Colour); //on the server, this function gets called

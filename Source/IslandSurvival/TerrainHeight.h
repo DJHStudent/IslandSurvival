@@ -16,7 +16,7 @@ class ISLANDSURVIVAL_API UTerrainHeight : public UObject
 
 public:
 	// Called every frame
-	float GenerateHeight(int32 XPosition, int32 YPosition); //returns the height of each vertex in turn
+	float GenerateHeight(int32 XPosition, int32 YPosition, bool bSmooth); //returns the height of each vertex in turn
 	
 	void DeclareOffsetValues(FRandomStream Stream); //probably should actually delcare them here
 	

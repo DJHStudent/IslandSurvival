@@ -60,7 +60,7 @@ float UTerrainHeight::SquareGradient(float XPosition, float YPosition) //determi
 	return Value;
 }
 
-float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition) //all the functions for determining the height of a specific point
+float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition, bool bSmooth) //all the functions for determining the height of a specific point
 {
 	float FBMValue;
 	if (bFullNoise)
@@ -81,7 +81,7 @@ float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition) //all the
 		HeightValue = 1 - FMath::Abs(HeightValue);
 	if (bDoFalloff)
 		HeightValue -= SquareGradient(XPosition, YPosition); 	//determine how much the height will decrease based on the sqaure gradient map
-	if (bDoTerrace)
+	if (bDoTerrace && !bSmooth)
 		HeightValue = FMath::RoundFromZero(HeightValue * TerraceSize) / TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
 
 	HeightValue *= PerlinScale; //give the Z position its final in game height

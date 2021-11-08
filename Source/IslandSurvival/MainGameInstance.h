@@ -55,6 +55,7 @@ public:
 	int32 TerrainWidth;
 	int32 TerrainHeight;
 	int32 Seed;
+	bool bSmoothTerrain;
 
 	void QuitLobby();
 

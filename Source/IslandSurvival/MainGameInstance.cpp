@@ -287,7 +287,7 @@ void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can 
 	AMainGameMode* MainGame = Cast<AMainGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (MainGame)
 	{
-		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
+		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight, bSmoothTerrain); //generate in the terrain for the game
 		UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"));
 		if(GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Terrain is Being Updated");
