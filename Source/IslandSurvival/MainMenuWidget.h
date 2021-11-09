@@ -14,7 +14,7 @@
  * 
  */
 UCLASS()
-class ISLANDSURVIVAL_API UMainMenuWidget : public UUserWidget
+class ISLANDSURVIVAL_API UMainMenuWidget : public UUserWidget //widget to be shown on the main menu
 {
 	GENERATED_BODY()
 

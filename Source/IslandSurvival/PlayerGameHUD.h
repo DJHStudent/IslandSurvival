@@ -11,10 +11,10 @@
 #include "PlayerGameHUD.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
-class ISLANDSURVIVAL_API UPlayerGameHUD : public UUserWidget
+class ISLANDSURVIVAL_API UPlayerGameHUD : public UUserWidget //widget for player when on the Terrain map
 {
 	GENERATED_BODY()
 	
@@ -26,8 +26,6 @@ public:
 	void ShowPauseMenu();
 	void HidePauseMenu();
 private:
-	//APlayerGameHUD();
-
 	virtual bool Initialize() override;
 
 	UPROPERTY(meta = (BindWidget))

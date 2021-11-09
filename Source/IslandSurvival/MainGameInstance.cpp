@@ -29,7 +29,7 @@ UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 
 void UMainGameInstance::Init() //setup connection to specific online system
 {
-	GEngine->OnNetworkFailure().AddUObject(this, &UMainGameInstance::HandleNetworkFailure);
+//	GEngine->OnNetworkFailure().AddUObject(this, &UMainGameInstance::HandleNetworkFailure);
 
 	Subsystem = IOnlineSubsystem::Get(); //gets the subsystem for a service, in this case null as in editor
 	if (Subsystem)
@@ -43,12 +43,6 @@ void UMainGameInstance::Init() //setup connection to specific online system
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMainGameInstance::OnFindSessionComplete);
 			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnJoinSessionComplete);
 		}
-
-		UE_LOG(LogTemp, Warning, TEXT("Online Subsystem found: %s"), *Subsystem->GetSubsystemName().ToString());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to find Online Subsystem"));
 	}
 	UEngine* Engine = GetEngine();
 	if (!ensure(Engine != nullptr)) return;
@@ -79,8 +73,6 @@ void UMainGameInstance::LoadMenu() //called from the MainMenu's map blueprint to
 			MainMenu->ShowErrorMenu(); //show error message
 		}
 	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
 }
 
 void UMainGameInstance::LoadLobby(APawn* Player) //when joinning the lobby setup the lobbies widget
@@ -108,8 +100,6 @@ void UMainGameInstance::LoadLobby(APawn* Player) //when joinning the lobby setup
 				Lobby->SetEditability(Player); //update terrain settings editability
 			}
 		}
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
 	}
 }
 
@@ -137,10 +127,6 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 		if (PlayerController) //travel the player to a different map, while keeping the server active
 			GetWorld()->ServerTravel(TEXT("/Game/Maps/ServerLobby?listen")); //make a new server, but still allow it to listen so others can join it
 	}
-	else
-	{ //need to display warning to user as likly session with name already in use
-		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"));
-	}
 }
 
 void UMainGameInstance::JoinSession() //look up sessions to find one looking for, and then print list of them to UI
@@ -162,19 +148,20 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 	{
 		if (MainMenu)
 			MainMenu->UpdateJoiningText("Joining Nearest Session");
-		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults;
+		TArray<FOnlineSessionSearchResult> SearchResults = SessionSearch->SearchResults; //get all the results from the search
 
-		FOnlineSessionSearchResult Result;
+		FOnlineSessionSearchResult Result; //the session actually going tp join
 		for (const FOnlineSessionSearchResult& SearchResult : SearchResults) //loop through all possible sessions setting name to last one found
 		{
+			//update session name and result
 			SessionJoined = FName(*SearchResult.GetSessionIdStr());
 			Result = SearchResult;
 		}
-		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
+		if (SessionInterface.IsValid() && Subsystem && Result.IsValid())
 		{
-			SessionInterface->JoinSession(0, SessionJoined, Result);
+			SessionInterface->JoinSession(0, SessionJoined, Result); //if all valid, actually join the session
 		}
-		else
+		else //update UI as failed to join the session
 		{
 			if (MainMenu)
 				MainMenu->UpdateJoiningText("Error, No Sessions Found");
@@ -189,21 +176,16 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 
 void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
-	if ((Result == EOnJoinSessionCompleteResult::Success || Result == EOnJoinSessionCompleteResult::AlreadyInSession) && SessionInterface.IsValid())
+	if ((Result == EOnJoinSessionCompleteResult::Success || Result == EOnJoinSessionCompleteResult::AlreadyInSession) && SessionInterface.IsValid()) //if succesfully found the session to join
 	{
-		//if (GEngine)
-			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Joining Session");
 		APlayerController* PlayerController;
 		FString Address;
 		SessionInterface->GetResolvedConnectString(SessionName, Address); //get platform specific info for joining match
 		PlayerController = GetPrimaryPlayerController();
 		if (PlayerController) //travel the player to a different map, while keeping the server active
 		{
-			//FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			//PlayerController->bShowMouseCursor = false;
-			//PlayerController->SetInputMode(InputMode);
-			CurrentGameState = EGameState::LOBBY;
-			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
+			CurrentGameState = EGameState::LOBBY; //update local game state enum to being in the lobby
+			PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute); //travel to the joined session
 		}
 		else
 		{
@@ -215,40 +197,23 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 	{
 		if (MainMenu)
 			MainMenu->UpdateJoiningText("Error, Unable to Join Session");
-		UE_LOG(LogTemp, Warning, TEXT("Failed to Join Session"));
-		//if (GEngine)
-			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session");
 	}
 }
 
 void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
 {
-	if (bSuccess)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Succesfully left the session"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"));
-		/*
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Unable to destroy session");
-		*/
-	}
 }
 
-void UMainGameInstance::StartGame() //call on server only here
+void UMainGameInstance::StartGame() //call on server only when in lobby and Start Game button pressed
 {
-	//ALobbyGameMode
-	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen"));
+	GetWorld()->ServerTravel(TEXT("/Game/Maps/Terrain?listen")); //move all connected clients to the terrain map, keeping server active
 }
 
-void UMainGameInstance::LoadGame() //called on all players when loading the MainGame level
+void UMainGameInstance::LoadGame() //called on all players when loading the Terrain map
 {
-	//if (Player)// && (Player->IsLocallyControlled() || Player->GetLocalRole() == ROLE_Authority)) //travel the player to a different map, while keeping the server active
-	CurrentGameState = EGameState::GAME;
+	CurrentGameState = EGameState::GAME; //Update Players state
 	APlayerController* PlayerController;
-	PlayerController = GetFirstLocalPlayerController();//Cast<APlayerController>(Player->GetController());
+	PlayerController = GetFirstLocalPlayerController();
 	if (PlayerController)
 	{
 		FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
@@ -256,22 +221,19 @@ void UMainGameInstance::LoadGame() //called on all players when loading the Main
 		PlayerController->SetInputMode(InputMode);
 	}
 
-	UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
+	UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld()); //delete any current widgets on the screen
 
 	if (PlayerHUDClass != nullptr)
 		CurrentPlayerHUDWidget = CreateWidget<UPlayerGameHUD>(GetWorld(), PlayerHUDClass); //spawn in a new widget
 	if (CurrentPlayerHUDWidget)
-		CurrentPlayerHUDWidget->AddToViewport();
+		CurrentPlayerHUDWidget->AddToViewport(); //add players in game UI to the screen
 }
-void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can update the terrain on all players
+void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized give the Game Mode the local values saved by the host
 {
-	AMainGameMode* MainGame = Cast<AMainGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	AMainGameMode* MainGame = Cast<AMainGameMode>(UGameplayStatics::GetGameMode(GetWorld())); //get the game mode for this map
 	if (MainGame)
 	{
-		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight, bSmoothTerrain); //generate in the terrain for the game
-		UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"));
-		//if(GEngine)
-			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Terrain is Being Updated");
+		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight, bSmoothTerrain); //pass these values to the Game Mode
 	}
 }
 
@@ -282,28 +244,19 @@ void UMainGameInstance::HandleNetworkFailure(UWorld* World, UNetDriver* NetDrive
 
 void UMainGameInstance::QuitLobby()
 {
-	CurrentGameState = EGameState::LOBBY;
+	CurrentGameState = EGameState::LOBBY; //update game state back to being in the lobby
 	UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
-	LoadMenu();
+	LoadMenu(); //as in main menu load it up
 	APlayerController* PlayerController;
 	PlayerController = GetPrimaryPlayerController(); //for this machine get primary, likly only player controller
 	if (PlayerController) //travel the player to a different map, while keeping the server active
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), "MainMenu");
-		//FName SessionName = TEXT("PLayerChoosenName");
-
-		//SessionInterface->UnregisterPlayer(SessionName, *PlayerController->PlayerState->UniqueId);
-		SessionInterface->DestroySession(SessionJoined);
-		//SessionInterface->RemoveNamedSession(SessionJoined);
-		//SessionInterface->EndSession(SessionName);
-		//SessionInterface->RemoveNamedSession(SessionName);
-		////const TSharedPtr<const FUniqueNetId> NetId = PlayerController->PlayerState->UniqueId.GetUniqueNetId();
-		////FUniqueNetId ID = PlayerController->PlayerState->UniqueId;
-		//PlayerController->PlayerState->EndSess
+		UGameplayStatics::OpenLevel(GetWorld(), "MainMenu"); //go to the MainMenu map
+		SessionInterface->DestroySession(SessionJoined); //on client side delete any reference stored for session just left
 	}
 }
 
-void UMainGameInstance::CancelFindSession()
+void UMainGameInstance::CancelFindSession() //if searching for sessions, cancel when button pressed
 {
 	if (SessionInterface.IsValid())
 	{
@@ -313,6 +266,6 @@ void UMainGameInstance::CancelFindSession()
 
 void UMainGameInstance::NetworkCrash(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailtureType, const FString& ErrorString)
 {
-	QuitLobby();
+	QuitLobby(); //if network fails for any reason, such as host closes server, disconnect the player
 	bCrashed = true;
 }

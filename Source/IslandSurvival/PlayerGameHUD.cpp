@@ -11,13 +11,13 @@ bool UPlayerGameHUD::Initialize()
 {
 	Super::Initialize();
 
+	//setup delegates to be called when button clicked
 	ButtonResume->OnClicked.AddDynamic(this, &UPlayerGameHUD::OnResumeButtonPressed);
 	ButtonLeave->OnClicked.AddDynamic(this, &UPlayerGameHUD::OnLeaveButtonPressed);
+
 	if (PauseMenu)
-	{
-		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
-	}
-	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+		PauseMenu->SetVisibility(ESlateVisibility::Hidden); //ensure hidden when widget loads in
+	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get game instance for client on
 	return true;
 }
 void UPlayerGameHUD::UpdateBiomeTextBlock(FString Text)
@@ -32,32 +32,24 @@ void UPlayerGameHUD::UpdateSeedTextBlock(FString Text)
 
 void UPlayerGameHUD::ShowPauseMenu()
 {
-	/*if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
 	if(PauseMenu)
-		PauseMenu->SetVisibility(ESlateVisibility::Visible);
-	/*else
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
+		PauseMenu->SetVisibility(ESlateVisibility::Visible); //show the pause menu
 }
 
-void UPlayerGameHUD::HidePauseMenu()
+void UPlayerGameHUD::HidePauseMenu() //hide the pause menu
 {
-	/*if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
 	if (PauseMenu)
 		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
-	/*else
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
 }
 
-void UPlayerGameHUD::OnResumeButtonPressed()
+void UPlayerGameHUD::OnResumeButtonPressed() //on playercharacter, allow it to resume playing as pause completed
 {
 	APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwningPlayerPawn());
 	if (Player)
 		Player->Resume();
 }
 
-void UPlayerGameHUD::OnLeaveButtonPressed()
+void UPlayerGameHUD::OnLeaveButtonPressed() //if leaving the session
 {
-	MainGameInstance->QuitLobby();
+	MainGameInstance->QuitLobby(); //call appropriate function on client to leave session
 }

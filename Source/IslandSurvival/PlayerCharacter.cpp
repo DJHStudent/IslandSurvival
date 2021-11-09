@@ -47,52 +47,43 @@ void APlayerCharacter::BeginPlay()
 		if (SkeletalMesh)//ensures no null pointer and will only work if it exists
 			AnimInstance = Cast<UPlayerCharacterAnimInstance>(SkeletalMesh->GetAnimInstance()); //get the anim instance class from the skeletal mesh defined
 
-		UISetup();
-		//GenerateMap();
+		UISetup(); //setup the appropriate widget
 	}
-	////////else
-	////////	UE_LOG(LogTemp, Error, TEXT("All Up failed Missesabily"))
 }
-void APlayerCharacter::UISetup()
+void APlayerCharacter::UISetup() //based on game state do some updates to the visuals
 {
 	if (MainGameInstance) //timmer so if failed try it again
 	{
-		if (MainGameInstance->CurrentGameState == EGameState::LOBBY) //if though called before constructor set this will never be called, or if say Lobby is null also never called even though it should
-			MainGameInstance->LoadLobby(this);
-		else if (MainGameInstance->CurrentGameState == EGameState::GAME && IsLocallyControlled())
+		if (MainGameInstance->CurrentGameState == EGameState::LOBBY) //if player has spawn into the lobby
+			MainGameInstance->LoadLobby(this); //setup the lobbies UI
+		else if (MainGameInstance->CurrentGameState == EGameState::GAME) //if player spawned into the terrain map
 		{
-			BiomeList = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass())); //seed, width, height
-			PlayerWidget = Cast<UPlayerGameHUD>(MainGameInstance->CurrentPlayerHUDWidget);
+			BiomeList = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass())); //Get a reference to the terrain
+			PlayerWidget = Cast<UPlayerGameHUD>(MainGameInstance->CurrentPlayerHUDWidget); //setup reference to player's widget
 		}
-		USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
-		if (BodyMesh && MainGameInstance->PlayerColour)
+		USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody"))); //get player component to update colour
+		if (BodyMesh && MainGameInstance->PlayerColour) //update players colour so it matches what 
 		{
-			BodyMesh->SetMaterial(0, MainGameInstance->PlayerColour);
-			ServerUpdatePlayerColour(MainGameInstance->PlayerColour);
+			BodyMesh->SetMaterial(0, MainGameInstance->PlayerColour); //set this player's colour to the value saved
+			ServerUpdatePlayerColour(MainGameInstance->PlayerColour); //call on the server so that it can update all other clients, with the right colour
 		}
-	}
-	else
-	{
-		float RespawnTime = 1.0f;
-		FTimerHandle PlayerRespawnTimer; //timer to handle spawning of player after death
-		GetWorldTimerManager().SetTimer(PlayerRespawnTimer, this, &APlayerCharacter::UISetup, RespawnTime, false);
 	}
 }
-void APlayerCharacter::ServerUpdatePlayerColour_Implementation(UMaterialInterface* Colour)
+void APlayerCharacter::ServerUpdatePlayerColour_Implementation(UMaterialInterface* Colour) //on the server update player's colur
 {
-	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
+	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody"))); //get player component to update colour
 	if (BodyMesh && Colour)
 	{
-		BodyMesh->SetMaterial(0, Colour);
-		PlayersColour = Colour;
+		BodyMesh->SetMaterial(0, Colour); //update colour with new material
+		PlayersColour = Colour; //update replicated variables colour
 	}
 }
-void APlayerCharacter::ReplicatedColourUpdate()
+void APlayerCharacter::ReplicatedColourUpdate() //when this players mesh colour changed on server, update it on each client
 {
-	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody")));
+	USkeletalMeshComponent* BodyMesh = Cast<USkeletalMeshComponent>(GetDefaultSubobjectByName(TEXT("InvisShadowBody"))); //get player component to update colour
 	if (BodyMesh && PlayersColour)
 	{
-		BodyMesh->SetMaterial(0, PlayersColour);
+		BodyMesh->SetMaterial(0, PlayersColour); //update colour with new material
 	}
 }
 
@@ -100,8 +91,8 @@ void APlayerCharacter::ReplicatedColourUpdate()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if(BiomeList && BiomeList->BiomeGeneration && (GetLocalRole() == ROLE_AutonomousProxy || IsLocallyControlled())) //i.e only actually do it if on the game level
-		DisplayPointBiome();
+	if(BiomeList && BiomeList->BiomeGeneration && (GetLocalRole() == ROLE_AutonomousProxy || IsLocallyControlled())) //i.e if clients player and on game map
+		DisplayPointBiome(); //update the text for the biome currently in
 }
 
 // Called to bind functionality to input
@@ -195,7 +186,7 @@ void APlayerCharacter::SprintEnd()
 			AnimInstance->bIsSprinting = false;
 	}
 }
-void APlayerCharacter::ServerSprintStart_Implementation()
+void APlayerCharacter::ServerSprintStart_Implementation() //update sprint on the server
 {
 	GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
 }
@@ -240,31 +231,26 @@ void APlayerCharacter::DisplayPointBiome()
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(APlayerCharacter, PlayersColour);
+	DOREPLIFETIME(APlayerCharacter, PlayersColour); //setup this player to be replicated
 }
 
-void APlayerCharacter::Paused()
+void APlayerCharacter::Paused() //called if pause initiated on a client
 {
-	if (IsLocallyControlled())
+	if (IsLocallyControlled()) //only call if currently being controlled
 	{
 		if (!bPaused)
 		{
-			bPaused = true;
+			bPaused = true; //set player to be paused
 
 			FInputModeGameAndUI InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY)
-				MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Visible);
-			else if (PlayerWidget)
-				PlayerWidget->ShowPauseMenu();
-			else
-			{
-				//if (GEngine)
-					//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Error");
-			}
+			if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY) //if in the lobby
+				MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Visible); //make lobby pause screen visable
+			else if (PlayerWidget) //if this widget exists must be in the terrain map
+				PlayerWidget->ShowPauseMenu(); //upate players HUD widget to show pause screen
 
 			APlayerController* PlayerController = Cast<APlayerController>(GetController());
-			if (PlayerController)
+			if (PlayerController) //update input to work for the UI on the specified player controller
 			{
 				PlayerController->SetInputMode(InputMode);
 				PlayerController->bShowMouseCursor = true;
@@ -272,32 +258,23 @@ void APlayerCharacter::Paused()
 				PlayerController->bEnableMouseOverEvents = true;
 			}
 		}
-		else
+		else //as was paused, resume playing
 			Resume();
 	}
 }
 
-void APlayerCharacter::Resume()
+void APlayerCharacter::Resume() //called when player finished being paused
 {
-	/*
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, "UnPause Game");
-	//EnableInput(Cast<APlayerController>(GetController()));*/
-	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY)
-		MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden);
-	else if (PlayerWidget)
-		PlayerWidget->HidePauseMenu();
-	/*else
-	{
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Error playing");
-	}*/
+	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY) //if in lobby game
+		MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden); //hide the lobby pause widget
+	else if (PlayerWidget) //if this widget exists must be in the terrain map
+		PlayerWidget->HidePauseMenu(); //upate players HUD widget to hide pause screen
 
 	FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 
 	bPaused = false;
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
+	if (PlayerController) //update input to stop working for UI and only game on the specified player controller
 	{
 		PlayerController->SetInputMode(InputMode);
 		PlayerController->bShowMouseCursor = false;

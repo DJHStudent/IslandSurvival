@@ -14,8 +14,8 @@
 #include "PlayerGameHUD.h"
 #include "MainGameInstance.generated.h"
 
-UENUM() //just a macro specifying its an enum class
-enum class EGameState : uint8 //should be called EAgentState as an enum and Unreal convention
+UENUM()
+enum class EGameState : uint8 //enum specifying the current state of a player
 {
 	LOBBY UMETA(DisplayName = "Lobby"),
 	GAME UMETA(DisplayName = "Game"),
@@ -58,7 +58,7 @@ public:
 
 	void QuitLobby();
 
-	UMaterialInterface* PlayerColour;
+	UMaterialInterface* PlayerColour; //material holding the colour of the player
 
 	void NetworkCrash(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailtureType, const FString& ErrorString);
 

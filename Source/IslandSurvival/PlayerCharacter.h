@@ -56,8 +56,6 @@ public:
 	void Paused();
 	void Resume();
 
-	void ShowMouseCursor();
-
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 private: //i.e a member variable
 	UPROPERTY(EditInstanceOnly)
@@ -87,9 +85,7 @@ private: //i.e a member variable
 	UPROPERTY(ReplicatedUsing = ReplicatedColourUpdate)
 	UMaterialInterface* PlayersColour;
 	UFUNCTION()
-		void ReplicatedColourUpdate();
+	void ReplicatedColourUpdate();
 
-	void GenerateMap();
-
-	bool bPaused;
+	bool bPaused; //can user control the player or not
 };
