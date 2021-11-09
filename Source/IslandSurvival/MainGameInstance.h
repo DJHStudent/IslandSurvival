@@ -48,10 +48,9 @@ public:
 	class ULobbyWidget* Lobby;
 	UPlayerGameHUD* CurrentPlayerHUDWidget;
 
-	//UPROPERTY(Replicated)
 	EGameState CurrentGameState;
 
-	//these variables will only actually be on the server version
+	//these variables will only actually be on the server version, used to store values when doing a server travel
 	int32 TerrainWidth;
 	int32 TerrainHeight;
 	int32 Seed;
@@ -63,7 +62,7 @@ public:
 
 	void NetworkCrash(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailtureType, const FString& ErrorString);
 
-	bool bCrashed;
+	bool bCrashed; //did network just crash or not
 private:
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	class UMainMenuWidget* MainMenu;
@@ -73,16 +72,14 @@ private:
 
 	IOnlineSubsystem* Subsystem;
 	//shorthand way of writting a TSharedPointer
-	IOnlineSessionPtr SessionInterface; //note this is a shared pointer
+	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
-	FName SessionJoined;
+	FName SessionJoined; //name of the current session this player is in
 
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result); 
 	void OnFindSessionComplete(bool bSuccess); //when searching and found sessions
 	void OnCreateSessionComplete(FName SessionName, bool bSuccess); //when hosting and joined session
 	void OnDestroySessionComplete(FName SessionName, bool bSuccess); //when deleted session
-
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all the variables to be replicated
 
 	void HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 };

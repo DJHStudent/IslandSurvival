@@ -12,6 +12,7 @@
 
 UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 {
+	//find the different widgets and assign them appropriatly
 	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuWidgetObject(TEXT("/Game/Widgets/MainMenuWidget"));
 	MainMenuWidgetClass = MainMenuWidgetObject.Class; //get the file location of the widget blueprint class and store it in this variable
 
@@ -21,8 +22,8 @@ UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 	static ConstructorHelpers::FClassFinder<UUserWidget> PlayerHUDWidgetObject(TEXT("/Game/Widgets/PlayerHUDWidget"));
 	PlayerHUDClass = PlayerHUDWidgetObject.Class; //get the file location of the widget blueprint class and store it in this variable
 
-	CurrentGameState = EGameState::LOBBY;
 
+	CurrentGameState = EGameState::LOBBY;
 	bCrashed = false;
 }
 
@@ -33,12 +34,11 @@ void UMainGameInstance::Init() //setup connection to specific online system
 	Subsystem = IOnlineSubsystem::Get(); //gets the subsystem for a service, in this case null as in editor
 	if (Subsystem)
 	{
-		SessionInterface = Subsystem->GetSessionInterface();
+		SessionInterface = Subsystem->GetSessionInterface(); //assign the interface for this network on
 
-		if (SessionInterface.IsValid())//add all the other delegates here
+		if (SessionInterface.IsValid())//if session exists assign the delegates for creating, finding, joining and destroying a session
 		{
-			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnCreateSessionComplete); //makes delegate so when session created calls this function
-			//note must have this added
+			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnDestroySessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UMainGameInstance::OnFindSessionComplete);
 			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UMainGameInstance::OnJoinSessionComplete);
@@ -52,39 +52,38 @@ void UMainGameInstance::Init() //setup connection to specific online system
 	}
 	UEngine* Engine = GetEngine();
 	if (!ensure(Engine != nullptr)) return;
-	Engine->OnNetworkFailure().AddUObject(this, &UMainGameInstance::NetworkCrash);
+	Engine->OnNetworkFailure().AddUObject(this, &UMainGameInstance::NetworkCrash); //called if the network connection ever fails
 }
 
-void UMainGameInstance::LoadMenu()
+void UMainGameInstance::LoadMenu() //called from the MainMenu's map blueprint to setup main menu widget
 {
 	if (MainMenuWidgetClass != nullptr)
 		MainMenu = CreateWidget<UMainMenuWidget>(GetWorld(), MainMenuWidgetClass); //spawn in a new widget
 
-	if (MainMenu) //as exists now, add it to the viewport
+	if (MainMenu) //as exists now, add it to the viewport, setting up appropriate inputs
 	{
-		MainMenu->AddToViewport();
+		MainMenu->AddToViewport(); //add main menu to the viewport
 
 		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		InputMode.SetWidgetToFocus(MainMenu->TakeWidget());
-
+		
 		APlayerController* PlayerController;
 		PlayerController = GetFirstLocalPlayerController();
-		if (PlayerController)
+		if (PlayerController) //if found a player controller, update its input mode
 		{
 			PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
 			PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
 		}
-		if (bCrashed)
+		if (bCrashed) //if was in a session and it crashed
 		{
-			MainMenu->ShowErrorMenu();
+			MainMenu->ShowErrorMenu(); //show error message
 		}
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Falied to actually find the widget"))
 }
 
-void UMainGameInstance::LoadLobby(APawn* Player)
+void UMainGameInstance::LoadLobby(APawn* Player) //when joinning the lobby setup the lobbies widget
 {
 
 	if (Player && Player->IsLocallyControlled()) //only make a new widget if the player is local
@@ -95,9 +94,9 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 		if (Lobby) //as exists now, add it to the viewport
 		{
 			Lobby->AddToViewport();
-			Lobby->SetVisibility(ESlateVisibility::Hidden);
+			Lobby->SetVisibility(ESlateVisibility::Hidden); //hide widget
 
-			FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+			FInputModeGameOnly InputMode; //update input mode to only accept controllers
 
 			APlayerController* PlayerController;
 			PlayerController = Cast<APlayerController>(Player->GetController());
@@ -106,9 +105,7 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 				PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
 				PlayerController->bShowMouseCursor = false; //don't hide cursor on mouse down
 
-				UE_LOG(LogTemp, Warning, TEXT("A Pawn does actually exist for this player"))
-				Lobby->SetEditability(Player);
-				//CurrentGameState = EGameState::GAME; //as in the lobby now when do next loading will be in game
+				Lobby->SetEditability(Player); //update terrain settings editability
 			}
 		}
 		else
@@ -116,30 +113,17 @@ void UMainGameInstance::LoadLobby(APawn* Player)
 	}
 }
 
-void UMainGameInstance::HostSession()
+void UMainGameInstance::HostSession() //make a new listen server, on client hosting game
 {
-	SessionJoined = TEXT("PLayerChoosenName"); //have actual input to choose this, from a UI element
-	if (Subsystem && SessionInterface.IsValid()) //make a new session with current player as host
+	SessionJoined = TEXT("PLayerChoosenName"); //assign a name for the session
+	if (Subsystem && SessionInterface.IsValid()) //if actually connected to the online system
 	{
-		FOnlineSessionSettings SessionSettings;
+		FOnlineSessionSettings SessionSettings; //define the settings for a session
 		SessionSettings.bIsLANMatch = true; //only joinable on LAN networks
-		SessionSettings.NumPublicConnections = 12;
+		SessionSettings.NumPublicConnections = 12; //only allow max 12 people in
 		SessionSettings.bShouldAdvertise = true; //allows session to be public and joinable
 
-		SessionInterface->CreateSession(0, SessionJoined, SessionSettings); //will now call the session complete delegate regardless of success or failure
-	}
-}
-
-void UMainGameInstance::JoinSession() //look up sessions to find one looking for, and then print list of them to UI
-{
-	SessionSearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
-	if (SessionSearch.IsValid() && SessionInterface.IsValid())
-	{
-		if (SessionInterface->GetNumSessions() > 0)
-			SessionInterface->DestroySession(SessionJoined);
-
-		SessionSearch->bIsLanQuery = true;
-		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+		SessionInterface->CreateSession(0, SessionJoined, SessionSettings); //make a new session for player on this device, with these settings
 	}
 }
 
@@ -147,42 +131,28 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 {
 	if (bSuccess)
 	{
-		//session sucessful so client travel to the correct map
+		//session sucessful so move server to the new map
 		APlayerController* PlayerController;
-		PlayerController = GetPrimaryPlayerController(); //for this machine get primary, likly only player controller
+		PlayerController = GetPrimaryPlayerController(); //get the main and only controller on machine
 		if (PlayerController) //travel the player to a different map, while keeping the server active
-		{
-			//FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-			//PlayerController->bShowMouseCursor = false;
-			//PlayerController->SetInputMode(InputMode);
-
 			GetWorld()->ServerTravel(TEXT("/Game/Maps/ServerLobby?listen")); //make a new server, but still allow it to listen so others can join it
-		}
 	}
 	else
 	{ //need to display warning to user as likly session with name already in use
 		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"));
-		/*
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Session was not Created");
-		if (SessionInterface.IsValid())
-			SessionInterface->DestroySession(SessionName);*/
 	}
 }
 
-void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
+void UMainGameInstance::JoinSession() //look up sessions to find one looking for, and then print list of them to UI
 {
-	if (bSuccess)
+	SessionSearch = MakeShareable<FOnlineSessionSearch>(new FOnlineSessionSearch());
+	if (Subsystem && SessionSearch.IsValid() && SessionInterface.IsValid()) //if still connected to the online system
 	{
-		UE_LOG(LogTemp, Error, TEXT("Succesfully left the session"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"));
-		/*
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Unable to destroy session");
-		*/
+		if (SessionInterface->GetNumSessions() > 0) //if a session does exist, when leaving it, it must have failed to be destoryed
+			SessionInterface->DestroySession(SessionJoined); //destroy the session on the local client
+
+		SessionSearch->bIsLanQuery = true; //only look at sessions on same LAN
+		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef()); //find all sessions which currently exist
 	}
 }
 
@@ -199,12 +169,6 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		{
 			SessionJoined = FName(*SearchResult.GetSessionIdStr());
 			Result = SearchResult;
-			UE_LOG(LogTemp, Error, TEXT("Found Session %i"), SearchResult.Session.SessionSettings.NumPublicConnections);
-			/*
-			if (GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found Session");
-			*/
-
 		}
 		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
 		{
@@ -216,15 +180,10 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 				MainMenu->UpdateJoiningText("Error, No Sessions Found");
 		}
 	}
-	else  //update the UI as failed, no session found
+	else  //update the UI as failed, no sessions found
 	{
 		if (MainMenu)
 			MainMenu->UpdateJoiningText("Error, No Sessions Found");
-		UE_LOG(LogTemp, Warning, TEXT("Find Sessions was not successful"));
-		/*
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Find Sessions was not successful");
-		*/
 	}
 }
 
@@ -262,6 +221,21 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 	}
 }
 
+void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSuccess)
+{
+	if (bSuccess)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Succesfully left the session"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"));
+		/*
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Unable to destroy session");
+		*/
+	}
+}
 
 void UMainGameInstance::StartGame() //call on server only here
 {
@@ -299,12 +273,6 @@ void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can 
 		//if(GEngine)
 			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Terrain is Being Updated");
 	}
-}
-
-void UMainGameInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UMainGameInstance, CurrentGameState);
 }
 
 void UMainGameInstance::HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
