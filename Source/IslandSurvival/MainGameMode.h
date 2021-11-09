@@ -17,7 +17,7 @@ class ISLANDSURVIVAL_API AMainGameMode : public AGameMode
 {
 	GENERATED_BODY()
 public:
-	void UpdateTerrainValues(int32 Seed, int32 Width, int32 Height);
+	void UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain);
 
 private:
 	void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessages) override;

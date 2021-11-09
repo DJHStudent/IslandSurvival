@@ -16,6 +16,8 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 	SpinBoxHeight->OnValueChanged.AddDynamic(this, &ULobbyWidget::OnHeightChanged);
 	SpinBoxSeed->OnValueChanged.AddDynamic(this, &ULobbyWidget::OnSeedChanged);
 
+	CheckBoxSmooth->OnCheckStateChanged.AddDynamic(this, &ULobbyWidget::OnSmoothChanged);
+
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
 	LobbyGameState = Cast<ALobbyGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
 
@@ -24,6 +26,7 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 		SetSeed(LobbyGameState->Seed);
 		SetWidth(LobbyGameState->TerrainWidth);
 		SetHeight(LobbyGameState->TerrainHeight);
+		SetSmooth(LobbyGameState->bSmoothTerrain);
 	}
 
 	SetKeyboardFocus();
@@ -55,6 +58,11 @@ void ULobbyWidget::SetEditability(APawn* Player) //come back to eventually once 
 			SpinBoxHeight->SetVisibility(ESlateVisibility::HitTestInvisible);
 			SpinBoxHeight->SetRenderOpacity(0.5f);
 		}
+		if (CheckBoxSmooth)
+		{
+			CheckBoxSmooth->SetVisibility(ESlateVisibility::HitTestInvisible);
+			CheckBoxSmooth->SetRenderOpacity(0.5f);
+		}
 		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability: %s"), *Player->GetName())
 	}
 }
@@ -68,6 +76,7 @@ void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the 
 			MainGameInstance->Seed = LobbyGameState->Seed;
 			MainGameInstance->TerrainHeight = LobbyGameState->TerrainHeight;
 			MainGameInstance->TerrainWidth = LobbyGameState->TerrainWidth;
+			MainGameInstance->bSmoothTerrain = LobbyGameState->bSmoothTerrain;
 		}
 		MainGameInstance->StartGame();
 	}
@@ -83,15 +92,28 @@ void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from 
 
 void ULobbyWidget::SetSeed(int32 Value)
 {
-	SpinBoxSeed->SetValue(Value);
+	if (SpinBoxSeed)
+		SpinBoxSeed->SetValue(Value);
 }
 void ULobbyWidget::SetWidth(int32 Value)
 {
-	SpinBoxWidth->SetValue(Value);
+	if (SpinBoxWidth)
+		SpinBoxWidth->SetValue(Value);
 }
 void ULobbyWidget::SetHeight(int32 Value)
 {
-	SpinBoxHeight->SetValue(Value);
+	if (SpinBoxHeight)
+		SpinBoxHeight->SetValue(Value);
+}
+void ULobbyWidget::SetSmooth(bool Value)
+{
+	if (CheckBoxSmooth)
+	{
+		if (Value)
+			CheckBoxSmooth->SetCheckedState(ECheckBoxState::Checked);
+		else
+			CheckBoxSmooth->SetCheckedState(ECheckBoxState::Unchecked);
+	}
 }
 
 
@@ -99,19 +121,29 @@ void ULobbyWidget::OnSeedChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	LobbyGameState->Seed = RoundValue;
+	if (LobbyGameState)
+		LobbyGameState->Seed = RoundValue;
 }
 
 void ULobbyWidget::OnWidthChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	LobbyGameState->TerrainWidth = RoundValue;
+	if (LobbyGameState)
+		LobbyGameState->TerrainWidth = RoundValue;
 }
 
 void ULobbyWidget::OnHeightChanged(float InValue)
 {
 	int32 RoundValue = FMath::RoundToInt(InValue);
 	//call game state to update all clients
-	LobbyGameState->TerrainHeight = RoundValue;
+	if (LobbyGameState)
+		LobbyGameState->TerrainHeight = RoundValue;
+}
+
+void ULobbyWidget::OnSmoothChanged(bool bIsChecked)
+{
+	//call game state to update all clients
+	if (LobbyGameState)
+		LobbyGameState->bSmoothTerrain = bIsChecked;
 }

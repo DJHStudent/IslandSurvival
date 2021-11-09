@@ -22,6 +22,8 @@ public:
 		int32 TerrainHeight;
 	UPROPERTY(ReplicatedUsing = UpdateSeed)
 		int32 Seed;
+	UPROPERTY(ReplicatedUsing = UpdateSmooth)
+		bool bSmoothTerrain;
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 
@@ -33,5 +35,8 @@ private:
 		void UpdateWidth();
 	UFUNCTION()
 		void UpdateHeight();
+	UFUNCTION()
+		void UpdateSmooth();
+
 };
 

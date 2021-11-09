@@ -36,6 +36,8 @@ public:
 	int32 Height; 
 	UPROPERTY(EditAnywhere)//distance each vertex is appart
 	float GridSize; 
+	UPROPERTY(EditAnywhere)
+	bool bSmoothTerrain; //should all the biomes / terrain using terracing actually do it
 
 	//need to be replicated variables
 	TArray<FVector> Vertices; //list of all vertices of mesh
@@ -46,7 +48,7 @@ public:
 	TArray<int32> Triangles; //list of all meshes trianlges
 
 	//UFUNCTION(NetMulticast, Reliable)
-	void RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream); //when UI button pressed regenerate the map
+	void RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain); //when UI button pressed regenerate the map
 	void CreateMesh();
 	void ClearMap(); //remove any data stored for the previous map
 

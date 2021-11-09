@@ -33,7 +33,7 @@ void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete, th
 	}
 }
 
-void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height)
+void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain)
 {
 	FRandomStream Stream;
 	if (Seed == 0)
@@ -52,7 +52,7 @@ void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height)
 		ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(It->Get()); //get the controller
 		if (PlayerController && PlayerController->HasActorBegunPlay()) //if found, update the UI to use the one for this level
 		{
-			PlayerController->ServerUpdateTerrain(Seed, Width, Height, Stream);
+			PlayerController->ServerUpdateTerrain(Seed, Width, Height, Stream, bSmoothTerrain);
 		}
 	}
 }

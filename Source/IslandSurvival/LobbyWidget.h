@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
 #include "Components/SpinBox.h"
+#include "Components/CheckBox.h"
 #include "MainGameInstance.h"
 #include "LobbyGameState.h"
 #include "LobbyWidget.generated.h"
@@ -25,6 +26,7 @@ public:
 	void SetSeed(int32 Value);
 	void SetWidth(int32 Value);
 	void SetHeight(int32 Value);
+	void SetSmooth(bool Value);
 private:
 	virtual bool Initialize() override;
 
@@ -40,6 +42,9 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	USpinBox* SpinBoxHeight;
 
+	UPROPERTY(meta = (BindWidget))
+	UCheckBox* CheckBoxSmooth;
+
 	class UMainGameInstance* MainGameInstance;
 	ALobbyGameState* LobbyGameState;
 
@@ -53,4 +58,6 @@ private:
 	void OnWidthChanged(float InValue); //when host changed width
 	UFUNCTION()
 	void OnHeightChanged(float InValue); //when host changes height
+	UFUNCTION()
+	void OnSmoothChanged(bool bIsChecked); //when host changes height
 };

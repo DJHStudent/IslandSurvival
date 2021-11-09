@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Engine.h"
+#include "ZombieCharacter.h"
 
 UBTT_FindClosestPlayer::UBTT_FindClosestPlayer()
 {
@@ -19,6 +20,7 @@ EBTNodeResult::Type UBTT_FindClosestPlayer::ExecuteTask(UBehaviorTreeComponent& 
 	{
 		TArray<AActor*> FoundActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundActors);
+		ClosestPlayer = nullptr;
 		if (FoundActors.Num() > 0)
 		{
 			float ClosestPlayerDistance = TNumericLimits<float>::Max();

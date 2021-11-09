@@ -40,18 +40,18 @@ void ACurrentPlayerController::ClientUpdateUI()
 	//	ProceduralTerrain->RegenerateMap();
 }
 
-void ACurrentPlayerController::ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream)
+void ACurrentPlayerController::ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain)
 {
-	ClientUpdateTerrain(Seed, Width, Height, Stream);
+	ClientUpdateTerrain(Seed, Width, Height, Stream, bSmoothTerrain);
 }
 
-void ACurrentPlayerController::ClientUpdateTerrain_Implementation(int32 Seed, int32 Width, int32 Height, FRandomStream Stream)
+void ACurrentPlayerController::ClientUpdateTerrain_Implementation(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain)
 {
 	ClientUpdateUI(); //just before the terrain loads in update the UI
 	UE_LOG(LogTemp, Warning, TEXT("Client beginning Process to make terrain"))
 		AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
 	if (ProceduralTerrain)
-		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream);
+		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
 	//update clients UI with seed
 	//MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (MainGameInstance && MainGameInstance->CurrentPlayerHUDWidget)
