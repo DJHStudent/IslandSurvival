@@ -259,8 +259,8 @@ void APlayerCharacter::Paused()
 				PlayerWidget->ShowPauseMenu();
 			else
 			{
-				if (GEngine)
-					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Error");
+				//if (GEngine)
+					//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Error");
 			}
 
 			APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -279,18 +279,19 @@ void APlayerCharacter::Paused()
 
 void APlayerCharacter::Resume()
 {
+	/*
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, "UnPause Game");
-	//EnableInput(Cast<APlayerController>(GetController()));
+	//EnableInput(Cast<APlayerController>(GetController()));*/
 	if (MainGameInstance && MainGameInstance->CurrentGameState == EGameState::LOBBY)
 		MainGameInstance->Lobby->SetVisibility(ESlateVisibility::Hidden);
 	else if (PlayerWidget)
 		PlayerWidget->HidePauseMenu();
-	else
+	/*else
 	{
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Error playing");
-	}
+	}*/
 
 	FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
 

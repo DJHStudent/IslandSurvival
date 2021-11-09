@@ -32,22 +32,22 @@ void UPlayerGameHUD::UpdateSeedTextBlock(FString Text)
 
 void UPlayerGameHUD::ShowPauseMenu()
 {
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
+	/*if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
 	if(PauseMenu)
 		PauseMenu->SetVisibility(ESlateVisibility::Visible);
-	else
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
+	/*else
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
 }
 
 void UPlayerGameHUD::HidePauseMenu()
 {
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
+	/*if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
 	if (PauseMenu)
 		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
-	else
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");
+	/*else
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Escape Clicked");*/
 }
 
 void UPlayerGameHUD::OnResumeButtonPressed()

@@ -162,9 +162,10 @@ void UMainGameInstance::OnCreateSessionComplete(FName SessionName, bool bSuccess
 	else
 	{ //need to display warning to user as likly session with name already in use
 		UE_LOG(LogTemp, Warning, TEXT("Session was not Created"));
+		/*
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Session was not Created");
-		/*if (SessionInterface.IsValid())
+		if (SessionInterface.IsValid())
 			SessionInterface->DestroySession(SessionName);*/
 	}
 }
@@ -178,8 +179,10 @@ void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bSucces
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Unable to destroy session"));
+		/*
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Unable to destroy session");
+		*/
 	}
 }
 
@@ -197,8 +200,10 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 			SessionJoined = FName(*SearchResult.GetSessionIdStr());
 			Result = SearchResult;
 			UE_LOG(LogTemp, Error, TEXT("Found Session %i"), SearchResult.Session.SessionSettings.NumPublicConnections);
+			/*
 			if (GEngine)
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found Session");
+			*/
 
 		}
 		if (SessionInterface.IsValid() && SessionSearch.IsValid() && SessionSearch->SearchResults.Num() > 0)
@@ -216,8 +221,10 @@ void UMainGameInstance::OnFindSessionComplete(bool bSuccess) //here actually pri
 		if (MainMenu)
 			MainMenu->UpdateJoiningText("Error, No Sessions Found");
 		UE_LOG(LogTemp, Warning, TEXT("Find Sessions was not successful"));
+		/*
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Find Sessions was not successful");
+		*/
 	}
 }
 
@@ -225,8 +232,8 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 {
 	if ((Result == EOnJoinSessionCompleteResult::Success || Result == EOnJoinSessionCompleteResult::AlreadyInSession) && SessionInterface.IsValid())
 	{
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Joining Session");
+		//if (GEngine)
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Joining Session");
 		APlayerController* PlayerController;
 		FString Address;
 		SessionInterface->GetResolvedConnectString(SessionName, Address); //get platform specific info for joining match
@@ -250,8 +257,8 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 		if (MainMenu)
 			MainMenu->UpdateJoiningText("Error, Unable to Join Session");
 		UE_LOG(LogTemp, Warning, TEXT("Failed to Join Session"));
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session");
+		//if (GEngine)
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Found No Session");
 	}
 }
 
@@ -289,8 +296,8 @@ void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized can 
 	{
 		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight); //generate in the terrain for the game
 		UE_LOG(LogTemp, Warning, TEXT("Terrain is Being Updated"));
-		if(GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Terrain is Being Updated");
+		//if(GEngine)
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Terrain is Being Updated");
 	}
 }
 

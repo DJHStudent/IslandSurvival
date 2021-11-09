@@ -28,7 +28,7 @@ bool UMainMenuWidget::Initialize() //run when the widget gets created
 void UMainMenuWidget::OnHostButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Host Button Pressed"));
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Host Button Pressed");
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, "Host Button Pressed");
 	if (MainGameInstance)
 		MainGameInstance->HostSession();
 }
@@ -36,7 +36,7 @@ void UMainMenuWidget::OnHostButtonPressed()
 void UMainMenuWidget::OnJoinButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Join Button Pressed"));
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Join Button Pressed");
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, "Join Button Pressed");
 	UpdateJoiningText("Finding Nearest Session");
 	if (MainGameInstance)
 	{
@@ -48,7 +48,7 @@ void UMainMenuWidget::OnJoinButtonPressed()
 void UMainMenuWidget::OnQuitButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Quit Button Pressed"));
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Quit Button Pressed");
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Quit Button Pressed");
 	GetWorld()->GetFirstPlayerController()->ConsoleCommand("quit");
 }
 
@@ -56,8 +56,8 @@ void UMainMenuWidget::OnCancelButtonPressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Cancel Button Pressed"));
 	ButtonCancel->SetVisibility(ESlateVisibility::Hidden);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Cancel Button Pressed");
-	UpdateJoiningText("Cancelling Session Joinning");
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Cancel Button Pressed");
+	UpdateJoiningText("Cancelling Session Joining");
 	if (MainGameInstance)
 	{
 		MainGameInstance->CancelFindSession();
@@ -81,7 +81,7 @@ void UMainMenuWidget::OnOKButtonPressed()
 void UMainMenuWidget::ShowErrorMenu()
 {
 	ErrorMenu->SetVisibility(ESlateVisibility::Visible);
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Show Error Menu");
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Show Error Menu");
 }
 
 void UMainMenuWidget::HideLoadingMenu()
