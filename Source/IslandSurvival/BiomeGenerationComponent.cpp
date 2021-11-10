@@ -194,7 +194,7 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 	float IslandHeight = (IslandVertexIdentifiers.Value.MaxYPosition - IslandVertexIdentifiers.Value.MinYPosition) * TerrainGenerator->GridSize;
 	
 	//use poisson disk sampling here to give a more even distribution of the biomes
-	TArray<TPair<int32, FVector2D>> BiomePositions = DiskSampling.CreatePoints(SingleIslandMaxSize, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize, BiomeStatsMap, TerrainGenerator->Stream);
+	TArray<TPair<int32, FVector2D>> BiomePositions = PoissonDiskSampling::CreatePoints(SingleIslandMaxSize, 30, IslandWidth, IslandHeight, IslandVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, IslandVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize, BiomeStatsMap, TerrainGenerator->Stream);
 
 
 	//using a voronoi noise method which for each vertice just determine the biome point it is nearest

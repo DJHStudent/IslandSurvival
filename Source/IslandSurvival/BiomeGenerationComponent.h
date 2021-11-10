@@ -93,8 +93,6 @@ public:
 	void SpawnStructure(); //spawn in tents and bouys around the map
 private:
 
-	PoissonDiskSampling DiskSampling;
-
 	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined and disconected, so join them together
 	
 	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier); 
