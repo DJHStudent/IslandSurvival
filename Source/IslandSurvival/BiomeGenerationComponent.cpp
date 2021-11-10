@@ -175,7 +175,7 @@ void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, FIslandStats> Is
 
 		else //use the randomly choosen biome as the island's biome
 		{
-			if (!bHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, RandomBiome, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
+			if (!HasHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, RandomBiome, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
 				UpdateBiomeLists(RandomBiome, VertexIdentifier);
 		}
 	}
@@ -214,12 +214,12 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 			}
 		}
 		//as closest biome found update vertex with its biome
-		if (!bHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, NearestBiome, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
+		if (!HasHeightBiomes(TerrainGenerator->Vertices[VertexIdentifier].Z, NearestBiome, VertexIdentifier)) //check and update with height biome, if it exists otherwise a non-height biome
 			UpdateBiomeLists(NearestBiome, VertexIdentifier); //use the non-height based biome to update
 	}
 }
 
-bool UBiomeGenerationComponent::bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier)
+bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier)
 {
 	if (ZHeight > 900) //check if the Z position of the point is above the specified value
 	{
@@ -384,105 +384,78 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j)
 
 }
 
-void UBiomeGenerationComponent::SpawnTents() 
+void UBiomeGenerationComponent::SpawnStructure()
 {
-	int32 TentAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1000); // /2000 so if say 100 by 100 will get exactly 5 tents
-	/*
-		for each island have number of tents which spawn on it already worked out
-		
-		based on that make a grid so both X and Y can support half that many tents
+	int32 StructureAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1000); //determine number to spawn in based on map size, rounding if ends up being a float
+	//* divide by 1000 so that if say have a 100 by 100 map will have 10 tents spawn on it
+	
+	TArray<FVector2D> GridPoints; //list of all points where structures can spawn
 
-		then using code below actually spawn in tent at random point on the created grid
-
-
-		grid itself:
-			say have 2 points to spawn in
-			for first point pick a random corner of the grid to spawn the point at
-			island width / number of points = point amound in X direction
-
-			algorithm to make a grid so in x + y direction have the right number of points I guess
-
-			if take simpler approach: island has grid points in x and y of the number of tents to spawn in
-				for best randomness the x and y will need to have no less than 3 points, so chance exists that no matter what can spawn in middle
-				then for each tent just pick a random point to use on the island
-
-		if have 100 by 100 grid then:
-			each direction would have a grid square which is 20 appart
-			this gets a 5 by 5 grid so 25 points in total
-
-		Need to figure out a way to spawn them in in the same ratio
-
-	*/
-
-	TArray<FVector2D> GridPoints; //list of all points
-	float XDistAppart = TerrainGenerator->Width / TentAmount;
-	float YDistAppart = TerrainGenerator->Height / TentAmount;
-	for (int32 y = 0; y < TentAmount; y++) //initilize the grid to place the items on
+	//how far appart on the X and Y plane do these GridPoints appear ensuring that both will directions contain exactly Structure amount of points
+	float XDistAppart = TerrainGenerator->Width / StructureAmount;
+	float YDistAppart = TerrainGenerator->Height / StructureAmount;
+	for (int32 y = 0; y < StructureAmount; y++) //initilize the 2d grid so points can be made where the structures will be spawning in 
 	{
-		for (int32 x = 0; x < TentAmount; x++)
+		for (int32 x = 0; x < StructureAmount; x++)
 		{
 			GridPoints.Add(FVector2D(x*XDistAppart, y*YDistAppart));
 		}
 	}
 
-	for (int32 i = 0; i < TentAmount; i++)
+	for (int32 i = 0; i < StructureAmount; i++) //for the number of structure which can spawn in
 	{
-		int32 RandomIndex = TerrainGenerator->Stream.RandRange(0, GridPoints.Num() - 1);
-		int32 X = FMath::Clamp(FMath::CeilToInt(GridPoints[RandomIndex].X), 0, TerrainGenerator->Width - 1);
-		int32 Y = FMath::Clamp(FMath::CeilToInt(GridPoints[RandomIndex].Y), 0, TerrainGenerator->Height - 1);
+		int32 RandomIndex = TerrainGenerator->Stream.RandRange(0, GridPoints.Num() - 1); //get random index of the grid
 
-		int32 VertexIndex = Y * TerrainGenerator->Width + X;
-		FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex];
-		//UE_LOG(LogTemp, Error, TEXT("Tent Location's are: %s"), *VertexLocation.ToString())
+		int32 XPosition = FMath::Clamp(FMath::CeilToInt(GridPoints[RandomIndex].X), 0, TerrainGenerator->Width - 1);
+		int32 YPosition = FMath::Clamp(FMath::CeilToInt(GridPoints[RandomIndex].Y), 0, TerrainGenerator->Height - 1);
 
-		int32 XPosition = FMath::RoundToInt(VertexLocation.X / TerrainGenerator->GridSize);
-		int32 YPosition = FMath::RoundToInt(VertexLocation.Y / TerrainGenerator->GridSize);
-		//clamp the values so they don't fall outside of the size of the array of biome points
-		XPosition = FMath::Clamp(XPosition, 0, TerrainGenerator->Width - 1);
-		YPosition = FMath::Clamp(YPosition, 0, TerrainGenerator->Height - 1);
+		int32 VertexIndex = YPosition * TerrainGenerator->Width + XPosition; //get index in vertices array of the point
+		FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex]; //get its actual location
 
-		if (VertexLocation.Z < WaterLine)
-		{
-			//TerrainGenerator->Vertices[RandomLocation].Z = WaterLine;
-			VertexLocation.Z = 0;
-		}
+		if (VertexLocation.Z < WaterLine) //if spawning in the ocean
+			VertexLocation.Z = WaterLine - 90; //update the spawn location to be just below water surface, not ground
 		else
 		{
 			//ensure tent is on flat ground and not in a wall
-			for (int32 a = -1; a <= 1; a++) //get neighbouring vertices of current one which are same biome,    y
+			for (int32 a = -1; a <= 1; a++) //loop through the 8 neighbouring vertices of current one
 			{
-				for (int32 b = -1; b <= 1; b++) //x
+				for (int32 b = -1; b <= 1; b++) 
 				{
 					if (XPosition + b >= 0 && XPosition + b < TerrainGenerator->Width && YPosition + a >= 0 && YPosition + a < TerrainGenerator->Height)
-					{
+					{ //if neighbour actually on map
 						int32 NeighbourIndex = (a + YPosition) * TerrainGenerator->Width + (b + XPosition);
-						TerrainGenerator->Vertices[NeighbourIndex].Z = TerrainGenerator->Vertices[VertexIndex].Z;
+						TerrainGenerator->Vertices[NeighbourIndex].Z = TerrainGenerator->Vertices[VertexIndex].Z; //adjust its position so ground all have same Z Position as the central vertex
 					}
 				}
 			}
 		}
-		if (TerrainGenerator->Vertices[VertexIndex].Z < 0)
-			VertexLocation.Z -= 90; //so bouys will spawn in slightly under the water
-		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
-		SpawnedMesh->SetNetDormancy(ENetDormancy::DORM_DormantAll);
-		FVector SpawnerLocation = FVector(VertexLocation.X + TerrainGenerator->GridSize, VertexLocation.Y, VertexLocation.Z + 500);
-		AActor* ZombieSpawner = GetWorld()->SpawnActor<AActor>(TerrainGenerator->ZombieSpawner, SpawnerLocation, FRotator::ZeroRotator);
-		ZombieSpawner->SetNetDormancy(ENetDormancy::DORM_DormantAll);
-		SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
-		if (TerrainGenerator->Vertices[VertexIndex].Z < 0)
+		//spawn in empty mesh at given location
+		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
+		SpawnedMesh->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
+
+		float SpawnerXOffset = TerrainGenerator->GridSize; //shift point so will spawn more in front of the structure not no it
+		float SpawnerZOFsset = 500; //ensures spawner will spawn enemes above the structure
+		FVector SpawnerLocation = FVector(VertexLocation.X + SpawnerXOffset, VertexLocation.Y, VertexLocation.Z + SpawnerZOFsset);
+
+		//spawn in a Zombie Spawner actor into the map, at the specified location
+		AActor* ZombieSpawner = GetWorld()->SpawnActor<AActor>(TerrainGenerator->ZombieSpawner, SpawnerLocation, FRotator::ZeroRotator);
+		ZombieSpawner->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
+		SpawnedMesh->SetMobility(EComponentMobility::Stationary); //ensure it cannot move
+
+		if (TerrainGenerator->Vertices[VertexIndex].Z < 0) //spawn in a bouy as must be underwater
 		{
-			SpawnedMesh->SetActorScale3D(FVector(10)); //give the mesh a random scale
-			//SetActorLocation(FVector(SpawnedMesh->GetActorLocation().X, SpawnedMesh->GetActorLocation().Y, -90));
+			SpawnedMesh->SetActorScale3D(FVector(10)); //give the bouy a certain scale
 			SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Bouy); //assign the appropriate mesh to the spawned in actor
 		}
-		else
+		else //as on land spawn in a tent
 		{
-			SpawnedMesh->SetActorScale3D(FVector(40)); //give the mesh a random scale
+			SpawnedMesh->SetActorScale3D(FVector(40)); //give the bouy a certain scale
 			SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Tent); //assign the appropriate mesh to the spawned in actor
 		}
 
-		MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
+		//add the meshes to the list of all meshes within the map so will be destroyed when resetting map
+		MeshActors.Add(SpawnedMesh);
 		MeshActors.Add(ZombieSpawner);
 
 		GridPoints.RemoveAt(RandomIndex);
@@ -490,7 +463,7 @@ void UBiomeGenerationComponent::SpawnTents()
 }
 
 
-void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
+void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 {
 	for (auto& BiomePoints : VertexBiomeLocationsMap) //for each biome on the map
 	{
@@ -507,7 +480,7 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 					int32 RandomLocation = TerrainGenerator->Stream.RandRange(0, BiomePoints.Value.Num() - 1);
 					if (BiomePoints.Value.Num() > 0) {
 						int32 VertexIndex = BiomePoints.Value[RandomLocation];
-						FVector VertexLocation = MeshLocation(TerrainGenerator->Vertices[VertexIndex]);
+						FVector VertexLocation = MeshLocation(TerrainGenerator->Vertices[VertexIndex]); //adjust the location so somewhat offset
 
 						FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
 						Rotation.Yaw = TerrainGenerator->Stream.FRandRange(0.0f, 360.0f);
@@ -532,65 +505,68 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the meshes into the map
 	}
 }
 
-FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a square around the vertex spawning at, randomly place the mesh
+FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a square around the vertex spawning at, randomly place the mesh, so not appearing as a grid like pattern
 {
-	//need way to determine the z height of the point picked or, just not offset it if z height different
 
+	//get the index location of the point, using its actual location
 	int32 XIndex = FMath::FloorToInt(VertexPosition.X / TerrainGenerator->GridSize);
 	int32 YIndex = FMath::FloorToInt(VertexPosition.Y / TerrainGenerator->GridSize);
 
-	float MinX = VertexPosition.X; float MaxX = VertexPosition.X; float MinY = VertexPosition.Y; float MaxY = VertexPosition.Y;
-//	if(TerrainGenerator->Vertices[FMath::FloorToInt(VertexPosition.X / TerrainGenerator->GridSize) - 1])
-
+	//if a random x offset to be at max halfway between this point and its 2 neighbouring ons(in X direction)
 	float RandXPosition = TerrainGenerator->Stream.RandRange(VertexPosition.X - TerrainGenerator->GridSize / 2, VertexPosition.X + TerrainGenerator->GridSize / 2);
-	if (RandXPosition < VertexPosition.X)
+	
+	//as this offset could result in mesh floating in the air, perform a lerp so blend it with its appropriate neighbour's vertex
+	if (RandXPosition < VertexPosition.X) //as X choosen is going backwards, do for neighbour one back
 	{
-		if (XIndex - 1 >= 0)
+		if (XIndex - 1 >= 0) //ensure point actually on map
 		{
 			float NeighbourZ = TerrainGenerator->Vertices[YIndex * TerrainGenerator->Width + (XIndex - 1)].Z;
 			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
-			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.X - RandXPosition) / TerrainGenerator->GridSize);
+			float Alpha = FMath::Abs(VertexPosition.X - RandXPosition) / TerrainGenerator->GridSize; //how much of each value to include when lerping
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, Alpha); //lerp between values, so that meshes Z position will be on the ground
 			VertexPosition.Z = NewZPosition;
 		}
 	}
-	else if (RandXPosition > VertexPosition.X)
+	else if (RandXPosition > VertexPosition.X) //as X choosen is going forward, do for neighbour one back
 	{
-		if (XIndex + 1 < TerrainGenerator->Width)
+		if (XIndex + 1 < TerrainGenerator->Width) //ensure point actually on map
 		{
-			float NeighbourZ = TerrainGenerator->Vertices[YIndex * TerrainGenerator->Width + (XIndex + 1)].Z;
+			float NeighbourZ = TerrainGenerator->Vertices[YIndex * TerrainGenerator->Width + (XIndex + 1)].Z; //get Z height of neighbour
 			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
-			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.X - RandXPosition) / TerrainGenerator->GridSize);
+
+			float Alpha = FMath::Abs(VertexPosition.X - RandXPosition) / TerrainGenerator->GridSize; //how much of each value to include when lerping
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, Alpha); //lerp between values, so that meshes Z position will be on the ground
 			VertexPosition.Z = NewZPosition;
 		}
 	}
 
 
-
+	//if a random y offset to be at max halfway between this point and its 2 neighbouring ons(in y direction)
 	float RandYPosition = TerrainGenerator->Stream.RandRange(VertexPosition.Y - TerrainGenerator->GridSize / 2, VertexPosition.Y + TerrainGenerator->GridSize / 2);
-	if (RandYPosition < VertexPosition.Y)
+	if (RandYPosition < VertexPosition.Y) //as Y choosen is going backwards, do for neighbour one back
 	{
-		if (YIndex - 1 >= 0)
+		if (YIndex - 1 >= 0) //ensure point actually on map
 		{
 			float NeighbourZ = TerrainGenerator->Vertices[(YIndex - 1) * TerrainGenerator->Width + XIndex].Z;
 			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
-			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize);
+			float Alpha = FMath::Abs(VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize; //how much of each value to include when lerping
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, Alpha); //lerp between values, so that meshes Z position will be on the ground
 			VertexPosition.Z = NewZPosition;
 		}
 	}	
-	else if (RandYPosition > VertexPosition.Y)
+	else if (RandYPosition > VertexPosition.Y) //as Y choosen is going forward, do for neighbour one back
 	{
-		if (YIndex + 1 < TerrainGenerator->Height) 
+		if (YIndex + 1 < TerrainGenerator->Height)  //ensure point actually on map
 		{
 			float NeighbourZ = TerrainGenerator->Vertices[(YIndex + 1) * TerrainGenerator->Width + XIndex].Z;
-			//just lerp Z position between vertex pos and neighbour pos based on how far away it is
-			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, FMath::Abs(VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize);
+
+			float Alpha = FMath::Abs(VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize; //how much of each value to include when lerping
+			float NewZPosition = FMath::Lerp(VertexPosition.Z, NeighbourZ, Alpha); //lerp between values, so that meshes Z position will be on the ground
 			VertexPosition.Z = NewZPosition;
 		}
 	}
 
-	float test = FMath::Lerp(10, 10, 0.5f);
-	UE_LOG(LogTemp, Warning, TEXT("TEST VALUE: %f, %f, %f"), FMath::Abs((VertexPosition.Y - RandYPosition) / TerrainGenerator->GridSize), VertexPosition.Y, RandYPosition)
-
+	//update the new VertexPosition with the appropriate values for X and Y
 	VertexPosition.X = RandXPosition;
 	VertexPosition.Y = RandYPosition;
 	return VertexPosition;

@@ -87,10 +87,10 @@ public:
 	UPROPERTY()
 	TArray<AActor*> MeshActors; //all meshes added into the world
 
-	void BiomeLerping(int32 i, int32 j);
-	TArray<bool> bBeenLerped;
+	void BiomeLerping(int32 i, int32 j); //for two biomes, if at border blend the height values together so get a smoother transition
+	TArray<bool> bBeenLerped; //has this vertex been succesfully blended with its neighbour yet
 
-	void SpawnTents();
+	void SpawnStructure(); //spawn in tents and bouys around the map
 private:
 
 	PoissonDiskSampling DiskSampling;
@@ -98,7 +98,7 @@ private:
 	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined and disconected, so join them together
 	
 	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier); 
-	bool bHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //determine if it is a height based biome or not
+	bool HasHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //determine if it is a height based biome or not
 	void SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
 	void MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //for all biomes above a certain size generate multiple biomes
 
@@ -107,8 +107,8 @@ private:
 
 	FVector MeshLocation(FVector VertexPosition);
 
-	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	UPROPERTY(EditAnywhere)//the tent mesh
 		UStaticMesh* Tent;
-	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	UPROPERTY(EditAnywhere)//the bouy mesh
 		UStaticMesh* Bouy;
 };
