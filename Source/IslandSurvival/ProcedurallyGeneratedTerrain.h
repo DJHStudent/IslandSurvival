@@ -47,16 +47,9 @@ public:
 
 	TArray<int32> Triangles; //list of all meshes trianlges
 
-	//UFUNCTION(NetMulticast, Reliable)
 	void RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain); //when UI button pressed regenerate the map
 	void CreateMesh();
 	void ClearMap(); //remove any data stored for the previous map
-
-	////UPROPERTY(EditAnywhere)//the range of values perlin noise will return
-	////float PerlinScale; 
-	////UPROPERTY(EditAnywhere)//how spiky or smooth the terrain will be
-	////float PerlinRoughness; 
-
 
 	virtual bool ShouldTickIfViewportsOnly() const override; //update the maps terrain, when value changed even if in the editor and not running
 	UPROPERTY(EditAnywhere)

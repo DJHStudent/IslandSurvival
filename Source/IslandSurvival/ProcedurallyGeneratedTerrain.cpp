@@ -14,56 +14,31 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 
 	MeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("Mesh Component"); //create a procedural mesh for the terrain
 	if (MeshComponent)
+	{
 		MeshComponent->SetIsReplicated(true);
+	}
 	BiomeGeneration = CreateDefaultSubobject<UBiomeGenerationComponent>("Biome Generation Component"); //create a new component for handling biomes
 	if (BiomeGeneration)
 	{
 		BiomeGeneration->TerrainGenerator = this;
 		BiomeGeneration->SetIsReplicated(true);
 	}
-	//TerrainHeight = NewObject<UTerrainHeight>(this, TEXT("Terrain Height"));//, EObjectFlags::RF_Public);//NewObject<UTerrainHeight>();
 
 	//Set the default values for each paramter
 	Width = 100;
 	Height = 100;
 	GridSize = 200;
-//	PerlinScale = 25000;
-//	PerlinRoughness = 0.01f;
 
 	Seed = 0;
 	bRandomSeed = false;
 	bSmoothTerrain = false;
 	bReplicates = true;
-
-//	Octaves = 8;
-//	Lacunarity = 2.1f;
-//	Grain = 0.5f;
-
-//	DomainAmount = 40;
-
-//	Size = 2.0f;
-//	Steepness = 20.0f;
-//	AboveWater = 0.0025f;
-
-//	TerraceSize = 112.5f;
 }
 
 // Called when the game starts or when spawned
 void AProcedurallyGeneratedTerrain::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//make a new map when generating in the world
-	//
-	//if (GameState)
-	//{
-	//	Width = GameState->TerrainWidth;
-	//	Height = GameState->TerrainHeight;
-	//	Seed = GameState->TerrainSeed;
-	//	Stream = GameState->Stream;
-	//}
-	//RegenerateMap();
-	//SpawnMap();
 }
 
 bool AProcedurallyGeneratedTerrain::ShouldTickIfViewportsOnly() const //run the code within the viewport when not running
@@ -93,15 +68,6 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 
 void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Terrain Generated Succesfully"))
-	/*	GameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	if (GameState)
-	{
-		Width = GameState->TerrainWidth;
-		Height = GameState->TerrainHeight;
-		Stream = GameState->Stream;
-		Seed = GameState->TerrainSeed;*/
-
 	Seed = tSeed;
 	Width = tWidth;
 	Height = tHeight;
