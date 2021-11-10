@@ -20,15 +20,10 @@ public:
 	void UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain);
 
 private:
-	void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessages) override;
-	//AMainGameState* GameState;
-
 	virtual void PostSeamlessTravel() override;
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 
 
 	AMainGameState* MainGameState;
 	ACurrentPlayerController* HostController;
-
-	//virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 };
