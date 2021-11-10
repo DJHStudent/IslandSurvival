@@ -252,18 +252,15 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	TerrainGenerator->VerticeColours[VertexIdentifier] = BiomeStatsMap[Biome].GetDefaultObject()->BiomeColour; //for the specified biome assign the vertex the appropriate colour
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //also give each vertex the appropriate biome
 
+	//get the grid location of the current vertex
 	int32 XPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].X / TerrainGenerator->GridSize);
 	int32 YPos = FMath::RoundToInt(TerrainGenerator->Vertices[VertexIdentifier].Y / TerrainGenerator->GridSize);
 
 	//assign the appropriate height value to the vertex
-	//desert, alpine, forest, dryland, dead forest
-	if (BiomeStatsMap[Biome].GetDefaultObject()->bCustomTerrain)// || Biome == 12)
+	if (BiomeStatsMap[Biome].GetDefaultObject()->bCustomTerrain) //if the biome has custom terrain
 	{
-		//BiomeStatsMap[Biome].BiomeHeight.TerraceSize = TerrainGenerator->TerraceSize;
-		float NewZPos = BiomeStatsMap[Biome].GetDefaultObject()->TerrainHeight->GenerateHeight(XPos, YPos, TerrainGenerator->bSmoothTerrain);
-		//UE_LOG(LogTemp, Error, TEXT("Cusom BIome Mesh: %f"), ZPos)
-		TerrainGenerator->Vertices[VertexIdentifier].Z = NewZPos;
-		//TerrainGenerator->Vertices[VertexIdentifier].Z = FMath::RoundFromZero(TerrainGenerator->Vertices[VertexIdentifier].Z * TerrainGenerator->TerraceSize) / TerrainGenerator->TerraceSize;//terrace the terrain by rouding each points height to its nearest multiple of TerraceSize
+		float NewZPos = BiomeStatsMap[Biome].GetDefaultObject()->TerrainHeight->GenerateHeight(XPos, YPos, TerrainGenerator->bSmoothTerrain); //calculate a new Z height for it
+		TerrainGenerator->Vertices[VertexIdentifier].Z = NewZPos; //assign it as the new vertex height
 	}
 
 

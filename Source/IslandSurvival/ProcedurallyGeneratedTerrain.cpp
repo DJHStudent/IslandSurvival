@@ -160,14 +160,6 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 
 void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwise use the specified one from editor
 {
-	////if (bRandomSeed || Seed == 0) //if user has requested a random seed
-	////{
-	////	Stream.GenerateNewSeed(); //this generates us a new random seed for the stream
-	////	Seed = Stream.GetCurrentSeed(); //assign the seed the streams seed
-	////}
-	////else
-	////	Stream.Initialize(Seed); //initilizes the RNG with a specific seed
-
 	if (BiomeGeneration) 
 	{
 		for (auto& BiomeStats : BiomeGeneration->BiomeStatsMap) //for each biome give a random offset for each noise value to use
@@ -200,19 +192,9 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 		}
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
-	//BiomeGeneration->BiomeLerping();
 	BiomeGeneration->SpawnStructure();
 	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
-}
-
-void AProcedurallyGeneratedTerrain::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	////////DOREPLIFETIME(AProcedurallyGeneratedTerrain, Seed);
-	////////DOREPLIFETIME(AProcedurallyGeneratedTerrain, Stream);
-	////////DOREPLIFETIME(AProcedurallyGeneratedTerrain, Width);
-	////////DOREPLIFETIME(AProcedurallyGeneratedTerrain, Height);
 }

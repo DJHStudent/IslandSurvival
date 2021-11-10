@@ -71,8 +71,6 @@ public:
 	UPROPERTY() //once got value from server will generate the map
 	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated
-
 	UPROPERTY(EditAnywhere)//the mesh to spawn in
 	TSubclassOf<class AActor> ZombieSpawner;
 private:
@@ -84,5 +82,4 @@ private:
 	void GenerateSeed(); //determine the seed for the map
 
 	class AMainGameState* GameState;
-	void SpawnMap();
 };
