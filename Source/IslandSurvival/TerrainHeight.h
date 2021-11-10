@@ -11,7 +11,7 @@
  */
 UCLASS(Blueprintable, EditInlineNew) //allow class to be instanced and assigned in the details panel
 class ISLANDSURVIVAL_API UTerrainHeight : public UObject
-{
+{ //class used to store any values specific for the noise function doing on the biome / terrain as a whole
 	GENERATED_BODY()
 
 public:

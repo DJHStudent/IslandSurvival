@@ -11,6 +11,7 @@
 
 ALobbyGameMode::ALobbyGameMode()
 {
+	//get all the colour materials and assign them to the list of player colours
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> RedObject(TEXT("/Game/Materials/PlayerColours/RedPlayer"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> BlackObject(TEXT("/Game/Materials/PlayerColours/BlackPlayer"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> BlueGreenObject(TEXT("/Game/Materials/PlayerColours/BlueGreenPlayer"));
@@ -39,50 +40,44 @@ ALobbyGameMode::ALobbyGameMode()
 	InactivePlayerStateLifeSpan = 1.0f;
 }
 
-void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
+void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) //called after a player controller has sucessfully joined session
 {
 	Super::PostLogin(NewPlayer);
 
 	ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(NewPlayer);
-	if (PlayerController)
+	if (PlayerController) //if the player controller's class actually exists
 	{
-		if (NewPlayer->GetLocalRole() == ROLE_Authority && NewPlayer->IsLocalController())
-			PlayerController->ServerUpdateColour(HostColour);
+		if (NewPlayer->GetLocalRole() == ROLE_Authority && NewPlayer->IsLocalController()) //if the host
+			PlayerController->ServerUpdateColour(HostColour); //assign the host the same colour each time
 		else
 		{
-			int32 RandIndex = FMath::RandRange(0, PlayerColours.Num() - 1);
-			PlayerController->ServerUpdateColour(PlayerColours[RandIndex]);
-			UsedPlayerColours.Add(NewPlayer, PlayerColours[RandIndex]);
-			PlayerColours.RemoveAt(RandIndex);
+			int32 RandIndex = FMath::RandRange(0, PlayerColours.Num() - 1); 
+			PlayerController->ServerUpdateColour(PlayerColours[RandIndex]); //assign the player a radom colour from the list
+			UsedPlayerColours.Add(NewPlayer, PlayerColours[RandIndex]); //add to list of used colours with key as controller used
+			PlayerColours.RemoveAt(RandIndex); //remove colour as no new player can become it
 		}
 	}
 }
 
 void ALobbyGameMode::Logout(AController* Exiting)
-{
+{ //called when a controller has left the game
 	APlayerController* ExitingPlayer = Cast<APlayerController>(Exiting);
 
-	if (ExitingPlayer && UsedPlayerColours.Contains(ExitingPlayer))
+	if (ExitingPlayer && UsedPlayerColours.Contains(ExitingPlayer)) //ensure that the controller used is a PlayerController and it has been assigned a colour
 	{
-		PlayerColours.Add(UsedPlayerColours[ExitingPlayer]);
-		UsedPlayerColours.Remove(ExitingPlayer);
+		PlayerColours.Add(UsedPlayerColours[ExitingPlayer]); //get colour a player was using and readd it to the list of possible ones to use
+		UsedPlayerColours.Remove(ExitingPlayer); //remove this from the list of used colours
 	}
 	Super::Logout(Exiting);
 }
 
 void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
-{
-	const bool bUniqueIdCheckOk = (!UniqueId.IsValid() || (UniqueId.GetType() == UOnlineEngineInterface::Get()->GetDefaultOnlineSubsystemName()));
-	if (PlayerColours.Num() > 0) //as long as a colour exists 
-	{
+{ //called when user first connects to game, before anysetup is done
+	const bool bUniqueIdCheckOk = (!UniqueId.IsValid() || (UniqueId.GetType() == UOnlineEngineInterface::Get()->GetDefaultOnlineSubsystemName())); //checks player ID is actually unique
+	if (PlayerColours.Num() > 0 && bUniqueIdCheckOk) //only allow into session if not full, i.e a colour still exists to choose from 
 		ErrorMessage = GameSession->ApproveLogin(Options);
-	}
 	else
-	{
 		ErrorMessage = TEXT("Failed to Login");
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Failed to Join Session " + NumPlayers);
-	}
 
-	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage);
+	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage); //broadcast message back to client, causing them to fail to login if ErrorMessage not empty
 }

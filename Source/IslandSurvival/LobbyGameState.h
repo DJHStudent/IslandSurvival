@@ -11,7 +11,7 @@
  */
 UCLASS()
 class ISLANDSURVIVAL_API ALobbyGameState : public AGameState
-{
+{ //used when server is in the lobby map
 	GENERATED_BODY()
 public:
 	ALobbyGameState();

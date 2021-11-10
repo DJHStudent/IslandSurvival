@@ -28,7 +28,7 @@ public:
 private:
 	virtual bool Initialize() override;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidget)) //bind this to the actual widget element related to it
 	UTextBlock* TextBlockSeed;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TextBlockBiome;

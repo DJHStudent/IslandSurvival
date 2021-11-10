@@ -50,7 +50,7 @@ public:
 	UPROPERTY(EditAnywhere) //a list containing the key of each biome which can spawn in next to this one
 	TArray<int32> NeighbourBiomeKeys;
 
-	UPROPERTY(EditAnywhere, Category = "Terrain Height") //for each biome should it have a custom terrain
+	UPROPERTY(EditAnywhere, Category = "Terrain Height") //for each biome should it have a custom terrain, or use the default terrain made when first generated
 	bool bCustomTerrain;
 	
 	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")

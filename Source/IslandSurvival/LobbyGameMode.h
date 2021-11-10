@@ -11,7 +11,7 @@
  */
 UCLASS()
 class ISLANDSURVIVAL_API ALobbyGameMode : public AGameMode
-{
+{ //used when server is in the lobby map
 	GENERATED_BODY()
 
 private:
@@ -23,6 +23,6 @@ private:
 
 
 	UMaterialInterface* HostColour;
-	TArray<UMaterialInterface*> PlayerColours;
-	TMap<APlayerController*, UMaterialInterface*> UsedPlayerColours;
+	TArray<UMaterialInterface*> PlayerColours; //list of all possible colours player can still be when joining session
+	TMap<APlayerController*, UMaterialInterface*> UsedPlayerColours; //list of used colours and their related PlayerController
 };

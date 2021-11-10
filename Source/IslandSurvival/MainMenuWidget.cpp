@@ -10,16 +10,15 @@ bool UMainMenuWidget::Initialize() //run when the widget gets created
 {
 	Super::Initialize();
 
+	//setup appropriate delegates when buttons clicked
 	ButtonHost->OnClicked.AddDynamic(this, &UMainMenuWidget::OnHostButtonPressed);
 	ButtonJoin->OnClicked.AddDynamic(this, &UMainMenuWidget::OnJoinButtonPressed);
 	ButtonQuit->OnClicked.AddDynamic(this, &UMainMenuWidget::OnQuitButtonPressed);
-
 	ButtonCancel->OnClicked.AddDynamic(this, &UMainMenuWidget::OnCancelButtonPressed);
-
 	ButtonOK->OnClicked.AddDynamic(this, &UMainMenuWidget::OnOKButtonPressed);
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
-	Loading->SetVisibility(ESlateVisibility::Hidden);
+	Loading->SetVisibility(ESlateVisibility::Hidden); //as no loading anything, ensure it is hidden
 
 	return true;
 }
@@ -57,7 +56,7 @@ void UMainMenuWidget::OnCancelButtonPressed() //when searching for a session and
 	}
 }
 
-void UMainMenuWidget::UpdateJoiningText(FString Text)
+void UMainMenuWidget::UpdateJoiningText(FString Text) //update text telling user that a session was found and they are now in process of joinning it
 {
 	TextBlockJoining->SetText(FText::FromString(Text));
 }

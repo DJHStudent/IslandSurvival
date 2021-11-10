@@ -30,7 +30,7 @@ public:
 private:
 	virtual bool Initialize() override;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidget)) //assigns this element to the related one from the widget itself
 	UButton* ButtonLeave;
 	UPROPERTY(meta = (BindWidget))
 	UButton* ButtonStart;

@@ -14,7 +14,7 @@
  */
 UCLASS()
 class ISLANDSURVIVAL_API AMainGameMode : public AGameMode
-{
+{ //used when server is in the terrain map
 	GENERATED_BODY()
 public:
 	void UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain);

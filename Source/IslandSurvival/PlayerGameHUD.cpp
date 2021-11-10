@@ -20,12 +20,12 @@ bool UPlayerGameHUD::Initialize()
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get game instance for client on
 	return true;
 }
-void UPlayerGameHUD::UpdateBiomeTextBlock(FString Text)
+void UPlayerGameHUD::UpdateBiomeTextBlock(FString Text) //each tick when called, will update the text displaying the biome a player is currently in
 {
 	TextBlockBiome->SetText(FText::FromString(Text));
 }
 
-void UPlayerGameHUD::UpdateSeedTextBlock(FString Text)
+void UPlayerGameHUD::UpdateSeedTextBlock(FString Text) //when seed gotten from the server, update it so player can see what the seed was
 {
 	TextBlockSeed->SetText(FText::FromString("Seed: " + Text));
 }
