@@ -41,7 +41,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadGame();
 
-	void UpdateTerrain();
+	void TerrainToServer();
 
 	void CancelFindSession();
 	

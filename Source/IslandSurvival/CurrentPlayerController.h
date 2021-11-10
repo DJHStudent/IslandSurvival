@@ -18,8 +18,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	void ServerInitilizeTerrain(); //on the server, this function gets called
-		void ClientUpdateUI(); //Called on server, finds client whichs owns it and runs the code
+	void ServerInitilizeTerrain();
+	void ClientUpdateUI();
 
 	void ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain);
 	UFUNCTION(Client, Reliable)
@@ -31,5 +31,4 @@ public:
 	void ClientUpdateColour(UMaterialInterface* Colour); //Called on server, finds client whichs owns it and runs the code
 
 	UMainGameInstance* MainGameInstance;
-	//probably something in here to actually get the terrain generating properly
 };

@@ -16,6 +16,7 @@ class ISLANDSURVIVAL_API ALobbyGameState : public AGameState
 public:
 	ALobbyGameState();
 
+	//when these change on the servers version, properly update each client as well
 	UPROPERTY(ReplicatedUsing = UpdateWidth)
 		int32 TerrainWidth;
 	UPROPERTY(ReplicatedUsing = UpdateHeight)

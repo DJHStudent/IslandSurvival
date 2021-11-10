@@ -35,6 +35,8 @@ ALobbyGameMode::ALobbyGameMode()
 	PlayerColours.Add(Cast<UMaterialInterface>(PurpleObject.Object));
 	PlayerColours.Add(Cast<UMaterialInterface>(WhiteObject.Object));
 	PlayerColours.Add(Cast<UMaterialInterface>(YellowObject.Object));
+
+	InactivePlayerStateLifeSpan = 1.0f;
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)

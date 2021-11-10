@@ -228,7 +228,7 @@ void UMainGameInstance::LoadGame() //called on all players when loading the Terr
 	if (CurrentPlayerHUDWidget)
 		CurrentPlayerHUDWidget->AddToViewport(); //add players in game UI to the screen
 }
-void UMainGameInstance::UpdateTerrain() //as Main Game State now initilized give the Game Mode the local values saved by the host
+void UMainGameInstance::TerrainToServer() //as Main Game State now initilized give the Game Mode the local values saved by the host
 {
 	AMainGameMode* MainGame = Cast<AMainGameMode>(UGameplayStatics::GetGameMode(GetWorld())); //get the game mode for this map
 	if (MainGame)

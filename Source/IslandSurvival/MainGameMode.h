@@ -22,8 +22,4 @@ public:
 private:
 	virtual void PostSeamlessTravel() override;
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
-
-
-	AMainGameState* MainGameState;
-	ACurrentPlayerController* HostController;
 };

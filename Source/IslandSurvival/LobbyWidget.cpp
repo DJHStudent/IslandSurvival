@@ -5,7 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
-bool ULobbyWidget::Initialize() //run when the widget gets created
+bool ULobbyWidget::Initialize() //run when the widget gets created to setup nessesary values
 {
 	Super::Initialize();
 
@@ -21,7 +21,7 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld())); //get a reference to the Game Instance using on each client
 	LobbyGameState = Cast<ALobbyGameState>(UGameplayStatics::GetGameState(GetWorld())); //get a reference to the Game Instance using on each client
 
-	if (LobbyGameState) //for each widget variant set the default values
+	if (LobbyGameState) //for each widget variant set the current values to be displayed when loading into lobby
 	{
 		SetSeed(LobbyGameState->Seed);
 		SetWidth(LobbyGameState->TerrainWidth);
@@ -34,14 +34,14 @@ bool ULobbyWidget::Initialize() //run when the widget gets created
 	return true;
 }
 
-void ULobbyWidget::SetEditability(APawn* Player) //come back to eventually once rest of code setup as no idea about this
+void ULobbyWidget::SetEditability(APawn* Player) //on clients which are not the host, disable the editability of the terrain settings
 {
 	if (Player && Player->GetLocalRole() == ROLE_AutonomousProxy) //if controlled player not on server
 	{
 		if (ButtonStart)
 		{
-			ButtonStart->SetVisibility(ESlateVisibility::HitTestInvisible);
-			ButtonStart->SetRenderOpacity(0.5f);
+			ButtonStart->SetVisibility(ESlateVisibility::HitTestInvisible); //stop button being interacted with
+			ButtonStart->SetRenderOpacity(0.5f); //make it clear to client cannot actually edit it
 		}
 		if (SpinBoxSeed)
 		{
@@ -63,7 +63,6 @@ void ULobbyWidget::SetEditability(APawn* Player) //come back to eventually once 
 			CheckBoxSmooth->SetVisibility(ESlateVisibility::HitTestInvisible);
 			CheckBoxSmooth->SetRenderOpacity(0.5f);
 		}
-		UE_LOG(LogTemp, Error, TEXT("Successfully Stopped Editing Ability: %s"), *Player->GetName())
 	}
 }
 
@@ -71,14 +70,14 @@ void ULobbyWidget::OnStartButtonPressed() //when called move all clients to the 
 {
 	if (MainGameInstance)
 	{
-		if (LobbyGameState) //copy the variables to the host version
+		if (LobbyGameState) //copy the variables to the host's GameInstance so not deleted when server travelling
 		{
 			MainGameInstance->Seed = LobbyGameState->Seed;
 			MainGameInstance->TerrainHeight = LobbyGameState->TerrainHeight;
 			MainGameInstance->TerrainWidth = LobbyGameState->TerrainWidth;
 			MainGameInstance->bSmoothTerrain = LobbyGameState->bSmoothTerrain;
 		}
-		MainGameInstance->StartGame();
+		MainGameInstance->StartGame(); //begin process to setup the terrain map correctly
 	}
 }
 
@@ -92,22 +91,22 @@ void ULobbyWidget::OnLeaveButtonPressed() //when called remove this client from 
 
 void ULobbyWidget::SetSeed(int32 Value)
 {
-	if (SpinBoxSeed)
+	if (SpinBoxSeed) //when seed changes on Lobby Game State update its value on this client
 		SpinBoxSeed->SetValue(Value);
 }
 void ULobbyWidget::SetWidth(int32 Value)
 {
-	if (SpinBoxWidth)
+	if (SpinBoxWidth) //when width changes on Lobby Game State update its value on this client
 		SpinBoxWidth->SetValue(Value);
 }
 void ULobbyWidget::SetHeight(int32 Value)
 {
-	if (SpinBoxHeight)
+	if (SpinBoxHeight) //when height changes on Lobby Game State update its value on this client
 		SpinBoxHeight->SetValue(Value);
 }
 void ULobbyWidget::SetSmooth(bool Value)
 {
-	if (CheckBoxSmooth)
+	if (CheckBoxSmooth) //when smooth changes on Lobby Game State update its value on this client
 	{
 		if (Value)
 			CheckBoxSmooth->SetCheckedState(ECheckBoxState::Checked);
@@ -118,32 +117,29 @@ void ULobbyWidget::SetSmooth(bool Value)
 
 
 void ULobbyWidget::OnSeedChanged(float InValue)
-{
-	int32 RoundValue = FMath::RoundToInt(InValue);
-	//call game state to update all clients
+{ //if the host has actually changed the value of the seed, update the LobbyGameState with the new value
+	int32 RoundValue = FMath::RoundToInt(InValue); //as spin box is a float, convert it to an int
 	if (LobbyGameState)
 		LobbyGameState->Seed = RoundValue;
 }
 
 void ULobbyWidget::OnWidthChanged(float InValue)
-{
-	int32 RoundValue = FMath::RoundToInt(InValue);
-	//call game state to update all clients
+{ //if the host has actually changed the value of the width, update the LobbyGameState with the new value
+	int32 RoundValue = FMath::RoundToInt(InValue); //as spin box is a float, convert it to an int
 	if (LobbyGameState)
 		LobbyGameState->TerrainWidth = RoundValue;
 }
 
 void ULobbyWidget::OnHeightChanged(float InValue)
-{
-	int32 RoundValue = FMath::RoundToInt(InValue);
-	//call game state to update all clients
+{ //if the host has actually changed the value of the height, update the LobbyGameState with the new value
+	int32 RoundValue = FMath::RoundToInt(InValue); //as spin box is a float, convert it to an int
 	if (LobbyGameState)
 		LobbyGameState->TerrainHeight = RoundValue;
 }
 
 void ULobbyWidget::OnSmoothChanged(bool bIsChecked)
 {
-	//call game state to update all clients
+	//if the host has actually changed the value of the smooth, update the LobbyGameState with the new value
 	if (LobbyGameState)
 		LobbyGameState->bSmoothTerrain = bIsChecked;
 }

@@ -5,28 +5,22 @@
 #include "Engine/World.h"
 #include "ProcedurallyGeneratedTerrain.h"
 #include "Kismet/GameplayStatics.h"
-void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete, then can actually load the map
+void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete for all clients, then can actually load the map
 {
 	Super::PostSeamlessTravel();
-
-	MainGameState = GetGameState<AMainGameState>();
 	for (auto It = GetWorld()->GetControllerIterator(); It; ++It) //for all players which have appeared in this new level
 	{
 		ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(It->Get()); //get the controller
-		if(PlayerController) //if found, update the UI to use the one for this level
-		{ 
-			if (PlayerController->GetLocalRole() == ROLE_Authority && PlayerController->IsLocalController()) //find controller on server and update it
-			{
-				HostController = PlayerController;
-				PlayerController->ServerInitilizeTerrain();
-			}
+		if (PlayerController && PlayerController->GetLocalRole() == ROLE_Authority && PlayerController->IsLocalController()) //find controller on server only
+		{
+			PlayerController->ServerInitilizeTerrain(); //get the terrain values from the host client
 		}
 	}
 }
 
-void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain)
+void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain) //tell each player to actually update their terrain
 {
-	FRandomStream Stream;
+	FRandomStream Stream; //determine the seed all players will use
 	if (Seed == 0)
 	{
 		Stream.GenerateNewSeed(); //this generates us a new random seed for the stream
@@ -41,7 +35,7 @@ void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, b
 	for (auto It = GetWorld()->GetControllerIterator(); It; ++It) //for all players which have appeared in this new level
 	{
 		ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(It->Get()); //get the controller
-		if (PlayerController && PlayerController->HasActorBegunPlay()) //if found, update the UI to use the one for this level
+		if (PlayerController && PlayerController->HasActorBegunPlay()) //if found, update the UI to use the player HUD widget, as well as their terrain
 		{
 			PlayerController->ServerUpdateTerrain(Seed, Width, Height, Stream, bSmoothTerrain);
 		}
@@ -49,8 +43,8 @@ void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, b
 }
 
 void AMainGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
-{
-	ErrorMessage = TEXT("Failed to Login"); //auto fail as on the wrong map
+{ //called just as soon as connection occurs with this server
+	ErrorMessage = TEXT("Failed to Login"); //auto fail as on the wrong map, can only join if on lobby
 
-	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage);
+	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage); //broadcast to the player this failure
 }

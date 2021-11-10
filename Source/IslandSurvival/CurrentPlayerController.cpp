@@ -15,69 +15,45 @@ void ACurrentPlayerController::BeginPlay()
 
 void ACurrentPlayerController::ServerInitilizeTerrain() //on the server controller update the terrain
 {
-	//ClientUpdateUI();
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (MainGameInstance)
-		MainGameInstance->UpdateTerrain();
-	////if (GetLocalRole() == ROLE_Authority) //if one which is on the server, can actually call the code to update the terrain
-	////{
-	////	UE_LOG(LogTemp, Error, TEXT("On This Player Updating its UI"))
-	////	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	////	if (MainGameInstance)
-	////		MainGameInstance->LoadGame();
-	////}
-
+	if (MainGameInstance) //get the hosts game instance
+		MainGameInstance->TerrainToServer(); //put their terrain values onto the MainGameMode class
 }
 
-void ACurrentPlayerController::ClientUpdateUI()
+void ACurrentPlayerController::ClientUpdateUI() //update the clients UI
 {
-	UE_LOG(LogTemp, Error, TEXT("On This Player Updating its UI"))
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (MainGameInstance)
-		MainGameInstance->LoadGame();
-	//AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	//if (ProceduralTerrain)
-	//	ProceduralTerrain->RegenerateMap();
+	if (MainGameInstance) //get the clients GameInstance
+		MainGameInstance->LoadGame(); //as called when game starts, update UI to be the players HUD
 }
 
 void ACurrentPlayerController::ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain)
 {
-	ClientUpdateTerrain(Seed, Width, Height, Stream, bSmoothTerrain);
+	ClientUpdateTerrain(Seed, Width, Height, Stream, bSmoothTerrain); //as on server, call the related client to update its terrain
 }
 
 void ACurrentPlayerController::ClientUpdateTerrain_Implementation(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain)
-{
+{ //RPC down to the client so it can update its UI and terrain
 	ClientUpdateUI(); //just before the terrain loads in update the UI
-	UE_LOG(LogTemp, Warning, TEXT("Client beginning Process to make terrain"))
-		AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	if (ProceduralTerrain)
-		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
+	
+	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	if (ProceduralTerrain) //if found terrain actor in scene
+		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain); //renerate it, using these values 
 	//update clients UI with seed
-	//MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (MainGameInstance && MainGameInstance->CurrentPlayerHUDWidget)
 	{
-		MainGameInstance->CurrentPlayerHUDWidget->UpdateSeedTextBlock(FString::FromInt(Seed));
+		MainGameInstance->CurrentPlayerHUDWidget->UpdateSeedTextBlock(FString::FromInt(Seed)); //update players UI to display this seed
 	}
 }
 
 void ACurrentPlayerController::ServerUpdateColour(UMaterialInterface* Colour)
-{
-	ClientUpdateColour(Colour);
-	////////if (GetLocalRole() == ROLE_Authority) //if one which is on the server, can actually call the code to update the terrain
-	////////{
-	////////	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	////////	if (MainGameInstance)
-	////////		MainGameInstance->PlayerColour = Colour;
-	////////}
-
+{ //called so each client can store reference to colour material they are using
+	ClientUpdateColour(Colour); //as on server, move down to the clients version
 }
 
 void ACurrentPlayerController::ClientUpdateColour_Implementation(UMaterialInterface* Colour)
 {
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (MainGameInstance)
-		MainGameInstance->PlayerColour = Colour;
-	//AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	//if (ProceduralTerrain)
-	//	ProceduralTerrain->RegenerateMap();
+	if (MainGameInstance) //get the clients GameInstance
+		MainGameInstance->PlayerColour = Colour; //store the players colour material using in the GameInstance class
 }

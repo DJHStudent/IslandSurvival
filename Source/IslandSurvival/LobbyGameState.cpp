@@ -10,6 +10,7 @@
 
 ALobbyGameState::ALobbyGameState()
 {
+	//assign the default starting values
 	TerrainWidth = 300;
 	TerrainHeight = 300;
 	Seed = 0;
@@ -17,7 +18,7 @@ ALobbyGameState::ALobbyGameState()
 }
 
 void ALobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
+{ //setup these values to be replicated
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ALobbyGameState, TerrainWidth);
 	DOREPLIFETIME(ALobbyGameState, TerrainHeight);
@@ -26,46 +27,29 @@ void ALobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 }
 
 void ALobbyGameState::UpdateHeight()
-{
+{	//as server height changed, on this client update the Lobby widget UI to reflect this change
 	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
+	if (PlayerInstance && PlayerInstance->Lobby) //if the lobby UI exists in the player GameInstance class
 		PlayerInstance->Lobby->SetHeight(TerrainHeight);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainHeight);
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"));
 }
 
 void ALobbyGameState::UpdateWidth()
-{
+{ //as server width changed, on this client update the Lobby widget UI to reflect this change
 	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
+	if (PlayerInstance && PlayerInstance->Lobby) //if the lobby UI exists in the player GameInstance class
 		PlayerInstance->Lobby->SetWidth(TerrainWidth);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), TerrainWidth);
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"));
 }
 
 void ALobbyGameState::UpdateSeed()
-{
+{ //as server seed changed, on this client update the Lobby widget UI to reflect this change
 	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
+	if (PlayerInstance && PlayerInstance->Lobby)//if the lobby UI exists in the player GameInstance class
 		PlayerInstance->Lobby->SetSeed(Seed);
-		UE_LOG(LogTemp, Warning, TEXT("Updated Terrain Height: %i"), Seed);
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("No Lobby UI Found So failling to do any replication"));
 }
 
 void ALobbyGameState::UpdateSmooth()
-{
+{ //as server smooth changed, on this client update the Lobby widget UI to reflect this change
 	UMainGameInstance* PlayerInstance = Cast<UMainGameInstance>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetGameInstance());
-	if (PlayerInstance && PlayerInstance->Lobby)
-	{
+	if (PlayerInstance && PlayerInstance->Lobby) //if the lobby UI exists in the player GameInstance class
 		PlayerInstance->Lobby->SetSmooth(bSmoothTerrain);
-	}
 }
