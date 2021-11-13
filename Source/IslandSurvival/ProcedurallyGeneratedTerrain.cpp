@@ -16,6 +16,7 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 	if (MeshComponent)
 	{
 		MeshComponent->SetIsReplicated(true);
+		MeshComponent->bUseAsyncCooking = false;
 	}
 	BiomeGeneration = CreateDefaultSubobject<UBiomeGenerationComponent>("Biome Generation Component"); //create a new component for handling biomes
 	if (BiomeGeneration)
@@ -68,11 +69,19 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 
 void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain)
 {
-	Seed = tSeed;
-	Width = tWidth;
-	Height = tHeight;
-	Stream = tStream;
-	bSmoothTerrain = tbSmoothTerrain;
+	this->Seed = tSeed;
+	this->Width = tWidth;
+	this->Height = tHeight;
+	this->Stream = tStream;
+	this->bSmoothTerrain = tbSmoothTerrain;
+
+	//AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	//(new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain))->StartBackgroundTask();
+	RegenContinued();
+}
+
+void AProcedurallyGeneratedTerrain::RegenContinued()
+{
 	ClearMap(); //delete any previosuly stored values
 
 	if (BiomeGeneration)
@@ -90,7 +99,6 @@ void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int
 	}
 	CreateMesh(); //generate the terrain mesh
 	bRegenerateMap = false;
-
 }
 
 void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all data for it

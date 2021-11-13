@@ -8,6 +8,7 @@
 #include "BiomeGenerationComponent.h"
 #include "TerrainHeight.h"
 #include "MainGameState.h"
+#include "Async/AsyncWork.h"
 #include "ProcedurallyGeneratedTerrain.generated.h"
 
 UCLASS()
@@ -48,6 +49,7 @@ public:
 	TArray<int32> Triangles; //list of all meshes trianlges
 
 	void RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain); //when UI button pressed regenerate the map
+	void RegenContinued();
 	void CreateMesh();
 	void ClearMap(); //remove any data stored for the previous map
 
@@ -75,4 +77,29 @@ private:
 	void GenerateSeed(); //determine the seed for the map
 
 	class AMainGameState* GameState;
+};
+
+class AsyncTerrainGeneration : public FNonAbandonableTask
+{
+public:
+	AProcedurallyGeneratedTerrain* Terrain;
+	AsyncTerrainGeneration(AProcedurallyGeneratedTerrain* Terrain)
+	{
+		//constructor called
+		this->Terrain = Terrain;
+	}
+	////~AsyncTerrainGeneration()
+	////{
+	////	//destructor called automatically when DoWork() done
+	////}
+
+	FORCEINLINE TStatId GetStatId() const
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT(AsyncTerrainGeneration, STATGROUP_ThreadPoolAsyncTasks);
+	}
+
+	void DoWork()
+	{
+		Terrain->RegenContinued(); //async updating of the terrain
+	}
 };
