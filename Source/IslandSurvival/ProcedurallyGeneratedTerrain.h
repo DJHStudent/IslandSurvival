@@ -76,6 +76,9 @@ private:
 	bool bRandomSeed; 
 	void GenerateSeed(); //determine the seed for the map
 
+	FAsyncTask<class AsyncTerrainGeneration>* AsyncVertices;
+	void GenerateMeshes();
+
 	class AMainGameState* GameState;
 };
 
@@ -88,10 +91,10 @@ public:
 		//constructor called
 		this->Terrain = Terrain;
 	}
-	////~AsyncTerrainGeneration()
-	////{
-	////	//destructor called automatically when DoWork() done
-	////}
+	~AsyncTerrainGeneration()
+	{
+		//destructor called automatically when DoWork() done
+	}
 
 	FORCEINLINE TStatId GetStatId() const
 	{
@@ -100,6 +103,7 @@ public:
 
 	void DoWork()
 	{
-		Terrain->RegenContinued(); //async updating of the terrain
+		if (Terrain)
+			Terrain->CreateMesh(); //async updating of the terrain
 	}
 };

@@ -5,7 +5,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "MainGameInstance.h"
 #include "PlayerGameHUD.h"
+#include "Engine/Engine.h"
 #include "ProcedurallyGeneratedTerrain.h"
+#include "TimerManager.h"
 
 ACurrentPlayerController::ACurrentPlayerController()
 {
@@ -41,13 +43,33 @@ void ACurrentPlayerController::ClientUpdateTerrain_Implementation(int32 Seed, in
 { //RPC down to the client so it can update its UI and terrain
 	ClientUpdateUI(); //just before the terrain loads in update the UI
 	
-	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	if (ProceduralTerrain) //if found terrain actor in scene
-		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain); //renerate it, using these values 
+	TryUpdateTerrain(Seed, Width, Height, Stream, bSmoothTerrain); //renerate it, using these values 
 	//update clients UI with seed
 	if (MainGameInstance && MainGameInstance->CurrentPlayerHUDWidget)
 	{
 		MainGameInstance->CurrentPlayerHUDWidget->UpdateSeedTextBlock(FString::FromInt(Seed)); //update players UI to display this seed
+	}
+}
+
+
+
+
+void ACurrentPlayerController::TryUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain)
+{ //repeatedly try to update the terrain, attempting again if somehow it failed to actually find the terrain actor in the world
+	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	if (ProceduralTerrain) //if found terrain actor in scene, note sometimes actually fails to find the terrain at all
+		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain); //renerate it, using these values 
+	else //terrain not loaded in yet, I guess, so try again
+	{
+		if (GEngine) //this is where stuff gets called when it cannot find the terrain at all
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Terrain failed to be found");
+		
+		float WaitTime = 0.5f; //wait 1/2 second and try loading in again
+		//code to run the timer
+		FTimerHandle RetryTimer;
+		FTimerDelegate RetryDelegate = FTimerDelegate::CreateUObject(this, &ACurrentPlayerController::TryUpdateTerrain,
+			Seed, Width, Height, Stream, bSmoothTerrain); //custom delegate to allow paramater to be passed in
+		GetWorldTimerManager().SetTimer(RetryTimer, RetryDelegate, WaitTime, false);
 	}
 }
 

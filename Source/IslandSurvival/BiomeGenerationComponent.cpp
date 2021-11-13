@@ -3,6 +3,7 @@
 
 #include "BiomeGenerationComponent.h"
 #include "Engine/StaticMeshActor.h"
+#include "Async/AsyncWork.h"
 
 // Sets default values for this component's properties
 UBiomeGenerationComponent::UBiomeGenerationComponent()

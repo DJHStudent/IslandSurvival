@@ -25,6 +25,7 @@ public:
 	void ServerUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain);
 	UFUNCTION(Client, Reliable)
 	void ClientUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain);
+	void TryUpdateTerrain(int32 Seed, int32 Width, int32 Height, FRandomStream Stream, bool bSmoothTerrain);
 
 	void ServerUpdateColour(UMaterialInterface* Colour); //on the server, this function gets called
 	UFUNCTION(Client, Reliable)

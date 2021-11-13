@@ -65,6 +65,16 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 		}
 		RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
 	}
+
+	//when the vertices array is completed
+	if (AsyncVertices && AsyncVertices->IsDone()) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT(" Async Task Done: %i "));
+		AsyncVertices->EnsureCompletion();
+		delete AsyncVertices;
+		AsyncVertices = nullptr;
+		GenerateMeshes(); //spawn in the plants etc
+	}
 }
 
 void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain)
@@ -75,8 +85,6 @@ void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int
 	this->Stream = tStream;
 	this->bSmoothTerrain = tbSmoothTerrain;
 
-	//AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	//(new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain))->StartBackgroundTask();
 	RegenContinued();
 }
 
@@ -97,7 +105,11 @@ void AProcedurallyGeneratedTerrain::RegenContinued()
 		TerrainHeight->Width = Width;
 		TerrainHeight->Height = Height;
 	}
-	CreateMesh(); //generate the terrain mesh
+	///////CreateMesh(); //generate the terrain mesh
+	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	AsyncVertices = (new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain));
+	AsyncVertices->StartBackgroundTask();
+
 	bRegenerateMap = false;
 }
 
@@ -166,6 +178,12 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 		}
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
+
+	//GenerateMeshes();
+}
+
+void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate populating all the nessesary data
+{
 	BiomeGeneration->SpawnStructure();
 	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 

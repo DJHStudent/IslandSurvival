@@ -35,7 +35,7 @@ void AMainGameMode::UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, b
 	for (auto It = GetWorld()->GetControllerIterator(); It; ++It) //for all players which have appeared in this new level
 	{
 		ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(It->Get()); //get the controller
-		if (PlayerController && PlayerController->HasActorBegunPlay()) //if found, update the UI to use the player HUD widget, as well as their terrain
+		if (PlayerController) //if found, update the UI to use the player HUD widget, as well as their terrain
 		{
 			PlayerController->ServerUpdateTerrain(Seed, Width, Height, Stream, bSmoothTerrain);
 		}
