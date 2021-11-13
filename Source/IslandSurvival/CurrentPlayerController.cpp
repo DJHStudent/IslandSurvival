@@ -7,6 +7,11 @@
 #include "PlayerGameHUD.h"
 #include "ProcedurallyGeneratedTerrain.h"
 
+ACurrentPlayerController::ACurrentPlayerController()
+{
+
+}
+
 void ACurrentPlayerController::BeginPlay()
 {
 	Super::BeginPlay();

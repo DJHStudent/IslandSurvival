@@ -66,6 +66,7 @@ void APlayerCharacter::UISetup() //based on game state do some updates to the vi
 		{
 			BodyMesh->SetMaterial(0, MainGameInstance->PlayerColour); //set this player's colour to the value saved
 			ServerUpdatePlayerColour(MainGameInstance->PlayerColour); //call on the server so that it can update all other clients, with the right colour
+			GetController();
 		}
 	}
 }

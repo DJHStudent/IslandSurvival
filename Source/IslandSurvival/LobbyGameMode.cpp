@@ -8,6 +8,7 @@
 #include "GameFramework/GameSession.h"
 #include "Engine/Engine.h"
 #include "Net/OnlineEngineInterface.h"
+#include "PlayerCharacter.h"
 
 ALobbyGameMode::ALobbyGameMode()
 {
@@ -40,13 +41,17 @@ ALobbyGameMode::ALobbyGameMode()
 	InactivePlayerStateLifeSpan = 1.0f;
 }
 
-void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) //called after a player controller has sucessfully joined session
+void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) //called after a player controller has sucessfully joined session and PostLogin
 {
-	Super::PostLogin(NewPlayer);
+	Super::PostLogin(NewPlayer); //once player pawn created also do this code
 
 	ACurrentPlayerController* PlayerController = Cast<ACurrentPlayerController>(NewPlayer);
 	if (PlayerController) //if the player controller's class actually exists
 	{
+		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(PlayerController->GetPawn());
+		if(PlayerCharacter)
+			UE_LOG(LogTemp, Warning, TEXT("Player Has Been Found"))
+
 		if (NewPlayer->GetLocalRole() == ROLE_Authority && NewPlayer->IsLocalController()) //if the host
 			PlayerController->ServerUpdateColour(HostColour); //assign the host the same colour each time
 		else
@@ -55,6 +60,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) //called after a pl
 			PlayerController->ServerUpdateColour(PlayerColours[RandIndex]); //assign the player a radom colour from the list
 			UsedPlayerColours.Add(NewPlayer, PlayerColours[RandIndex]); //add to list of used colours with key as controller used
 			PlayerColours.RemoveAt(RandIndex); //remove colour as no new player can become it
+			PlayerController->GetPawn();
 		}
 	}
 }
