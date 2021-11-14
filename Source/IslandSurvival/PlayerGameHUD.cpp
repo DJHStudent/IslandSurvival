@@ -42,6 +42,12 @@ void UPlayerGameHUD::HidePauseMenu() //hide the pause menu
 		PauseMenu->SetVisibility(ESlateVisibility::Hidden);
 }
 
+void UPlayerGameHUD::HideLoading() //hide the pause menu
+{
+	if (Loading)
+		Loading->SetVisibility(ESlateVisibility::Hidden);
+}
+
 void UPlayerGameHUD::OnResumeButtonPressed() //on playercharacter, allow it to resume playing as pause completed
 {
 	APlayerCharacter* Player = Cast<APlayerCharacter>(GetOwningPlayerPawn());

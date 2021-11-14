@@ -5,6 +5,7 @@
 #include "KismetProceduralMeshLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "MainGameInstance.h"
 
 // Sets default values
 AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
@@ -189,4 +190,8 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
+
+	UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (MainGameInstance)
+		MainGameInstance->FinishTerrainLoading();
 }

@@ -25,6 +25,8 @@ public:
 
 	void ShowPauseMenu();
 	void HidePauseMenu();
+
+	void HideLoading();
 private:
 	virtual bool Initialize() override;
 
@@ -35,6 +37,8 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* PauseMenu;
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* Loading;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* ButtonResume;

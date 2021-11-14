@@ -216,8 +216,8 @@ void UMainGameInstance::LoadGame() //called on all players when loading the Terr
 	PlayerController = GetFirstLocalPlayerController();
 	if (PlayerController)
 	{
-		FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
-		PlayerController->bShowMouseCursor = false;
+		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		PlayerController->bShowMouseCursor = true;
 		PlayerController->SetInputMode(InputMode);
 	}
 
@@ -236,6 +236,21 @@ void UMainGameInstance::TerrainToServer() //as Main Game State now initilized gi
 		MainGame->UpdateTerrainValues(Seed, TerrainWidth, TerrainHeight, bSmoothTerrain); //pass these values to the Game Mode
 	}
 }
+
+void UMainGameInstance::FinishTerrainLoading() //called on each player once their terrain has finished loading in
+{
+	APlayerController* PlayerController;
+	PlayerController = GetFirstLocalPlayerController();
+	if (PlayerController)
+	{
+		FInputModeGameOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		PlayerController->bShowMouseCursor = false;
+		PlayerController->SetInputMode(InputMode);
+	}
+	if (CurrentPlayerHUDWidget) //will 100% fail if finished before fully loaded in terrain, unless actually already setup beforehand
+		CurrentPlayerHUDWidget->HideLoading();
+}
+
 
 void UMainGameInstance::HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {

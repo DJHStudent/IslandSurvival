@@ -42,6 +42,7 @@ public:
 	void LoadGame();
 
 	void TerrainToServer();
+	void FinishTerrainLoading();
 
 	void CancelFindSession();
 	
