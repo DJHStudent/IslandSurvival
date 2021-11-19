@@ -447,27 +447,31 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 						int32 VertexIndex = BiomePoints.Value[RandomLocation];
 						int32 XCentre = FMath::Clamp(FMath::CeilToInt(TerrainGenerator->Vertices[VertexIndex].X / TerrainGenerator->GridSize), 0, TerrainGenerator->Width - 1);
 						int32 YCentre = FMath::Clamp(FMath::CeilToInt(TerrainGenerator->Vertices[VertexIndex].Y / TerrainGenerator->GridSize), 0, TerrainGenerator->Height - 1);
-						RadiusPoints.Add(VertexIndex);
-						for (int32 a = -3; a < 3; a++) //add all points within a 2 radius of the choosen one
+						if (DifferentMeshes.NeighbourRadius == 0)
+							RadiusPoints.Add(VertexIndex);
+						else
 						{
-							for (int32 b = -3; b < 3; b++)
+							for (int32 a = -DifferentMeshes.NeighbourRadius; a < DifferentMeshes.NeighbourRadius; a++) //add all points within a 2 radius of the choosen one
 							{
-								if (XCentre + b >= 0 && XCentre + b < TerrainGenerator->Width && YCentre + a >= 0 && YCentre + a < TerrainGenerator->Height)
-								{ //as long as the point is actually on the map
-									int32 NeighbourIndex = (a + YCentre) * TerrainGenerator->Width + (b + XCentre);
-									if (BiomePoints.Key == BiomeAtEachPoint[NeighbourIndex]) //ensure neighbour point will be the same biome
-									{
-										//now can actually add the point to the radius, as long as exists
-										if (BiomePoints.Value.Contains(NeighbourIndex))
-											RadiusPoints.Add(NeighbourIndex);
+								for (int32 b = -DifferentMeshes.NeighbourRadius; b < DifferentMeshes.NeighbourRadius; b++)
+								{
+									if (XCentre + b >= 0 && XCentre + b < TerrainGenerator->Width && YCentre + a >= 0 && YCentre + a < TerrainGenerator->Height)
+									{ //as long as the point is actually on the map
+										int32 NeighbourIndex = (a + YCentre) * TerrainGenerator->Width + (b + XCentre);
+										if (BiomePoints.Key == BiomeAtEachPoint[NeighbourIndex]) //ensure neighbour point will be the same biome
+										{
+											//now can actually add the point to the radius, as long as exists
+											if (BiomePoints.Value.Contains(NeighbourIndex))
+												RadiusPoints.Add(NeighbourIndex);
+										}
 									}
 								}
 							}
 						}
 
 						//get a random amount of the points to use, 1 so will always use the centre point
-						int32 MaxRadiusLocations = TerrainGenerator->Stream.RandRange(1, FMath::FloorToInt((RadiusPoints.Num() - 1) / 2));
-						for (int32 k = 0; k < MaxRadiusLocations; k++)
+						int32 MaxRadiusLocations = TerrainGenerator->Stream.RandRange(DifferentMeshes.MinNeighbours, DifferentMeshes.MaxNeighbours);
+						for (int32 k = 0; k < MaxRadiusLocations + 1; k++)
 						{
 							RandomLocation = TerrainGenerator->Stream.RandRange(0, RadiusPoints.Num() - 1);
 							if (BiomePoints.Value.Num() > 0 && RadiusPoints.Num() > 0 && MeshesAdded <= MeshesDensity) 

@@ -20,6 +20,17 @@ USTRUCT() struct FBiomeMeshes //Any stat nessesary for the different plants in a
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "100"))//% out of 100 of the biomes area taken up by this model
 	float Density;
+
+	//how far away can a neighbour mesh actually spawn(in grid sections)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
+	int32 NeighbourRadius;
+	//as when spawning in, how many neighbours can actually spawn around it
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))
+	int32 MinNeighbours;	
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0")) //FMath::Pow(NeighbourRadius * 2, 2)) for max neighbours
+	int32 MaxNeighbours;
+
+
 	UPROPERTY(EditAnywhere)//the mesh to spawn in
 	UStaticMesh* Mesh;
 	UPROPERTY(EditAnywhere) //can the player collide with the specified mesh
