@@ -434,30 +434,68 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 			{
 				//calculate number of each mesh to spawn in based on its % density of total points
 				int32 MeshesDensity = FMath::CeilToInt(DifferentMeshes.Density / 100 * BiomeAmount);
-				for (size_t i = 0; i < MeshesDensity; i++) //spawn for the determined desnity of the mesh spawn that many into the map
+				int32 MeshesAdded = 0;
+				while (MeshesAdded < MeshesDensity) //spawn for the determined desnity of the mesh spawn that many into the map
 				{
 					//pick a random location within the specified biome
 					int32 RandomLocation = TerrainGenerator->Stream.RandRange(0, BiomePoints.Value.Num() - 1);
-					if (BiomePoints.Value.Num() > 0) {
+
+					//get all points within a certain radius of the choosen point
+					TArray<int32> RadiusPoints; //holds the index of the point within the vertices array
+					if (BiomePoints.Value.Num() > 0)
+					{
 						int32 VertexIndex = BiomePoints.Value[RandomLocation];
-						FVector VertexLocation = MeshLocation(TerrainGenerator->Vertices[VertexIndex]); //adjust the location so somewhat offset
+						int32 XCentre = FMath::Clamp(FMath::CeilToInt(TerrainGenerator->Vertices[VertexIndex].X / TerrainGenerator->GridSize), 0, TerrainGenerator->Width - 1);
+						int32 YCentre = FMath::Clamp(FMath::CeilToInt(TerrainGenerator->Vertices[VertexIndex].Y / TerrainGenerator->GridSize), 0, TerrainGenerator->Height - 1);
+						RadiusPoints.Add(VertexIndex);
+						for (int32 a = -3; a < 3; a++) //add all points within a 2 radius of the choosen one
+						{
+							for (int32 b = -3; b < 3; b++)
+							{
+								if (XCentre + b >= 0 && XCentre + b < TerrainGenerator->Width && YCentre + a >= 0 && YCentre + a < TerrainGenerator->Height)
+								{ //as long as the point is actually on the map
+									int32 NeighbourIndex = (a + YCentre) * TerrainGenerator->Width + (b + XCentre);
+									if (BiomePoints.Key == BiomeAtEachPoint[NeighbourIndex]) //ensure neighbour point will be the same biome
+									{
+										//now can actually add the point to the radius, as long as exists
+										if (BiomePoints.Value.Contains(NeighbourIndex))
+											RadiusPoints.Add(NeighbourIndex);
+									}
+								}
+							}
+						}
 
-						FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
-						Rotation.Yaw = TerrainGenerator->Stream.FRandRange(0.0f, 360.0f);
+						//get a random amount of the points to use, 1 so will always use the centre point
+						int32 MaxRadiusLocations = TerrainGenerator->Stream.RandRange(1, FMath::FloorToInt((RadiusPoints.Num() - 1) / 2));
+						for (int32 k = 0; k < MaxRadiusLocations; k++)
+						{
+							RandomLocation = TerrainGenerator->Stream.RandRange(0, RadiusPoints.Num() - 1);
+							if (BiomePoints.Value.Num() > 0 && RadiusPoints.Num() > 0 && MeshesAdded <= MeshesDensity) 
+							{
+								VertexIndex = RadiusPoints[RandomLocation];
+								FVector VertexLocation = MeshLocation(TerrainGenerator->Vertices[VertexIndex]); //adjust the location so somewhat offset
 
-						//spawn in a new Actor in specified location, with random rotation
-						AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
-						SpawnedMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
-						SpawnedMesh->SetMobility(EComponentMobility::Stationary);
+								FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
+								Rotation.Yaw = TerrainGenerator->Stream.FRandRange(0.0f, 360.0f);
 
-						SpawnedMesh->SetActorScale3D(FVector(TerrainGenerator->Stream.FRandRange(15.0f, 45.0f))); //give the mesh a random scale
-						SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in actor
+								//spawn in a new Actor in specified location, with random rotation
+								AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
+								SpawnedMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
+								SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
-						SpawnedMesh->SetActorEnableCollision(DifferentMeshes.bHasCollision); //update the meshes collision so if say grass it will not have any player collision
+								SpawnedMesh->SetActorScale3D(FVector(TerrainGenerator->Stream.FRandRange(15.0f, 45.0f))); //give the mesh a random scale
+								SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in actor
 
-						//remove the choosen location from the list so no new meshes can spawn there
-						BiomePoints.Value.RemoveAt(RandomLocation);
-						MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
+								SpawnedMesh->SetActorEnableCollision(DifferentMeshes.bHasCollision); //update the meshes collision so if say grass it will not have any player collision
+
+								//remove the choosen location from the list so no new meshes can spawn there
+								BiomePoints.Value.Remove(VertexIndex);
+								RadiusPoints.RemoveAt(RandomLocation);
+								MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
+
+								MeshesAdded++;
+							}
+						}
 					}
 				}
 			}
