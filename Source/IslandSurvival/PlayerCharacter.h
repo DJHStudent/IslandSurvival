@@ -38,13 +38,16 @@ public:
 	void SprintStart();
 	void SprintEnd();
 	UFUNCTION(Server, Reliable)
-		void ServerSprintStart();
+	void ServerSprintStart();
 	UFUNCTION(Server, Reliable)
-		void ServerSprintEnd();
+	void ServerSprintEnd();
+
+	virtual void Jump() override;
 	//the multiplayer functions for movement
 	float SprintMovementSpeed;
 	float NormalMovementSpeed;
 	float SwimMovementSpeed;
+	float SprintSwimMovementSpeed;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BlueprintReload(); //a function which will be made and editied in blueprints but callable in C++ code

@@ -19,11 +19,12 @@ APlayerCharacter::APlayerCharacter()
 	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	LookSensitivity = 1.0f;
-	SprintMultiplier = 7.5f;
+	SprintMultiplier = 5.5f;
 
 	SprintMovementSpeed = GetCharacterMovement()->MaxWalkSpeed * SprintMultiplier;
 	NormalMovementSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	SwimMovementSpeed = 200;
+	SwimMovementSpeed = 600;
+	SprintSwimMovementSpeed = SwimMovementSpeed * SprintMultiplier;
 	CurrentBiomeText = TEXT("");
 
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
@@ -94,6 +95,10 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if(BiomeList && BiomeList->BiomeGeneration && (GetLocalRole() == ROLE_AutonomousProxy || IsLocallyControlled())) //i.e if clients player and on game map
 		DisplayPointBiome(); //update the text for the biome currently in
+
+	////////if (IsLocallyControlled() && GetCharacterMovement()->IsInWater() && AnimInstance && AnimInstance->bIsSprinting) //deactivate sprinting whenever inside the water
+	////////	SprintEnd();
+
 }
 
 // Called to bind functionality to input
@@ -109,7 +114,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APlayerCharacter::Turn);
 
 	//jumping already default and built in so just need to setup the right input for it to work
-	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &APlayerCharacter::Jump);
 
 	//sprinting start and end
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &APlayerCharacter::SprintStart);
@@ -125,9 +130,19 @@ void APlayerCharacter::MoveForward(float Value)
 	if (!bPaused)
 	{
 		//move the character forward by the value of the input axis already given
-		FRotator ForwardRotator = GetControlRotation();
-		ForwardRotator.Roll = 0;
-		ForwardRotator.Pitch = 0;
+		FRotator ForwardRotator;
+		if (GetCharacterMovement()->MovementMode == MOVE_Swimming)
+		{
+			ForwardRotator = Camera->GetComponentRotation();
+			//GetCharacterMovement()->MaxWalkSpeed = SwimMovementSpeed;
+		}
+		else
+		{
+			ForwardRotator = GetControlRotation();
+			ForwardRotator.Roll = 0;
+			ForwardRotator.Pitch = 0;
+			//GetCharacterMovement()->MaxWalkSpeed = NormalMovementSpeed;
+		}
 		AddMovementInput(ForwardRotator.Vector(), Value);
 	}
 }
@@ -163,11 +178,12 @@ void APlayerCharacter::Turn(float Value)
 
 void APlayerCharacter::SprintStart()
 {
-	if (!bPaused)
+	if (!bPaused)// && GetCharacterMovement()->MovementMode != MOVE_Swimming) //can only sprint when not in water
 	{
 		//when sprinting starts change the walk speed and tell the animation to play the sprint
 		GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
-		GetCharacterMovement()->MaxSwimSpeed = SwimMovementSpeed; //issue here if it does not register release of shift it will just increase the run speed further
+		GetCharacterMovement()->MaxSwimSpeed = SprintSwimMovementSpeed;
+
 		ServerSprintStart();
 		if (AnimInstance)
 			AnimInstance->bIsSprinting = true;
@@ -187,9 +203,15 @@ void APlayerCharacter::SprintEnd()
 			AnimInstance->bIsSprinting = false;
 	}
 }
+void APlayerCharacter::Jump()
+{
+	if(!bPaused)
+		Super::Jump();
+}
 void APlayerCharacter::ServerSprintStart_Implementation() //update sprint on the server
 {
 	GetCharacterMovement()->MaxWalkSpeed = SprintMovementSpeed;
+	GetCharacterMovement()->MaxSwimSpeed = SprintSwimMovementSpeed;
 }
 
 void APlayerCharacter::ServerSprintEnd_Implementation()
