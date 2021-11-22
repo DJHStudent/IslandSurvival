@@ -131,12 +131,12 @@ void APlayerCharacter::MoveForward(float Value)
 	{
 		//move the character forward by the value of the input axis already given
 		FRotator ForwardRotator;
-		if (GetCharacterMovement()->MovementMode == MOVE_Swimming)
-		{
-			ForwardRotator = Camera->GetComponentRotation();
-			//GetCharacterMovement()->MaxWalkSpeed = SwimMovementSpeed;
-		}
-		else
+		//////////////////////////if (GetCharacterMovement()->MovementMode == MOVE_Swimming)
+		//////////////////////////{
+		//////////////////////////	ForwardRotator = Camera->GetComponentRotation();
+		//////////////////////////	//GetCharacterMovement()->MaxWalkSpeed = SwimMovementSpeed;
+		//////////////////////////}
+		//////////////////////////else
 		{
 			ForwardRotator = GetControlRotation();
 			ForwardRotator.Roll = 0;
