@@ -3,6 +3,8 @@
 
 #include "BTT_MoveToPlayer.h"
 #include "ZombieAIController.h"
+#include "Engine/Engine.h"
+
 EBTNodeResult::Type UBTT_MoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
@@ -15,10 +17,16 @@ EBTNodeResult::Type UBTT_MoveToPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 			if (Goal)
 			{
 				FVector Location = Blackboard->GetValueAsVector("TargetLocation");
-				AIController->MoveToLocation(Location);
+				AIController->MoveToLocation(Location, -1, false, true, false, true, false); //instead use character movement, add movement input
+				GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Green, TEXT("Client Moving Location Updates: " + AIController->GetName() + "Location: " + Location.ToString()));
 				return EBTNodeResult::Succeeded;
 			}
 		}
 	}
 	return EBTNodeResult::Failed;
+}
+
+void UBTT_MoveToPlayer::ClientMoveToLocation(FVector Location)
+{
+	
 }

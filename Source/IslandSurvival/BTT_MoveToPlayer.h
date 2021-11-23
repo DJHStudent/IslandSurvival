@@ -16,4 +16,8 @@ class ISLANDSURVIVAL_API UBTT_MoveToPlayer : public UBTTask_BlueprintBase
 	
 public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory);
+
+private:
+	UFUNCTION()
+	void ClientMoveToLocation(FVector Location);
 };

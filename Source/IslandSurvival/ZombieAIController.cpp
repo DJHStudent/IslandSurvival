@@ -9,6 +9,7 @@ AZombieAIController::AZombieAIController()
 {
 	BehaviorComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("Behavior Comp"));
 	BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackbaord Comp"));
+	SetActorTickInterval(5);
 }
 
 void AZombieAIController::OnPossess(APawn* InPawn)
