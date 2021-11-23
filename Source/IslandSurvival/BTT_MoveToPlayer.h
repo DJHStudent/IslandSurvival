@@ -18,6 +18,5 @@ public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory);
 
 private:
-	UFUNCTION()
-	void ClientMoveToLocation(FVector Location);
+	bool bCanMove;
 };
