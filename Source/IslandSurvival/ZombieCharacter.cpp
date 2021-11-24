@@ -12,15 +12,16 @@ AZombieCharacter::AZombieCharacter()
 	AISense_Sight = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
 	if (AISense_Sight)
 	{
-		AISense_Sight->SightRadius = 800;
-		AISense_Sight->LoseSightRadius = 900;
+		AISense_Sight->SightRadius = 800 * 2;
+		AISense_Sight->LoseSightRadius = 900 * 2;
 		AISense_Sight->PeripheralVisionAngleDegrees = 180.0f;
 		AISense_Sight->DetectionByAffiliation.bDetectEnemies = true;
 		AISense_Sight->DetectionByAffiliation.bDetectNeutrals = true;
 		AISense_Sight->DetectionByAffiliation.bDetectFriendlies = true;
+		AISense_Sight->SetMaxAge(30);
+		AIPerceptionComponent->ConfigureSense(*AISense_Sight);
+		AIPerceptionComponent->SetDominantSense(AISense_Sight->GetSenseImplementation());
 	}
-	AIPerceptionComponent->ConfigureSense(*AISense_Sight);
-	AIPerceptionComponent->SetDominantSense(AISense_Sight->GetSenseImplementation());
 }
 
 // Called when the game starts or when spawned
