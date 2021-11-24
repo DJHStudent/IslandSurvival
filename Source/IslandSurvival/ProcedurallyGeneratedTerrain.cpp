@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "MainGameInstance.h"
+#include "NavigationSystem.h"
 
 // Sets default values
 AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
@@ -19,6 +20,7 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 		MeshComponent->SetIsReplicated(true);
 		MeshComponent->bUseAsyncCooking = false;
 	}
+
 	BiomeGeneration = CreateDefaultSubobject<UBiomeGenerationComponent>("Biome Generation Component"); //create a new component for handling biomes
 	if (BiomeGeneration)
 	{
@@ -142,6 +144,7 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 		BiomeGeneration->MeshActors.Empty();
 
 		MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
+		MeshComponent->ClearCollisionConvexMeshes();
 	}
 }
 
@@ -190,6 +193,14 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
+	MeshComponent->UpdateCollisionProfile();
+	//rebuild the navmesh system with the new navigation
+	if (GetWorld()->IsServer())
+	{
+		UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
+		if (NavSystem)
+			NavSystem->Build();
+	}
 
 	UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (MainGameInstance)
