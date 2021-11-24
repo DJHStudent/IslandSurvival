@@ -82,7 +82,7 @@ private:
 	class AMainGameState* GameState;
 };
 
-class AsyncTerrainGeneration : public FNonAbandonableTask
+class AsyncTerrainGeneration : public FNonAbandonableTask //generate the initial vertices of the terrain async
 {
 public:
 	AProcedurallyGeneratedTerrain* Terrain;

@@ -4,6 +4,7 @@
 #include "BiomeGenerationComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Async/AsyncWork.h"
+#include "ZombieSpawner.h"
 
 // Sets default values for this component's properties
 UBiomeGenerationComponent::UBiomeGenerationComponent()
@@ -358,7 +359,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 	{
 		for (int32 x = 0; x < StructureAmount; x++)
 		{
-			GridPoints.Add(FVector2D(x*XDistAppart, y*YDistAppart));
+			GridPoints.Add(FVector2D(x * XDistAppart, y * YDistAppart));
 		}
 	}
 
@@ -373,7 +374,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 		FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex]; //get its actual location
 
 		if (VertexLocation.Z < WaterLine) //if spawning in the ocean
-			VertexLocation.Z = WaterLine - 90; //update the spawn location to be just below water surface, not ground
+			VertexLocation.Z = WaterLine - 90; //update the spawn location to be just below water surface, not on the surface
 		else
 		{
 			//ensure tent is on flat ground and not in a wall
@@ -393,15 +394,10 @@ void UBiomeGenerationComponent::SpawnStructure()
 		//spawn in empty mesh at given location
 		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
 		SpawnedMesh->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
-
-		float SpawnerXOffset = TerrainGenerator->GridSize; //shift point so will spawn more in front of the structure not no it
-		float SpawnerZOFsset = 500; //ensures spawner will spawn enemes above the structure
-		FVector SpawnerLocation = FVector(VertexLocation.X + SpawnerXOffset, VertexLocation.Y, VertexLocation.Z + SpawnerZOFsset);
-
-		//spawn in a Zombie Spawner actor into the map, at the specified location
-		AActor* ZombieSpawner = GetWorld()->SpawnActor<AActor>(TerrainGenerator->ZombieSpawner, SpawnerLocation, FRotator::ZeroRotator);
-		ZombieSpawner->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
 		SpawnedMesh->SetMobility(EComponentMobility::Stationary); //ensure it cannot move
+
+		if (GetWorld()->IsServer()) //only spawn spawners in on the server version
+			SpawnZombieSpawner(VertexLocation, VertexIndex);
 
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0) //spawn in a bouy as must be underwater
 		{
@@ -416,7 +412,6 @@ void UBiomeGenerationComponent::SpawnStructure()
 
 		//add the meshes to the list of all meshes within the map so will be destroyed when resetting map
 		MeshActors.Add(SpawnedMesh);
-		MeshActors.Add(ZombieSpawner);
 
 		GridPoints.RemoveAt(RandomIndex);
 	}
@@ -572,4 +567,22 @@ FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a s
 	VertexPosition.X = RandXPosition;
 	VertexPosition.Y = RandYPosition;
 	return VertexPosition;
+}
+
+void UBiomeGenerationComponent::SpawnZombieSpawner(FVector Location, int32 Index)
+{
+	float SpawnerXOffset = TerrainGenerator->GridSize; //shift point so will spawn more in front of the structure not no it
+	float SpawnerZOFsset = 500; //ensures spawner will spawn enemes above the structure
+	FVector SpawnerLocation = FVector(Location.X + SpawnerXOffset, Location.Y, Location.Z + SpawnerZOFsset);
+
+	//spawn in a Zombie Spawner actor into the map, at the specified location
+	AZombieSpawner* ZombieSpawner = GetWorld()->SpawnActor<AZombieSpawner>(TerrainGenerator->ZombieSpawner, SpawnerLocation, FRotator::ZeroRotator);
+	ZombieSpawner->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
+
+	int32 BiomeKey = BiomeAtEachPoint[Index]; //get the biome of the current point
+	ZombieSpawner->ZombieScale = BiomeStatsMap[BiomeKey].GetDefaultObject()->Scale;
+	ZombieSpawner->ZombieSwimSpeed = BiomeStatsMap[BiomeKey].GetDefaultObject()->SwimSpeed;
+	ZombieSpawner->ZombieWalkSpeed = BiomeStatsMap[BiomeKey].GetDefaultObject()->WalkSpeed;
+
+	MeshActors.Add(ZombieSpawner);
 }

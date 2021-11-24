@@ -67,11 +67,21 @@ public:
 	UPROPERTY(Instanced, EditAnywhere, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
 
+	UPROPERTY(EditAnywhere, Category = "Zombie Stats") //Size of the Zombies which Spawn here
+	float Scale;
+	UPROPERTY(EditAnywhere, Category = "Zombie Stats")//How fast Zombies spawning here can walk/run
+	float WalkSpeed;
+	UPROPERTY(EditAnywhere, Category = "Zombie Stats")//How fast zombie spawning here can swim
+	float SwimSpeed;
+
 	UBiomeStatsObject()
 	{
-		//TerrainHeight = NewObject<UTerrainHeight>(GetOwner(), TEXT("Terrain Height"));
 		BiomeName = FString(TEXT(""));
 		BiomeColour = FLinearColor(0, 0, 0);
 		bCustomTerrain = false;
+
+		Scale = 1;
+		WalkSpeed = 600;
+		SwimSpeed = 1000.0;
 	}
 };

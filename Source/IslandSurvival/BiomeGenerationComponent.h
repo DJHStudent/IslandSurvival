@@ -103,7 +103,8 @@ private:
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single biome
 	float SingleIslandMaxSize; 
 
-	FVector MeshLocation(FVector VertexPosition);
+	FVector MeshLocation(FVector VertexPosition); //determine the offset to give the plant mesh
+	void SpawnZombieSpawner(FVector Location, int32 Index); //spawn in a zombie spawner
 
 	UPROPERTY(EditAnywhere)//the tent mesh
 		UStaticMesh* Tent;
