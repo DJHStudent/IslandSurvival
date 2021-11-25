@@ -39,6 +39,7 @@ ALobbyGameMode::ALobbyGameMode()
 	PlayerColours.Add(Cast<UMaterialInterface>(YellowObject.Object));
 
 	InactivePlayerStateLifeSpan = 1.0f;
+	SpawnLocation = FVector(140, 0, 980);
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) //called after a player controller has sucessfully joined session and PostLogin
@@ -86,4 +87,12 @@ void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, co
 		ErrorMessage = TEXT("Failed to Login");
 
 	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage); //broadcast message back to client, causing them to fail to login if ErrorMessage not empty
+}
+
+void ALobbyGameMode::PlayerDeath(AActor* Player)
+{
+	if (Player)
+	{
+		Player->SetActorLocation(SpawnLocation);
+	}
 }

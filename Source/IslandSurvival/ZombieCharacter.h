@@ -39,4 +39,8 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ChangeEnum(int value);
+
+private:
+	UFUNCTION()
+	void OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
 };

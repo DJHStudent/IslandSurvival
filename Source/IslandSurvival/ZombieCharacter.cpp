@@ -2,6 +2,10 @@
 
 
 #include "ZombieCharacter.h"
+#include "PlayerCharacter.h"
+#include "LobbyGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "MainGameMode.h"
 
 // Sets default values
 AZombieCharacter::AZombieCharacter()
@@ -30,6 +34,7 @@ void AZombieCharacter::BeginPlay()
 	if (GetWorld()->IsServer())
 	{
 		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZombieCharacter::TargetPerceptionUpdated);
+		OnActorHit.AddDynamic(this, &AZombieCharacter::OnHit);
 	}
 }
 
@@ -54,6 +59,25 @@ void AZombieCharacter::TargetPerceptionUpdated(AActor* actor, FAIStimulus stimul
 		else
 		{
 			ChangeEnum(0);
+		}
+	}
+}
+
+void AZombieCharacter::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
+{
+	//get the Game Mode and call the function to reset player
+	APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor);
+
+	if (Player)
+	{
+		ALobbyGameMode* LobbyGame = Cast<ALobbyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (LobbyGame)
+			LobbyGame->PlayerDeath(OtherActor);
+		else
+		{
+			AMainGameMode* MainGame = Cast<AMainGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+			if (MainGame)
+				MainGame->PlayerDeath(OtherActor);
 		}
 	}
 }

@@ -17,12 +17,7 @@ EBTNodeResult::Type UBTT_MoveToPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 			if (Goal)
 			{
 				FVector Location = Blackboard->GetValueAsVector("TargetLocation");
-				//if (AIController->GetPathFollowingComponent()->GetStatus() != EPathFollowingStatus::Moving)
-				{
-					//bCanMove = true;
-					AIController->MoveToLocation(Location, 50);//, true, false, true); //instead use character movement, add movement input
-					//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 10.0f, FColor::Green, TEXT("Client Moving Location Updates: " + AIController->GetName() + "Location: " + Location.ToString()));
-				}
+				AIController->MoveToLocation(Location);//move character to the desired location, following nav mesh path
 				return EBTNodeResult::Succeeded;
 			}
 		}

@@ -5,6 +5,12 @@
 #include "Engine/World.h"
 #include "ProcedurallyGeneratedTerrain.h"
 #include "Kismet/GameplayStatics.h"
+
+AMainGameMode::AMainGameMode()
+{
+	SpawnLocation = FVector(470, 720, 590);
+}
+
 void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete for all clients, then can actually load the map
 {
 	Super::PostSeamlessTravel();
@@ -47,4 +53,12 @@ void AMainGameMode::PreLogin(const FString& Options, const FString& Address, con
 	ErrorMessage = TEXT("Failed to Login"); //auto fail as on the wrong map, can only join if on lobby
 
 	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage); //broadcast to the player this failure
+}
+
+void AMainGameMode::PlayerDeath(AActor* Player)
+{
+	if (Player)
+	{
+		Player->SetActorLocation(SpawnLocation);
+	}
 }

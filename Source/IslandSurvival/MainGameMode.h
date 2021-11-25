@@ -18,9 +18,11 @@ class ISLANDSURVIVAL_API AMainGameMode : public AGameMode
 	GENERATED_BODY()
 public:
 	void UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain);
-
-	TArray<bool> ActiveChunk; //array storing all 'chunks' of the level, so if active, i.e a player in it, can run AI code
+	void PlayerDeath(AActor* Player);
 private:
+	AMainGameMode();
+	FVector SpawnLocation;
+
 	virtual void PostSeamlessTravel() override;
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 };
