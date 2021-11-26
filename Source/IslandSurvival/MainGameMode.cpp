@@ -6,10 +6,10 @@
 #include "ProcedurallyGeneratedTerrain.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 AMainGameMode::AMainGameMode()
 {
-	SpawnLocation = FVector(470, 720, 590);
 }
 
 void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete for all clients, then can actually load the map
@@ -61,7 +61,6 @@ void AMainGameMode::PlayerDeath(APlayerCharacter* Player)
 	if (Player) //update dead players location and show UI
 	{
 		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
-		Player->SetActorLocation(SpawnLocation);
 		Player->OnDeathServer();
 	}
 }

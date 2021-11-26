@@ -16,8 +16,8 @@ AZombieCharacter::AZombieCharacter()
 	AISense_Sight = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
 	if (AISense_Sight)
 	{
-		AISense_Sight->SightRadius = 800;
-		AISense_Sight->LoseSightRadius = 900;
+		AISense_Sight->SightRadius = 800 * 1.5f;
+		AISense_Sight->LoseSightRadius = 900 * 1.5f;
 		AISense_Sight->PeripheralVisionAngleDegrees = 180.0f;
 		AISense_Sight->DetectionByAffiliation.bDetectEnemies = true;
 		AISense_Sight->DetectionByAffiliation.bDetectNeutrals = true;
@@ -38,16 +38,6 @@ void AZombieCharacter::BeginPlay()
 	}
 }
 
-// Called to bind functionality to input
-void AZombieCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	if (GetWorld()->IsServer())
-	{	
-		Super::SetupPlayerInputComponent(PlayerInputComponent);
-		//AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AZombieCharacter::TargetPerceptionUpdated);
-	}
-}
-
 void AZombieCharacter::TargetPerceptionUpdated(AActor* actor, FAIStimulus stimulus)
 {
 	if (GetWorld()->IsServer())
@@ -64,12 +54,12 @@ void AZombieCharacter::TargetPerceptionUpdated(AActor* actor, FAIStimulus stimul
 }
 
 void AZombieCharacter::OnHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
-{
+{ //when on server and zombie collides with a player, kill the player
 	//get the Game Mode and call the function to reset player
 	APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor);
 
 	if (Player)
-	{
+	{ //find appropriate game mode based on level on and reset players position
 		ALobbyGameMode* LobbyGame = Cast<ALobbyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		if (LobbyGame)
 			LobbyGame->PlayerDeath(Player);

@@ -8,6 +8,7 @@
 #include "ProcedurallyGeneratedTerrain.h"
 #include "MainGameInstance.h"
 #include "PlayerGameHUD.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "PlayerCharacter.generated.h"
 
 UCLASS()
@@ -59,11 +60,22 @@ public:
 	void Paused();
 	void Resume();
 
+	void OnDeathServer(); //when die on server call this function on the appropriate client	
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpawnRagdolServer();
 	UFUNCTION(Client, Reliable)
-	void OnDeathServer(); //when die on server call this function on the appropriate client
+	void OnDeathClient(); //when die on server call this function on the appropriate client
+
+	UFUNCTION(Server, Reliable) //called on client but executed on the server
+	void RespawnServer();
+	UFUNCTION(BlueprintImplementableEvent)
+	void ReactivatePlayer();
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated
 
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
+
+	bool bServerDied; //has this player died on the server or not
 private: //i.e a member variable
 	UPROPERTY(EditInstanceOnly)
 	float LookSensitivity;
@@ -83,7 +95,7 @@ private: //i.e a member variable
 
 	void DisplayPointBiome(); //displays the biome at the specified point
 
-	UMainGameInstance* MainGameInstance;
+	class UMainGameInstance* MainGameInstance;
 
 	void UISetup();
 	UFUNCTION(Server, Reliable)

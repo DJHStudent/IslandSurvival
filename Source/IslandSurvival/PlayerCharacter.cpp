@@ -9,6 +9,7 @@
 #include "Engine/EngineTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
+
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
@@ -30,6 +31,7 @@ APlayerCharacter::APlayerCharacter()
 	MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 	bPaused = false;
+	bServerDied = false;
 	PrimaryActorTick.bTickEvenWhenPaused = true;
 }
 
@@ -296,11 +298,35 @@ void APlayerCharacter::Resume() //called when player finished being paused
 	}
 }
 
-void APlayerCharacter::OnDeathServer_Implementation()
-{
+void APlayerCharacter::OnDeathServer()
+{ //when player dies, call this on the server
+	//spawn in a ragdol of the player at the specified location
+	if (!bServerDied) 
+	{
+		bServerDied = true;
+		SpawnRagdolServer();
+		OnDeathClient();
+	}
+}
+
+void APlayerCharacter::OnDeathClient_Implementation()
+{ //update the client's UI
 	if (MainGameInstance)
 	{
 		GetCharacterMovement()->Velocity = FVector::ZeroVector;
 		MainGameInstance->PlayerDeathStart(this);
 	}
+}
+
+void APlayerCharacter::RespawnServer_Implementation()
+{ //when respawning finished, reactivate the player at the spawn location
+	if (MainGameInstance)
+	{
+		if (MainGameInstance->CurrentGameState == EGameState::LOBBY)
+			SetActorLocation(FVector(140, 0, 980)); //player start location on the lobby map
+		else if (MainGameInstance->CurrentGameState == EGameState::GAME)
+			SetActorLocation(FVector(470, 720, 590)); //player start location on the terrain map
+	}
+	ReactivatePlayer();
+	bServerDied = false;
 }

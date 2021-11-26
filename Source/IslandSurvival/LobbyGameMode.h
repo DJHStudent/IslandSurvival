@@ -30,5 +30,4 @@ private:
 	TArray<UMaterialInterface*> PlayerColours; //list of all possible colours player can still be when joining session
 	TMap<APlayerController*, UMaterialInterface*> UsedPlayerColours; //list of used colours and their related PlayerController
 
-	FVector SpawnLocation;
 };

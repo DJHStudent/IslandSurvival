@@ -12,6 +12,7 @@
 #include "OnlineSessionSettings.h"
 #include "Blueprint/UserWidget.h"
 #include "PlayerGameHUD.h"
+#include "PlayerCharacter.h"
 #include "MainGameInstance.generated.h"
 
 UENUM()
@@ -33,8 +34,8 @@ public:
 	void LoadMenu(); //whenever mainmenu scene loads up call this function
 	UFUNCTION(BlueprintCallable)
 	void LoadLobby(APawn* Player);
-	void PlayerDeathStart(AActor* PlayerActor);
-	void PlayerDeathEnd(AActor* PlayerActor);
+	void PlayerDeathStart(class APlayerCharacter* PlayerActor);
+	void PlayerDeathEnd(APlayerCharacter* PlayerActor);
 
 	void HostSession();
 	void JoinSession();

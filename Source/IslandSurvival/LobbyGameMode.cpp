@@ -39,8 +39,8 @@ ALobbyGameMode::ALobbyGameMode()
 	PlayerColours.Add(Cast<UMaterialInterface>(WhiteObject.Object));
 	PlayerColours.Add(Cast<UMaterialInterface>(YellowObject.Object));
 
+
 	InactivePlayerStateLifeSpan = 1.0f;
-	SpawnLocation = FVector(140, 0, 980);
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) //called after a player controller has sucessfully joined session and PostLogin
@@ -95,7 +95,6 @@ void ALobbyGameMode::PlayerDeath(APlayerCharacter* Player)
 	if (Player) //update dead players location and show UI
 	{
 		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
-		Player->SetActorLocation(SpawnLocation);
 		Player->OnDeathServer();
 	}
 }

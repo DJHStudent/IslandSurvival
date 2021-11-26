@@ -104,7 +104,7 @@ void UMainGameInstance::LoadLobby(APawn* Player) //when joinning the lobby setup
 	}
 }
 
-void UMainGameInstance::PlayerDeathStart(AActor* PlayerActor) //called when player dies to show the appropriate death message
+void UMainGameInstance::PlayerDeathStart(APlayerCharacter* PlayerActor) //called when player dies to show the appropriate death message
 {
 	FInputModeGameAndUI InputMode; //update input mode so cannot move player
 
@@ -136,8 +136,11 @@ void UMainGameInstance::PlayerDeathStart(AActor* PlayerActor) //called when play
 	float RespawnWaitTime = 3;
 	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, RespawnDelegate, RespawnWaitTime, false); //in 2 seconds hide cancel message
 }
-void UMainGameInstance::PlayerDeathEnd(AActor* PlayerActor)
+void UMainGameInstance::PlayerDeathEnd(APlayerCharacter* PlayerActor)
 {
+	//update the players location and visibility
+	PlayerActor->RespawnServer();
+
 	FInputModeGameOnly InputMode; //update input mode so can move player
 
 	APlayerController* PlayerController;

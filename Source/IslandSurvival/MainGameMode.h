@@ -8,6 +8,7 @@
 #include "CurrentPlayerController.h"
 #include "MainGameState.h"
 #include "PlayerCharacter.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "MainGameMode.generated.h"
 
 /**
@@ -22,7 +23,6 @@ public:
 	void PlayerDeath(APlayerCharacter* Player);
 private:
 	AMainGameMode();
-	FVector SpawnLocation;
 
 	virtual void PostSeamlessTravel() override;
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
