@@ -7,6 +7,7 @@
 #include "MainGameState.h"
 #include "CurrentPlayerController.h"
 #include "MainGameState.h"
+#include "PlayerCharacter.h"
 #include "MainGameMode.generated.h"
 
 /**
@@ -18,7 +19,7 @@ class ISLANDSURVIVAL_API AMainGameMode : public AGameMode
 	GENERATED_BODY()
 public:
 	void UpdateTerrainValues(int32 Seed, int32 Width, int32 Height, bool bSmoothTerrain);
-	void PlayerDeath(AActor* Player);
+	void PlayerDeath(APlayerCharacter* Player);
 private:
 	AMainGameMode();
 	FVector SpawnLocation;

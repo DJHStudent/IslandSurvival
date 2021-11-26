@@ -72,12 +72,12 @@ void AZombieCharacter::OnHit(AActor* SelfActor, AActor* OtherActor, FVector Norm
 	{
 		ALobbyGameMode* LobbyGame = Cast<ALobbyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		if (LobbyGame)
-			LobbyGame->PlayerDeath(OtherActor);
+			LobbyGame->PlayerDeath(Player);
 		else
 		{
 			AMainGameMode* MainGame = Cast<AMainGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 			if (MainGame)
-				MainGame->PlayerDeath(OtherActor);
+				MainGame->PlayerDeath(Player);
 		}
 	}
 }

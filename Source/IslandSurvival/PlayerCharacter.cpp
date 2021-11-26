@@ -295,3 +295,12 @@ void APlayerCharacter::Resume() //called when player finished being paused
 		PlayerController->bEnableMouseOverEvents = false;
 	}
 }
+
+void APlayerCharacter::OnDeathServer_Implementation()
+{
+	if (MainGameInstance)
+	{
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+		MainGameInstance->PlayerDeathStart(this);
+	}
+}

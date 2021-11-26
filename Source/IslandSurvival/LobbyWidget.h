@@ -9,6 +9,7 @@
 #include "Components/CheckBox.h"
 #include "MainGameInstance.h"
 #include "LobbyGameState.h"
+#include "Components/CanvasPanel.h"
 #include "LobbyWidget.generated.h"
 
 /**
@@ -27,6 +28,9 @@ public:
 	void SetWidth(int32 Value);
 	void SetHeight(int32 Value);
 	void SetSmooth(bool Value);
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* DeathMessage;
 private:
 	virtual bool Initialize() override;
 

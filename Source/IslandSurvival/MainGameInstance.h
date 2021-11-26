@@ -33,6 +33,8 @@ public:
 	void LoadMenu(); //whenever mainmenu scene loads up call this function
 	UFUNCTION(BlueprintCallable)
 	void LoadLobby(APawn* Player);
+	void PlayerDeathStart(AActor* PlayerActor);
+	void PlayerDeathEnd(AActor* PlayerActor);
 
 	void HostSession();
 	void JoinSession();

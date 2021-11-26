@@ -27,6 +27,9 @@ public:
 	void HidePauseMenu();
 
 	void HideLoading();
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* DeathMessage;
 private:
 	virtual bool Initialize() override;
 

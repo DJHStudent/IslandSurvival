@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 #include "Net/OnlineEngineInterface.h"
 #include "PlayerCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ALobbyGameMode::ALobbyGameMode()
 {
@@ -89,10 +90,12 @@ void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, co
 	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage); //broadcast message back to client, causing them to fail to login if ErrorMessage not empty
 }
 
-void ALobbyGameMode::PlayerDeath(AActor* Player)
+void ALobbyGameMode::PlayerDeath(APlayerCharacter* Player)
 {
-	if (Player)
+	if (Player) //update dead players location and show UI
 	{
+		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 		Player->SetActorLocation(SpawnLocation);
+		Player->OnDeathServer();
 	}
 }

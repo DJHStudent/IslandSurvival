@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "ProcedurallyGeneratedTerrain.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AMainGameMode::AMainGameMode()
 {
@@ -55,10 +56,12 @@ void AMainGameMode::PreLogin(const FString& Options, const FString& Address, con
 	FGameModeEvents::GameModePreLoginEvent.Broadcast(this, UniqueId, ErrorMessage); //broadcast to the player this failure
 }
 
-void AMainGameMode::PlayerDeath(AActor* Player)
+void AMainGameMode::PlayerDeath(APlayerCharacter* Player)
 {
-	if (Player)
+	if (Player) //update dead players location and show UI
 	{
+		Player->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 		Player->SetActorLocation(SpawnLocation);
+		Player->OnDeathServer();
 	}
 }

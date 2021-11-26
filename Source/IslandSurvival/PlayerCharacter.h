@@ -59,6 +59,10 @@ public:
 	void Paused();
 	void Resume();
 
+	UFUNCTION(Client, Reliable)
+	void OnDeathServer(); //when die on server call this function on the appropriate client
+
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //allow all these variables to be replicated	
 private: //i.e a member variable
 	UPROPERTY(EditInstanceOnly)

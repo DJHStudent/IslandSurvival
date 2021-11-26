@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "PlayerCharacter.h"
 #include "LobbyGameMode.generated.h"
 
 /**
@@ -15,7 +16,7 @@ class ISLANDSURVIVAL_API ALobbyGameMode : public AGameMode
 	GENERATED_BODY()
 
 public:
-	void PlayerDeath(AActor* Player);
+	void PlayerDeath(APlayerCharacter* Player);
 
 private:
 	ALobbyGameMode();

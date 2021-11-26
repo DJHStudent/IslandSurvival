@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 #include "MainPlayerState.h"
 #include "Interfaces/OnlineIdentityInterface.h"
+#include "TimerManager.h"
 
 UMainGameInstance::UMainGameInstance(const FObjectInitializer& ObjectInitilize)
 {
@@ -100,6 +101,64 @@ void UMainGameInstance::LoadLobby(APawn* Player) //when joinning the lobby setup
 				Lobby->SetEditability(Player); //update terrain settings editability
 			}
 		}
+	}
+}
+
+void UMainGameInstance::PlayerDeathStart(AActor* PlayerActor) //called when player dies to show the appropriate death message
+{
+	FInputModeGameAndUI InputMode; //update input mode so cannot move player
+
+	APlayerController* PlayerController;
+	PlayerController = GetFirstLocalPlayerController();
+	if (PlayerController)
+	{
+		PlayerController->SetInputMode(InputMode);
+		PlayerActor->DisableInput(PlayerController); //stop player from recieving any input
+	}
+
+	if (CurrentGameState == EGameState::LOBBY)
+	{
+		if (Lobby)
+		{
+			Lobby->DeathMessage->SetVisibility(ESlateVisibility::Visible);
+			Lobby->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+	else if (CurrentGameState == EGameState::GAME)
+	{
+		if(CurrentPlayerHUDWidget)
+			CurrentPlayerHUDWidget->DeathMessage->SetVisibility(ESlateVisibility::Visible);
+	}
+	//set timer to deactivate widget after certain time
+	FTimerHandle RespawnTimer;
+	FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(this, &UMainGameInstance::PlayerDeathEnd, PlayerActor);
+
+	float RespawnWaitTime = 3;
+	GetWorld()->GetTimerManager().SetTimer(RespawnTimer, RespawnDelegate, RespawnWaitTime, false); //in 2 seconds hide cancel message
+}
+void UMainGameInstance::PlayerDeathEnd(AActor* PlayerActor)
+{
+	FInputModeGameOnly InputMode; //update input mode so can move player
+
+	APlayerController* PlayerController;
+	PlayerController = GetFirstLocalPlayerController();
+	if (PlayerController)
+	{
+		PlayerController->SetInputMode(InputMode);
+		PlayerActor->EnableInput(PlayerController); //allow player to recieve input again
+	}
+	if (CurrentGameState == EGameState::LOBBY)
+	{
+		if (Lobby)
+		{
+			Lobby->DeathMessage->SetVisibility(ESlateVisibility::Collapsed);
+			Lobby->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else if (CurrentGameState == EGameState::GAME)
+	{
+		if (CurrentPlayerHUDWidget)
+			CurrentPlayerHUDWidget->DeathMessage->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
