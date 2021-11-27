@@ -17,7 +17,6 @@ APlayerCharacter::APlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	bAllowTickBeforeBeginPlay = false; //while this would work in editor, might fail when actually shipped so need to always ensure checking if object null or not first
 	//ensures this character will be automatically possesed when starting
-	//AutoPossessPlayer = EAutoReceiveInput::Player0;
 
 	LookSensitivity = 1.0f;
 	SprintMultiplier = 5.5f;
@@ -97,10 +96,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if(BiomeList && BiomeList->BiomeGeneration && (GetLocalRole() == ROLE_AutonomousProxy || IsLocallyControlled())) //i.e if clients player and on game map
 		DisplayPointBiome(); //update the text for the biome currently in
-
-	////////if (IsLocallyControlled() && GetCharacterMovement()->IsInWater() && AnimInstance && AnimInstance->bIsSprinting) //deactivate sprinting whenever inside the water
-	////////	SprintEnd();
-
 }
 
 // Called to bind functionality to input
@@ -323,9 +318,9 @@ void APlayerCharacter::RespawnServer_Implementation()
 	if (MainGameInstance)
 	{
 		if (MainGameInstance->CurrentGameState == EGameState::LOBBY)
-			SetActorLocation(FVector(140, 0, 980)); //player start location on the lobby map
+			SetActorLocation(FVector(140, 0+120, 980)); //player start location on the lobby map
 		else if (MainGameInstance->CurrentGameState == EGameState::GAME)
-			SetActorLocation(FVector(470, 720, 590)); //player start location on the terrain map
+			SetActorLocation(FVector(470, 720+120, 590)); //player start location on the terrain map
 	}
 	ReactivatePlayer();
 	bServerDied = false;

@@ -24,5 +24,4 @@ public:
 	AZombieAIController();
 
 	virtual void OnPossess(APawn* InPawn) override;
-
 };

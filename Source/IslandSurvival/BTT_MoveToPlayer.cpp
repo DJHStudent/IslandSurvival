@@ -7,7 +7,7 @@
 
 EBTNodeResult::Type UBTT_MoveToPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	AAIController* AIController = OwnerComp.GetAIOwner();
+	AZombieAIController* AIController = Cast<AZombieAIController>(OwnerComp.GetAIOwner());
 	if (AIController && GetWorld()->IsServer())
 	{
 		UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();

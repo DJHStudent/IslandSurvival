@@ -9,14 +9,16 @@ AZombieAIController::AZombieAIController()
 {
 	BehaviorComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("Behavior Comp"));
 	BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("Blackbaord Comp"));
+
+	bReplicates = true;
 }
 
 void AZombieAIController::OnPossess(APawn* InPawn)
 {
+
+	Super::OnPossess(InPawn);
 	if (GetWorld()->IsServer())
 	{
-		Super::OnPossess(InPawn);
-
 		auto character = Cast<AZombieCharacter>(InPawn);
 
 		if (character && character->ZombieBehaviorTree)
