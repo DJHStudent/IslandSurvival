@@ -15,4 +15,16 @@ class ISLANDSURVIVAL_API AMainGameState : public AGameState
 	GENERATED_BODY()
 protected:
 	AMainGameState();
+
+public:
+	void ServerAddFuel();
+	int32 MaxFuelAmount;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+private:
+	UPROPERTY(ReplicatedUsing = UpdateFuelUI)
+	int32 CurrentFuelAmount;
+
+	UFUNCTION()
+	void UpdateFuelUI();
 };

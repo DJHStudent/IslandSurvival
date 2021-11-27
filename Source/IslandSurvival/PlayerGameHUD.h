@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "Components/ProgressBar.h"
 #include "Components/CanvasPanel.h"
 #include "PlayerGameHUD.generated.h"
 
@@ -22,6 +23,7 @@ public:
 
 	void UpdateSeedTextBlock(FString Text);
 	void UpdateBiomeTextBlock(FString Text);
+	void UpdateFuelValue(float Percentage);
 
 	void ShowPauseMenu();
 	void HidePauseMenu();
@@ -37,6 +39,8 @@ private:
 	UTextBlock* TextBlockSeed;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TextBlockBiome;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TextBlockFuel;
 
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* PauseMenu;
@@ -47,6 +51,9 @@ private:
 	UButton* ButtonResume;
 	UPROPERTY(meta = (BindWidget))
 	UButton* ButtonLeave;
+
+	UPROPERTY(meta = (BindWidget))
+	UProgressBar* FuelProgressBar;
 
 	UFUNCTION()
 	void OnResumeButtonPressed();

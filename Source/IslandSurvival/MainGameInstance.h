@@ -36,6 +36,7 @@ public:
 	void LoadLobby(APawn* Player);
 	void PlayerDeathStart(class APlayerCharacter* PlayerActor);
 	void PlayerDeathEnd(APlayerCharacter* PlayerActor);
+	void UpdateFuel(float Percentage);
 
 	void HostSession();
 	void JoinSession();

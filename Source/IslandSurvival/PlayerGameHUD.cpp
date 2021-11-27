@@ -25,6 +25,14 @@ void UPlayerGameHUD::UpdateBiomeTextBlock(FString Text) //each tick when called,
 	TextBlockBiome->SetText(FText::FromString(Text));
 }
 
+void UPlayerGameHUD::UpdateFuelValue(float Percentage)
+{ 
+	//update the fuels UI values
+	FuelProgressBar->SetPercent(Percentage);
+	FString Text = FString::FromInt(FMath::CeilToFloat(Percentage));
+	TextBlockFuel->SetText(FText::FromString(Text + "%"));
+}
+
 void UPlayerGameHUD::UpdateSeedTextBlock(FString Text) //when seed gotten from the server, update it so player can see what the seed was
 {
 	TextBlockSeed->SetText(FText::FromString("Seed: " + Text));

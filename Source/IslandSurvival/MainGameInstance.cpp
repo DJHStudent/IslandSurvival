@@ -165,6 +165,12 @@ void UMainGameInstance::PlayerDeathEnd(APlayerCharacter* PlayerActor)
 	}
 }
 
+void UMainGameInstance::UpdateFuel(float Percentage)
+{//on the player's UI widget update appropriate UI elements
+	if (CurrentPlayerHUDWidget)
+		CurrentPlayerHUDWidget->UpdateFuelValue(Percentage);
+}
+
 void UMainGameInstance::HostSession() //make a new listen server, on client hosting game
 {
 	SessionJoined = TEXT("PLayerChoosenName"); //assign a name for the session
