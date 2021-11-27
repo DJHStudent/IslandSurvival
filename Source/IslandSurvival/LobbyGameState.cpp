@@ -15,6 +15,8 @@ ALobbyGameState::ALobbyGameState()
 	TerrainHeight = 300;
 	Seed = 0;
 	bSmoothTerrain = false;
+
+	NetUpdateFrequency = 25;
 }
 
 void ALobbyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

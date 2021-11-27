@@ -13,4 +13,6 @@ UCLASS()
 class ISLANDSURVIVAL_API AMainGameState : public AGameState
 { //empty state, but used when in the Terrain map
 	GENERATED_BODY()
+protected:
+	AMainGameState();
 };

@@ -3,3 +3,7 @@
 
 #include "MainPlayerState.h"
 
+AMainPlayerState::AMainPlayerState()
+{
+	NetUpdateFrequency = 25;
+}

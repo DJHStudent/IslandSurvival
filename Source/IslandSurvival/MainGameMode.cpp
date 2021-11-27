@@ -10,6 +10,7 @@
 
 AMainGameMode::AMainGameMode()
 {
+	NetUpdateFrequency = 50;
 }
 
 void AMainGameMode::PostSeamlessTravel() //once seamless travel all complete for all clients, then can actually load the map

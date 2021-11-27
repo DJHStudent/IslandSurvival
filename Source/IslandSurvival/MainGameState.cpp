@@ -2,3 +2,8 @@
 
 
 #include "MainGameState.h"
+
+AMainGameState::AMainGameState()
+{
+	NetUpdateFrequency = 25;
+}

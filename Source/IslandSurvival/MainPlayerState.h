@@ -13,5 +13,7 @@ UCLASS()
 class ISLANDSURVIVAL_API AMainPlayerState : public APlayerState
 { //empty class used to store any info related to a specific player
 	GENERATED_BODY()
-	
+
+protected:
+	AMainPlayerState();
 };

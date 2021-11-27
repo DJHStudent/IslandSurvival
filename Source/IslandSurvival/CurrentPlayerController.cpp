@@ -11,7 +11,7 @@
 
 ACurrentPlayerController::ACurrentPlayerController()
 {
-
+	NetUpdateFrequency = 100;
 }
 
 void ACurrentPlayerController::BeginPlay()
@@ -60,10 +60,7 @@ void ACurrentPlayerController::TryUpdateTerrain(int32 Seed, int32 Width, int32 H
 	if (ProceduralTerrain) //if found terrain actor in scene, note sometimes actually fails to find the terrain at all
 		ProceduralTerrain->RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain); //renerate it, using these values 
 	else //terrain not loaded in yet, I guess, so try again
-	{
-		if (GEngine) //this is where stuff gets called when it cannot find the terrain at all
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "Terrain failed to be found");
-		
+	{		
 		float WaitTime = 0.5f; //wait 1/2 second and try loading in again
 		//code to run the timer
 		FTimerHandle RetryTimer;

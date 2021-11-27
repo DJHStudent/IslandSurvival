@@ -41,6 +41,8 @@ ALobbyGameMode::ALobbyGameMode()
 
 
 	InactivePlayerStateLifeSpan = 1.0f;
+
+	NetUpdateFrequency = 50;
 }
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) //called after a player controller has sucessfully joined session and PostLogin
