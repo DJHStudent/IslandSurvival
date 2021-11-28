@@ -28,9 +28,9 @@ void UPlayerGameHUD::UpdateBiomeTextBlock(FString Text) //each tick when called,
 void UPlayerGameHUD::UpdateFuelValue(float Percentage)
 { 
 	//update the fuels UI values
-	FuelProgressBar->SetPercent(Percentage);
-	FString Text = FString::FromInt(FMath::CeilToFloat(Percentage));
-	TextBlockFuel->SetText(FText::FromString(Text + "%"));
+	FuelProgressBar->SetPercent(Percentage / 100);
+	FString Text = FString::FromInt(FMath::CeilToInt(Percentage));
+	TextBlockFuel->SetText(FText::FromString("Fuel: " + Text + "%"));
 }
 
 void UPlayerGameHUD::UpdateSeedTextBlock(FString Text) //when seed gotten from the server, update it so player can see what the seed was
@@ -65,5 +65,16 @@ void UPlayerGameHUD::OnResumeButtonPressed() //on playercharacter, allow it to r
 
 void UPlayerGameHUD::OnLeaveButtonPressed() //if leaving the session
 {
-	MainGameInstance->QuitLobby(); //call appropriate function on client to leave session
+	if (MainGameInstance)
+		MainGameInstance->QuitLobby(); //call appropriate function on client to leave session
+}
+
+void UPlayerGameHUD::WonGame() //Update UI when all fuel collected
+{
+	ShowPauseMenu();
+	if (ButtonResume)
+		ButtonResume->SetVisibility(ESlateVisibility::Collapsed);
+	FText Message = FText::FromString("Ship Refueled, Match Over");
+	if (TextBlockPause)
+		TextBlockPause->SetText(Message);
 }

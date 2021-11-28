@@ -22,7 +22,7 @@ protected:
 
 private:
 	AMainGameState* MainGameState;
-
+	bool bCollided; //ensures can only collide once with the player
 	UFUNCTION()
 	void OnOverlap(AActor* MyOverlappedActor, AActor* OtherActor);
 };

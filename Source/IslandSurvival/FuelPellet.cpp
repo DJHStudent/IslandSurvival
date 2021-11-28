@@ -10,6 +10,7 @@ AFuelPellet::AFuelPellet()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	bCollided = false;
 }
 
 // Called when the game starts or when spawned
@@ -24,11 +25,15 @@ void AFuelPellet::BeginPlay()
 
 void AFuelPellet::OnOverlap(AActor* MyOverlappedActor, AActor* OtherActor)
 { //called when colliding with a player
-	//when collide call game state, update fuel value and replicate UI change down to all clients
-	APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor); //if collision occured with the player
-	if (MainGameState && Player)
+	if (GetWorld()->IsServer())
 	{
-		MainGameState->ServerAddFuel();
-		Destroy(); //remove actor from world
+		//when collide call game state, update fuel value and replicate UI change down to all clients
+		APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor); //if collision occured with the player
+		if (MainGameState && Player && !bCollided)
+		{
+			bCollided = true;
+			MainGameState->ServerAddFuel();
+			Destroy(); //remove actor from world
+		}
 	}
 }

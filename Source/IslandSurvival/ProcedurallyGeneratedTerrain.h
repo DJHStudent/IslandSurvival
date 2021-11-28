@@ -66,8 +66,10 @@ public:
 	UPROPERTY() //once got value from server will generate the map
 	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
 
-	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<class AActor> ZombieSpawner;
+	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	TSubclassOf<class AActor> Fuel;
 private:
 	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height

@@ -70,9 +70,7 @@ void UMainGameInstance::LoadMenu() //called from the MainMenu's map blueprint to
 			PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
 		}
 		if (bCrashed) //if was in a session and it crashed
-		{
 			MainMenu->ShowErrorMenu(); //show error message
-		}
 	}
 }
 
@@ -169,6 +167,25 @@ void UMainGameInstance::UpdateFuel(float Percentage)
 {//on the player's UI widget update appropriate UI elements
 	if (CurrentPlayerHUDWidget)
 		CurrentPlayerHUDWidget->UpdateFuelValue(Percentage);
+}
+
+void UMainGameInstance::WonGame()
+{ //get the player HUD and update it to show win message
+	if (CurrentPlayerHUDWidget)
+	{
+		FInputModeUIOnly InputMode; //gets the mouse to appear on screen and unlock cursor from menu widget
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+		APlayerController* PlayerController;
+		PlayerController = GetFirstLocalPlayerController();
+		if (PlayerController) //if found a player controller, update its input mode
+		{
+			PlayerController->SetInputMode(InputMode); //tell current controller of game to use these input settings
+			PlayerController->bShowMouseCursor = true; //don't hide cursor on mouse down
+		}
+
+		CurrentPlayerHUDWidget->WonGame();
+	}
 }
 
 void UMainGameInstance::HostSession() //make a new listen server, on client hosting game
@@ -317,12 +334,6 @@ void UMainGameInstance::FinishTerrainLoading() //called on each player once thei
 	}
 	if (CurrentPlayerHUDWidget) //will 100% fail if finished before fully loaded in terrain, unless actually already setup beforehand
 		CurrentPlayerHUDWidget->HideLoading();
-}
-
-
-void UMainGameInstance::HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
-{
-	QuitLobby(); //if network fails for any reason, such as host closes server, disconnect the player
 }
 
 void UMainGameInstance::QuitLobby()

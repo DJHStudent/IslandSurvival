@@ -5,6 +5,9 @@
 #include "Engine/StaticMeshActor.h"
 #include "Async/AsyncWork.h"
 #include "ZombieSpawner.h"
+#include "FuelPellet.h"
+#include "MainGameState.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UBiomeGenerationComponent::UBiomeGenerationComponent()
@@ -347,9 +350,14 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j) //blend 2 neighbo
 
 void UBiomeGenerationComponent::SpawnStructure()
 {
-	int32 StructureAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1000); //determine number to spawn in based on map size, rounding if ends up being a float
-	//* divide by 1000 so that if say have a 100 by 100 map will have 10 tents spawn on it
-	
+	int32 StructureAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1500); //determine number to spawn in based on map size, rounding if ends up being a float
+	//* divide by 1500 so that if say have a 100 by 100 map will have 6 tents spawn on it
+	if (GetWorld()->IsServer())
+	{//update the servers game state to hold total number of structures needed to collect
+		AMainGameState* MainGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+		MainGameState->MaxFuelAmount = StructureAmount;
+	}
+
 	TArray<FVector2D> GridPoints; //list of all points where structures can spawn
 
 	//how far appart on the X and Y plane do these GridPoints appear ensuring that both will directions contain exactly Structure amount of points
@@ -396,8 +404,15 @@ void UBiomeGenerationComponent::SpawnStructure()
 		SpawnedMesh->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
 		SpawnedMesh->SetMobility(EComponentMobility::Stationary); //ensure it cannot move
 
-		if (GetWorld()->IsServer()) //only spawn spawners in on the server version
+		if (GetWorld()->IsServer()) //only spawn spawners/fuel in on the server version
+		{
 			SpawnZombieSpawner(VertexLocation, VertexIndex);
+
+			FVector FuelLocation = VertexLocation;
+			FuelLocation.Z += 200; //apply offset to the fuels location
+			AFuelPellet* ZombieSpawner = GetWorld()->SpawnActor<AFuelPellet>(TerrainGenerator->Fuel, FuelLocation, FRotator::ZeroRotator); //spawn in fuel at the mesh
+
+		}
 
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0) //spawn in a bouy as must be underwater
 		{

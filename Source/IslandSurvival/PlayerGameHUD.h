@@ -24,6 +24,7 @@ public:
 	void UpdateSeedTextBlock(FString Text);
 	void UpdateBiomeTextBlock(FString Text);
 	void UpdateFuelValue(float Percentage);
+	void WonGame();
 
 	void ShowPauseMenu();
 	void HidePauseMenu();
@@ -41,6 +42,8 @@ private:
 	UTextBlock* TextBlockBiome;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TextBlockFuel;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TextBlockPause;
 
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* PauseMenu;

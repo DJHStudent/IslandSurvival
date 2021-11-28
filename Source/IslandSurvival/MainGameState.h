@@ -22,9 +22,13 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 private:
-	UPROPERTY(ReplicatedUsing = UpdateFuelUI)
 	int32 CurrentFuelAmount;
+	UPROPERTY(ReplicatedUsing = UpdateFuelUI)
+	float FuelPercentage;
 
 	UFUNCTION()
 	void UpdateFuelUI();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastWonGame();
 };

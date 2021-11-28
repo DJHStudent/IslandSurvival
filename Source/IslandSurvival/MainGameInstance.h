@@ -37,6 +37,7 @@ public:
 	void PlayerDeathStart(class APlayerCharacter* PlayerActor);
 	void PlayerDeathEnd(APlayerCharacter* PlayerActor);
 	void UpdateFuel(float Percentage);
+	void WonGame();
 
 	void HostSession();
 	void JoinSession();
@@ -85,6 +86,4 @@ private:
 	void OnFindSessionComplete(bool bSuccess); //when searching and found sessions
 	void OnCreateSessionComplete(FName SessionName, bool bSuccess); //when hosting and joined session
 	void OnDestroySessionComplete(FName SessionName, bool bSuccess); //when deleted session
-
-	void HandleNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
 };

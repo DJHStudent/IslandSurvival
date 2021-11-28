@@ -69,7 +69,8 @@ void UMainMenuWidget::OnOKButtonPressed() //called when Ok button clicked after 
 
 void UMainMenuWidget::ShowErrorMenu() //update UI to show error message if connection failed
 {
-	ErrorMenu->SetVisibility(ESlateVisibility::Visible);
+	if (ErrorMenu)
+		ErrorMenu->SetVisibility(ESlateVisibility::Visible);
 }
 
 void UMainMenuWidget::HideLoadingMenu() //if searching for session and cancelled update UI

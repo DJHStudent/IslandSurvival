@@ -39,6 +39,8 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TextBlockJoining;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TextBlockError;
 
 	UPROPERTY(meta = (BindWidget))
 	UCanvasPanel* ErrorMenu;
