@@ -411,7 +411,6 @@ void UBiomeGenerationComponent::SpawnStructure()
 			FVector FuelLocation = VertexLocation;
 			FuelLocation.Z += 200; //apply offset to the fuels location
 			AFuelPellet* ZombieSpawner = GetWorld()->SpawnActor<AFuelPellet>(TerrainGenerator->Fuel, FuelLocation, FRotator::ZeroRotator); //spawn in fuel at the mesh
-
 		}
 
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0) //spawn in a bouy as must be underwater

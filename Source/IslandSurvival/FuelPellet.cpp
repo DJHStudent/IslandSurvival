@@ -33,6 +33,9 @@ void AFuelPellet::OnOverlap(AActor* MyOverlappedActor, AActor* OtherActor)
 		{
 			bCollided = true;
 			MainGameState->ServerAddFuel();
+			//spawn in fade particle system
+
+
 			Destroy(); //remove actor from world
 		}
 	}
