@@ -21,10 +21,9 @@ protected:
 
 public:
 	UPROPERTY(BlueprintReadOnly)
-	float ZombieScale; //the key for the biome spawner is in	
+	float ZombieScale; //the size of the zombie
 	UPROPERTY(BlueprintReadOnly)
-	float ZombieWalkSpeed; //the key for the biome spawner is in	
+	float ZombieWalkSpeed; //the zombies walking speed	
 	UPROPERTY(BlueprintReadOnly)
-	float ZombieSwimSpeed; //the key for the biome spawner is in
-
+	float ZombieSwimSpeed; //the swim speed of the zombie
 };
