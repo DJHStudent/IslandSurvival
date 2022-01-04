@@ -352,7 +352,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 {
 	int32 StructureAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1500); //determine number to spawn in based on map size, rounding if ends up being a float
 	//* divide by 1500 so that if say have a 100 by 100 map will have 6 tents spawn on it
-	if (GetWorld()->IsServer())
+	if (!TerrainGenerator->bIsEditor && GetWorld()->IsServer())
 	{//update the servers game state to hold total number of structures needed to collect
 		AMainGameState* MainGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
 		MainGameState->MaxFuelAmount = StructureAmount;
@@ -404,7 +404,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 		SpawnedMesh->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
 		SpawnedMesh->SetMobility(EComponentMobility::Stationary); //ensure it cannot move
 
-		if (GetWorld()->IsServer()) //only spawn spawners/fuel in on the server version
+		if (GetWorld()->IsServer() || TerrainGenerator->bIsEditor) //only spawn spawners/fuel in on the server version
 		{
 			SpawnZombieSpawner(VertexLocation, VertexIndex);
 

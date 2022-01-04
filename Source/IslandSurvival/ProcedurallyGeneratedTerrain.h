@@ -70,6 +70,8 @@ public:
 	TSubclassOf<class AActor> ZombieSpawner;
 	UPROPERTY(EditAnywhere)//the mesh to spawn in
 	TSubclassOf<class AActor> Fuel;
+
+	bool bIsEditor;
 private:
 	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height")
 	UTerrainHeight* TerrainHeight; //functionality for determining terrains height

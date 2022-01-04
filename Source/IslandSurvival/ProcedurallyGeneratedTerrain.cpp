@@ -35,6 +35,7 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 	bRandomSeed = false;
 	bSmoothTerrain = false;
 	bReplicates = true;
+	bIsEditor = false;
 }
 
 // Called when the game starts or when spawned
@@ -65,6 +66,7 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 			Seed = Seed;
 		}
 		RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
+		bIsEditor = true;
 	}
 
 	//when the vertices array is completed
@@ -193,7 +195,11 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAll")); //update the meshes collision, so that the navmesh will regenerate and be correct
 
-	UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (MainGameInstance)
-		MainGameInstance->FinishTerrainLoading();
+	if (!bIsEditor)
+	{
+		UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+		if (MainGameInstance)
+			MainGameInstance->FinishTerrainLoading();
+	}
+	bIsEditor = false;
 }
