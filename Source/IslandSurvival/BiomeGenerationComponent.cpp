@@ -299,8 +299,8 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j) //blend 2 neighbo
 				float NeighbourValue = TerrainGenerator->Vertices[NeighbourIndex].Z;
 				int32 CurrBiome = BiomeAtEachPoint[VertexIndex];
 				if (BiomeAtEachPoint[VertexIndex] != BiomeAtEachPoint[NeighbourIndex] //if the two biomes are different, and are one of the onces which can actually lerp
-					&& BiomeAtEachPoint[VertexIndex] != 5 && BiomeAtEachPoint[NeighbourIndex] != 5
-					&& BiomeAtEachPoint[VertexIndex] != 6 && BiomeAtEachPoint[NeighbourIndex] != 6
+					//&& BiomeAtEachPoint[VertexIndex] != 5 && BiomeAtEachPoint[NeighbourIndex] != 5
+					//&& BiomeAtEachPoint[VertexIndex] != 6 && BiomeAtEachPoint[NeighbourIndex] != 6
 					&& BiomeAtEachPoint[VertexIndex] != 2 && BiomeAtEachPoint[NeighbourIndex] != 2
 					&& BiomeAtEachPoint[VertexIndex] != 3 && BiomeAtEachPoint[NeighbourIndex] != 3
 					&& BiomeAtEachPoint[VertexIndex] != -1 && BiomeAtEachPoint[NeighbourIndex] != -1)
