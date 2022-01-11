@@ -81,7 +81,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TMap<int32, TSubclassOf<UBiomeStatsObject>> BiomeStatsMap;
 
-
 	void SpawnMeshes(); //for each biome spawn in the appropriate meshes
 	TMap<int32, TArray<int32>> VertexBiomeLocationsMap; //a map where the key is the biomes key it relates to and the index of every vertex held within 
 	UPROPERTY()

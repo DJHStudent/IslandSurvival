@@ -226,28 +226,46 @@ void UBiomeGenerationComponent::MultiBiomeIslands(TPair<int32, FIslandStats> Isl
 
 bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier)
 {
-	if (ZHeight > 900) //check if the Z position of the point is above the specified value
+	for (auto HeightBiome : BiomeStatsMap) //check all height based biomes to see if any fit the criteria
 	{
-		//two heigh biomes have keys of 5 and 6 respectivly
-		for (int32 NeighbourBiome : BiomeStatsMap[5].GetDefaultObject()->NeighbourBiomeKeys) //check the possible neighbour biomes for 5 first
+		//check to see if the biome is a height based biome or not
+		if (BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->bAnyHeight &&
+			ZHeight > BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->MinSpawnHeight //check if the vertexes z height is between these 2 values
+			&& ZHeight < BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->MaxSpawnHeight)
 		{
-			if (NeighbourBiome == Biome) //if the lower elevation biome is a neighbour then use 5 to update the list
+			//check if this height biome also has at least one valid neighbour
+			for (int32 NeighbourBiome : BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->NeighbourBiomeKeys) //check the possible neighbour biomes for 5 first
 			{
-				UpdateBiomeLists(5, VertexIdentifier);
-				return true; //as biome found return true
-			}
-		}
-
-		//just do same again but as not biome 5 test it with biome 6
-		for (int32 NeighbourBiome : BiomeStatsMap[6].GetDefaultObject()->NeighbourBiomeKeys)
-		{
-			if (NeighbourBiome == Biome)
-			{
-				UpdateBiomeLists(6, VertexIdentifier);
-				return true; 
+				if (NeighbourBiome == Biome) //if the land biome is a neighbour
+				{
+					UpdateBiomeLists(HeightBiome.Key, VertexIdentifier);
+					return true; //as biome found return true
+				}
 			}
 		}
 	}
+	//if (ZHeight > 900) //check if the Z position of the point is above the specified value
+	//{
+	//	//two heigh biomes have keys of 5 and 6 respectivly
+	//	for (int32 NeighbourBiome : BiomeStatsMap[5].GetDefaultObject()->NeighbourBiomeKeys) //check the possible neighbour biomes for 5 first
+	//	{
+	//		if (NeighbourBiome == Biome) //if the lower elevation biome is a neighbour then use 5 to update the list
+	//		{
+	//			UpdateBiomeLists(5, VertexIdentifier);
+	//			return true; //as biome found return true
+	//		}
+	//	}
+
+	//	//just do same again but as not biome 5 test it with biome 6
+	//	for (int32 NeighbourBiome : BiomeStatsMap[6].GetDefaultObject()->NeighbourBiomeKeys)
+	//	{
+	//		if (NeighbourBiome == Biome)
+	//		{
+	//			UpdateBiomeLists(6, VertexIdentifier);
+	//			return true; 
+	//		}
+	//	}
+	//}
 	return false; //current height not high enough for it to be a height biome
 }
 
