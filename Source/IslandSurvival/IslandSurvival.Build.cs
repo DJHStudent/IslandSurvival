@@ -19,7 +19,7 @@ public class IslandSurvival : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
         // Uncomment if you are using Slate UI
-        PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "PropertyEditor", "UnrealEd" });
 
         //Uncomment if you are using online features
 

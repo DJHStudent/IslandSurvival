@@ -53,7 +53,20 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bRegenerateMap) //if in editor and true regenerate map
+	//when the vertices array is completed and is not null
+	if (AsyncVertices && AsyncVertices->IsDone())
+	{
+		UE_LOG(LogTemp, Warning, TEXT(" Async Task Done: %i "));
+		AsyncVertices->EnsureCompletion();
+		delete AsyncVertices;
+		AsyncVertices = nullptr;
+		GenerateMeshes(); //spawn in the plants etc
+	}
+}
+
+void AProcedurallyGeneratedTerrain::GenerateNewTerrain()
+{
+	if (!bIsEditor) //if in editor and true regenerate map
 	{
 		if (bRandomSeed)
 		{
@@ -67,16 +80,6 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 		}
 		RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
 		bIsEditor = true;
-	}
-
-	//when the vertices array is completed
-	if (AsyncVertices && AsyncVertices->IsDone()) 
-	{
-		UE_LOG(LogTemp, Warning, TEXT(" Async Task Done: %i "));
-		AsyncVertices->EnsureCompletion();
-		delete AsyncVertices;
-		AsyncVertices = nullptr;
-		GenerateMeshes(); //spawn in the plants etc
 	}
 }
 
@@ -114,7 +117,7 @@ void AProcedurallyGeneratedTerrain::RegenContinued()
 	AsyncVertices = (new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain));
 	AsyncVertices->StartBackgroundTask();
 
-	bRegenerateMap = false;
+	//bRegenerateMap = false;
 }
 
 void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all data for it

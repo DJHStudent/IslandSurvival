@@ -54,8 +54,9 @@ public:
 	void ClearMap(); //remove any data stored for the previous map
 
 	virtual bool ShouldTickIfViewportsOnly() const override; //update the maps terrain, when value changed even if in the editor and not running
-	UPROPERTY(EditAnywhere)
-	bool bRegenerateMap;
+
+	UFUNCTION(CallInEditor, Category="Generate Terrain")
+	void GenerateNewTerrain();
 
 	UPROPERTY(EditAnywhere)
 	class UBiomeGenerationComponent* BiomeGeneration; //class for holding all info related to the biomes
