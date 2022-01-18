@@ -6,6 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "CustomDetailsTestActor.generated.h"
 
+//UENUM() 
+//enum ELightOptions : uint8 {
+//	StaticShadow UMETA(DisplayName = "Static"),
+//	DynamicShadow UMETA(DisplayName = "Dynamic"),
+//	VolumetricTranslucentShadow UMETA(DisplayName = "Volumetric")
+//};
+
 UCLASS()
 class ISLANDSURVIVAL_API ACustomDetailsTestActor : public AActor
 {
@@ -22,6 +29,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	int LightOptionsEnum;
+	UPROPERTY(EditAnywhere, Category = "Lighting")
+	TArray<bool> LightOptionsArray;
+
 
 	UPROPERTY(EditAnywhere, Category="Lighting")
 	bool bCastStaticShadow;

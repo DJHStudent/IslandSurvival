@@ -16,9 +16,12 @@ IMPLEMENT_PRIMARY_GAME_MODULE(FDetailsBindingModule, IslandSurvival, "IslandSurv
 void FDetailsBindingModule::StartupModule()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Module Starting Up"));
-
+#if WITH_EDITOR
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	//assign the class to use the custom property settings
 	PropertyModule.RegisterCustomClassLayout("CustomDetailsTestActor", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomDetails::MakeInstance));
+	//PropertyModule.RegisterCustomPropertyTypeLayout();
+#endif
 }
 
 void FDetailsBindingModule::ShutdownModule()
