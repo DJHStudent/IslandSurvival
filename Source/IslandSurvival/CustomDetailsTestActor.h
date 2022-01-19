@@ -6,12 +6,16 @@
 #include "GameFramework/Actor.h"
 #include "CustomDetailsTestActor.generated.h"
 
-//UENUM() 
-//enum ELightOptions : uint8 {
-//	StaticShadow UMETA(DisplayName = "Static"),
-//	DynamicShadow UMETA(DisplayName = "Dynamic"),
-//	VolumetricTranslucentShadow UMETA(DisplayName = "Volumetric")
-//};
+UENUM() 
+namespace ELightOptions
+{
+	enum Type //this way so the enum can appear within the editor
+	{
+		StaticShadow UMETA(DisplayName = "Static"),
+		DynamicShadow UMETA(DisplayName = "Dynamicness"),
+		VolumetricTranslucentShadow UMETA(DisplayName = "Volumetric"),
+	};
+}
 
 UCLASS()
 class ISLANDSURVIVAL_API ACustomDetailsTestActor : public AActor
@@ -30,15 +34,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	int LightOptionsEnum;
-	UPROPERTY(EditAnywhere, Category = "Lighting")
-	TArray<bool> LightOptionsArray;
-
+	
 
 	UPROPERTY(EditAnywhere, Category="Lighting")
 	bool bCastStaticShadow;
 	UPROPERTY(EditAnywhere, Category = "Lighting")
-	bool bCastDynamicShadow;
+	int DynamicAmount;
 	UPROPERTY(EditAnywhere, Category = "Lighting")
-	bool bCastVolumetricTranslucentShadow;
+	FString VolumetricLightName;
+	
+	UPROPERTY(EditAnywhere, Category="Lighting")
+	TEnumAsByte<ELightOptions::Type> LightOptionsEnum; //allows the enum to appear within the editor
+
+	void SetValues(FText ItemText);
 };

@@ -8,15 +8,6 @@ ACustomDetailsTestActor::ACustomDetailsTestActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	bool item;
-	bool life;
-	bool wertg;
-	bool deft;
-	LightOptionsArray.Add(item);
-	LightOptionsArray.Add(life);
-	LightOptionsArray.Add(wertg);
-	LightOptionsArray.Add(deft);
 }
 
 // Called when the game starts or when spawned
@@ -31,5 +22,11 @@ void ACustomDetailsTestActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ACustomDetailsTestActor::SetValues(FText ItemText)
+{
+	//LightOptionsEnum = ItemText.ToString();
+	UE_LOG(LogTemp, Warning, TEXT("Text is being updated so also update the editor with the new values"))
 }
 

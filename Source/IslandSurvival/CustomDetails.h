@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "IDetailCustomization.h"
 #include "Widgets/Input/SEditableTextBox.h"
+#include "PropertyHandle.h"
+#include "CustomDetailsTestActor.h"
+
 //#include "DetailLayoutBuilder.h"
 //#include "IPropertyTypeCustomization.h"
 //#include "ProcedurallyGeneratedTerrain.h" //the class customizing the details of
@@ -53,5 +56,8 @@ private:
 	TSharedPtr<STextBlock> AspectTextBox; //the name of the button, changeable whenever property changes
 	void CommitAspectRatioText(FText ItemText);
 	void OnCommitAspectRatioText(const FText& ItemFText, ETextCommit::Type CommitInfo);
+
+	EVisibility ProjectionModeMatches(TSharedPtr<IPropertyHandle> Property, ELightOptions::Type DesiredMode) const;
+
 
 };
