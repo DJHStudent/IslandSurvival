@@ -7,6 +7,8 @@
 #if WITH_EDITOR //only ever run if within the editor
 
 #include "CustomDetails.h"
+#include "CustomProceduralTerrainDetails.h"
+#include "CustomBiomeStatsDetails.h"
 #include "PropertyEditorModule.h"
 
 #endif
@@ -20,7 +22,13 @@ void FDetailsBindingModule::StartupModule()
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	//assign the class to use the custom property settings
 	PropertyModule.RegisterCustomClassLayout("CustomDetailsTestActor", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomDetails::MakeInstance));
-	//PropertyModule.RegisterCustomPropertyTypeLayout();
+
+	//the custom details for procedural terrain class
+	PropertyModule.RegisterCustomClassLayout("ProcedurallyGeneratedTerrain", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomProceduralTerrainDetails::MakeInstance));
+
+	//the custom details for procedural terrain class
+	PropertyModule.RegisterCustomClassLayout("BiomeStatsObject", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomBiomeStatsDetails::MakeInstance));
+
 #endif
 }
 

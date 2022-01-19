@@ -13,6 +13,17 @@
  * 
  */
 //a file containing some structs used for holding different information for multiple arrays in the BiomeGenerationComponent class
+UENUM()
+namespace EBiomeStats
+{
+	enum Type //this way so the enum can appear within the editor
+	{
+		LandBased UMETA(DisplayName = "Land Based"),
+		WaterBased UMETA(DisplayName = "Water Based"),
+		HeightBased UMETA(DisplayName = "Height Based"),
+	};
+}
+
 
 USTRUCT() struct FBiomeMeshes //Any stat nessesary for the different plants in a biome
 {
@@ -61,20 +72,25 @@ public:
 	UPROPERTY(EditAnywhere) //a list containing the key of each biome which can spawn in next to this one
 	TArray<int32> NeighbourBiomeKeys;
 
-	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
-	bool bAnyLand;
+	//UPROPERTY(EditAnywhere, Category = "Biome Spawning")
+	//bool bAnyLand;
+
+	//UPROPERTY(EditAnywhere, Category = "Biome Spawning")
+	//bool bAnyWater;
+
+	//UPROPERTY(EditAnywhere, Category = "Biome Spawning")
+	//bool bAnyHeight; //overriding land and water, spawns biome at location based on the vertices height
 
 	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
-	bool bAnyWater;
-
+	TEnumAsByte<EBiomeStats::Type> BiomeSpawningEnum; //allows the enum to appear within the editor
+	
 	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
-	bool bAnyHeight; //overriding land and water, spawns biome at location based on the vertices height
+	float MinSpawnHeight;
 	
 	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
 	float MaxSpawnHeight;
 
-	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
-	float MinSpawnHeight;
+	
 
 
 	UPROPERTY(EditAnywhere, Category = "Terrain Height") //for each biome should it have a custom terrain, or use the default terrain made when first generated

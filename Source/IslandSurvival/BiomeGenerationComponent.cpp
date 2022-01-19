@@ -229,7 +229,7 @@ bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int3
 	for (auto HeightBiome : BiomeStatsMap) //check all height based biomes to see if any fit the criteria
 	{
 		//check to see if the biome is a height based biome or not
-		if (BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->bAnyHeight &&
+		if (BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->BiomeSpawningEnum == EBiomeStats::HeightBased &&
 			ZHeight > BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->MinSpawnHeight //check if the vertexes z height is between these 2 values
 			&& ZHeight < BiomeStatsMap[HeightBiome.Key].GetDefaultObject()->MaxSpawnHeight)
 		{

@@ -28,16 +28,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Other")
 	UProceduralMeshComponent* MeshComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)//number of vertices on x axis
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//number of vertices on x axis
 	int32 Width; 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)//number of vertices on y axis
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//number of vertices on y axis
 	int32 Height; 
-	UPROPERTY(EditAnywhere)//distance each vertex is appart
+	UPROPERTY(EditAnywhere, Category = "Terrain Size")//distance each vertex is appart
 	float GridSize; 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Smooth Terrain") //Should all terrain biomes, regardless of using terracing be smooth or not 
 	bool bSmoothTerrain; //should all the biomes / terrain using terracing actually do it
 
 	//need to be replicated variables
@@ -58,18 +58,18 @@ public:
 	UFUNCTION(CallInEditor, Category="Generate Terrain")
 	void GenerateNewTerrain();
 
-	UPROPERTY(EditAnywhere)
-	class UBiomeGenerationComponent* BiomeGeneration; //class for holding all info related to the biomes
+	UPROPERTY(EditAnywhere, Category = "Other")//class for holding all info related to the biomes
+	class UBiomeGenerationComponent* BiomeGeneration; 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")
-	int32 Seed; //seed to use in the map for seeded generation
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")//seed using in the terrain for seeded generation
+	int32 Seed; 
 
 	UPROPERTY() //once got value from server will generate the map
 	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Other")
 	TSubclassOf<class AActor> ZombieSpawner;
-	UPROPERTY(EditAnywhere)//the mesh to spawn in
+	UPROPERTY(EditAnywhere, Category = "Other")//the mesh to spawn in
 	TSubclassOf<class AActor> Fuel;
 
 	bool bIsEditor;
