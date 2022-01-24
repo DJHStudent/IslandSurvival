@@ -3,22 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IDetailCustomization.h"
-#include "PropertyHandle.h"
+#include "CustomDetails.h"
 #include "BiomeStats.h"
 
 /**
- * 
+ the custom details for the biome blueprint class
  */
-class FCustomBiomeStatsDetails : public IDetailCustomization
+class FCustomBiomeStatsDetails : public FCustomDetails
 {
 public:
+	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;//main method running when custom details occur
+	
 	/** Makes a new instance of this detail layout class for a specific detail view requesting it */
 	static TSharedRef<IDetailCustomization> MakeInstance();
-
-	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;//main method running when custom details occur
-
 private:
-	EVisibility IsHeightBiome(TSharedPtr<IPropertyHandle> Property, EBiomeStats::Type DesiredMode) const;
-
+	EVisibility PropertyMatchesEnum(TSharedPtr<IPropertyHandle> Property, EBiomeStats::Type DesiredMode) const;
 };

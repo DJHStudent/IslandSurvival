@@ -24,7 +24,6 @@ namespace EBiomeStats
 	};
 }
 
-
 USTRUCT() struct FBiomeMeshes //Any stat nessesary for the different plants in a biome
 {
 	GENERATED_BODY()
@@ -54,7 +53,7 @@ USTRUCT() struct FBiomeMeshes //Any stat nessesary for the different plants in a
 	}
 };
 
-UCLASS(Blueprintable, EditInlineNew) //allow class to be instanced and assigned in the details panel
+UCLASS(Blueprintable) //allow class to be instanced and assigned in the details panel
 class ISLANDSURVIVAL_API UBiomeStatsObject : public UObject
 {
 	GENERATED_BODY()

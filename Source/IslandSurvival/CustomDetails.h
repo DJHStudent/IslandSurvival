@@ -28,7 +28,11 @@ public:
 	static TSharedRef<IDetailCustomization> MakeInstance();
 
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;//main method running when custom details occur
-	//TSharedRef<SWidget> OnGetComboContent() const;
+	
+//	template <typename Enum>
+//	EVisibility PropertyMatchesEnum(TSharedPtr<IPropertyHandle> Property, Enum DesiredMode);
+
+	EVisibility PropertyMatchesBool(TSharedPtr<IPropertyHandle> Property) const;
 
 																				////////
 ////////private:
@@ -52,12 +56,12 @@ private:
 	 *
 	 * @param ChosenClass		The class chosen to convert to
 	 */
-	TSharedRef<SWidget> OnGetComboContent() const;
-	TSharedPtr<STextBlock> AspectTextBox; //the name of the button, changeable whenever property changes
-	void CommitAspectRatioText(FText ItemText);
-	void OnCommitAspectRatioText(const FText& ItemFText, ETextCommit::Type CommitInfo);
+	//TSharedRef<SWidget> OnGetComboContent() const;
+	//TSharedPtr<STextBlock> AspectTextBox; //the name of the button, changeable whenever property changes
+	//void CommitAspectRatioText(FText ItemText);
+	//void OnCommitAspectRatioText(const FText& ItemFText, ETextCommit::Type CommitInfo);
 
-	EVisibility ProjectionModeMatches(TSharedPtr<IPropertyHandle> Property, ELightOptions::Type DesiredMode) const;
+	//EVisibility ProjectionModeMatches(TSharedPtr<IPropertyHandle> Property, ELightOptions::Type DesiredMode) const;
 
 
 };

@@ -40,6 +40,18 @@ void UBiomeGenerationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	// ...
 }
 
+void UBiomeGenerationComponent::AddBiomePoints(int32 XPosition, int32 YPosition, float ZPosition) //code to determine where each island is in the world
+{
+	if (ZPosition < WaterLine)
+	{
+		//must be a water / lake point
+	}
+	else //the point is part of the island biomes
+	{
+		AddIslandPoint(XPosition, YPosition, ZPosition);
+	}
+}
+
 void UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition) //code to determine where each island is in the world
 {
 	int32 CurrentVertexPosition = YPosition * TerrainGenerator->Width + XPosition; //the position of the vertex within the array
@@ -48,6 +60,8 @@ void UBiomeGenerationComponent::AddIslandPoint(int32 XPosition, int32 YPosition,
 		TerrainGenerator->IslandNumber.Add(-1); //-1 means underwater and as a result do not need to check again
 		TerrainGenerator->VerticeColours[CurrentVertexPosition] = BiomeStatsMap[1].GetDefaultObject()->BiomeColour; //as underwater set biome to ocean
 		BiomeAtEachPoint[CurrentVertexPosition] = 1; //the current biome of the vertex is ocean
+
+		//do the stuff for the biomes which appear under the water
 	}
 	else //must be above the water and as a result an island
 	{
@@ -151,8 +165,18 @@ void UBiomeGenerationComponent::JoinIslands(int32 IslandPoint, int32 NewPoint) /
 	IslandPointsMap.Remove(NewPoint); //remove the new island which is copied to the actual island list
 }
 
+void UBiomeGenerationComponent::DetermineLandBiomes() //for all biomes get a list of the ones specifcally land based
+{
+	for (auto& Biome : BiomeStatsMap)
+	{
+		if (BiomeStatsMap[Biome.Key].GetDefaultObject()->BiomeSpawningEnum == EBiomeStats::LandBased)
+			LandBiomeKeys.Add(Biome.Key);
+	}
+}
+
 void UBiomeGenerationComponent::VerticesBiomes() //determine the biome for each vertex above waterline
 {
+	DetermineLandBiomes();
 	for (auto& IslandPair : IslandPointsMap) //loop through each island which has been previously found
 	{
 		//determine the width and height of the island
@@ -169,7 +193,9 @@ void UBiomeGenerationComponent::VerticesBiomes() //determine the biome for each 
 
 void UBiomeGenerationComponent::SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize)
 {
-	int32 RandomBiome = TerrainGenerator->Stream.RandRange(7, 12); //from biome list pick a random one which is also an above water, land(not mountain) biome
+	int32 RandomBiome = TerrainGenerator->Stream.RandRange(0, LandBiomeKeys.Num() - 1); //from biome list pick a random one which is also an above water, land(not mountain) biome
+	RandomBiome = LandBiomeKeys[RandomBiome];
+
 	for (int32 VertexIdentifier : IslandVertexIdentifiers.Value.VertexIndices) //for each vertex stored in the specific island
 	{
 		if (IslandSize <= 10) //make island a specific type(rocky outcrop)
@@ -269,7 +295,7 @@ bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int3
 	return false; //current height not high enough for it to be a height biome
 }
 
-void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdentifier)
+void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdentifier) //for the vertex assign it the appropriate biome and correct generation
 {	
 
 	TerrainGenerator->VerticeColours[VertexIdentifier] = BiomeStatsMap[Biome].GetDefaultObject()->BiomeColour; //for the specified biome assign the vertex the appropriate colour
@@ -282,7 +308,7 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	//assign the appropriate height value to the vertex
 	if (BiomeStatsMap[Biome].GetDefaultObject()->bCustomTerrain) //if the biome has custom terrain
 	{
-		float NewZPos = BiomeStatsMap[Biome].GetDefaultObject()->TerrainHeight->GenerateHeight(XPos, YPos, TerrainGenerator->bSmoothTerrain); //calculate a new Z height for it
+		float NewZPos = BiomeStatsMap[Biome].GetDefaultObject()->TerrainHeight->GenerateHeight(XPos, YPos, WaterLine, TerrainGenerator->bSmoothTerrain); //calculate a new Z height for it
 		TerrainGenerator->Vertices[VertexIdentifier].Z = NewZPos; //assign it as the new vertex height
 	}
 
@@ -428,7 +454,8 @@ void UBiomeGenerationComponent::SpawnStructure()
 
 			FVector FuelLocation = VertexLocation;
 			FuelLocation.Z += 200; //apply offset to the fuels location
-			AFuelPellet* ZombieSpawner = GetWorld()->SpawnActor<AFuelPellet>(TerrainGenerator->Fuel, FuelLocation, FRotator::ZeroRotator); //spawn in fuel at the mesh
+			AFuelPellet* FuelPellet = GetWorld()->SpawnActor<AFuelPellet>(TerrainGenerator->Fuel, FuelLocation, FRotator::ZeroRotator); //spawn in fuel at the mesh
+			MeshActors.Add(FuelPellet);
 		}
 
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0) //spawn in a bouy as must be underwater

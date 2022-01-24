@@ -9,6 +9,7 @@
 #include "CustomDetails.h"
 #include "CustomProceduralTerrainDetails.h"
 #include "CustomBiomeStatsDetails.h"
+#include "CustomTerrainHeightDetails.h"
 #include "PropertyEditorModule.h"
 
 #endif
@@ -28,6 +29,9 @@ void FDetailsBindingModule::StartupModule()
 
 	//the custom details for procedural terrain class
 	PropertyModule.RegisterCustomClassLayout("BiomeStatsObject", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomBiomeStatsDetails::MakeInstance));
+
+	//the custom details for Terrain height class
+	PropertyModule.RegisterCustomClassLayout("TerrainHeight", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomTerrainHeightDetails::MakeInstance));
 
 #endif
 }

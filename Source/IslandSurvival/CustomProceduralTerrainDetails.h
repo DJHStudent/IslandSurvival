@@ -3,16 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IDetailCustomization.h"
+#include "CustomDetails.h"
 
 /**
- * 
+ the custom details for the procedural terrain actor class
  */
-class FCustomProceduralTerrainDetails : public IDetailCustomization
+class FCustomProceduralTerrainDetails : public FCustomDetails
 {
 public:
 	/** Makes a new instance of this detail layout class for a specific detail view requesting it */
 	static TSharedRef<IDetailCustomization> MakeInstance();
 
-	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;//main method running when custom details occur
+	void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;//main method running when custom details occur
 };

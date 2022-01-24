@@ -69,11 +69,21 @@ public:
 
 	class AProcedurallyGeneratedTerrain* TerrainGenerator;
 
+	void AddBiomePoints(int32 XPosition, int32 YPosition, float ZPosition);
+
 	void AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition); //for each point determine the island it relates too
 	UPROPERTY()
 	TMap<int32, FIslandStats> IslandPointsMap; //a map containing a key for the specific island it is and its various statistics
 	//an island is just a set of any number of vertices which are joined together above the waterline
 	int32 IslandKeys; //the current max key have, ensuring no duplicates are created
+	TArray<int32> LandBiomeKeys; //list of all biomes with the spawn condition set to land
+	void DetermineLandBiomes();
+
+	//Just the reverse of the islands, the lake / ocean biomes
+	UPROPERTY()
+	TMap<int32, FIslandStats> LakePointsMap;
+	int32 LakeKeys;
+	TArray<int32> LakeBiomeKeys; //list of all biomes which appear underwater
 
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
 	void VerticesBiomes(); //for each island determine the biome(s) residing within it

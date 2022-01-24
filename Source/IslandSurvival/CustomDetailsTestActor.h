@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "CustomDetailsTestActor.generated.h"
-
+//a test actor used to test and ensure the custom class is working correctly
 UENUM() 
 namespace ELightOptions
 {

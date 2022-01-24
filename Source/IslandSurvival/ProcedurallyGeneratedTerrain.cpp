@@ -137,6 +137,7 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 		BiomeGeneration->BiomeAtEachPoint.Empty();
 		BiomeGeneration->VertexBiomeLocationsMap.Empty();
 		BiomeGeneration->bBeenLerped.Empty();
+		BiomeGeneration->LandBiomeKeys.Empty();
 
 
 		//destory any meshes placed on the terrain by using the array of all meshes which exist
@@ -172,7 +173,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	{
 		for (int32 j = 0; j < Width; j++)
 		{
-			float ZPosition = TerrainHeight->GenerateHeight(j, i, bSmoothTerrain); //get the specific height for each point on the mesh
+			float ZPosition = TerrainHeight->GenerateHeight(j, i, BiomeGeneration->WaterLine, bSmoothTerrain); //get the specific height for each point on the mesh
 			Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
 
 			BiomeGeneration->AddIslandPoint(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
