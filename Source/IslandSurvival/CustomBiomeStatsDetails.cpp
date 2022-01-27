@@ -42,6 +42,30 @@ void FCustomBiomeStatsDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	MinSpawnHeight.Visibility(HeightStatsVisibility);
 
 
+	//get the properties for the land/water based biomes
+	TSharedPtr<IPropertyHandle> OnlySingleProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, bOnlySingle));
+	TAttribute<EVisibility> LandWaterStatsVisibility = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FCustomBiomeStatsDetails::PropertiesLandWater, BiomeProperty));
+	TAttribute<EVisibility> OnlySingleVisibility = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FCustomBiomeStatsDetails::PropertiesSingleLandWater, BiomeProperty, OnlySingleProperty));
+	
+	IDetailPropertyRow& bOnlySingle = BiomeCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, bOnlySingle)));
+	IDetailPropertyRow& MinSpawnArea = BiomeCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, MinSpawnArea)));
+	IDetailPropertyRow& MaxSpawnArea = BiomeCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, MaxSpawnArea)));
+
+	//determine the land visability
+	bOnlySingle.Visibility(LandWaterStatsVisibility);
+	MinSpawnArea.Visibility(OnlySingleVisibility);
+	MaxSpawnArea.Visibility(OnlySingleVisibility);
+
+	//determine the water visability
+//	bOnlySingle.Visibility(WaterStatsVisibility);
+//	MinSpawnArea.Visibility(WaterStatsVisibility);
+//	MaxSpawnArea.Visibility(WaterStatsVisibility);
+
+
+
+
+
+
 	IDetailPropertyRow& TerrainNoise = TerrainNoiseCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, TerrainHeight)));
 	//IDetailPropertyRow& DoCustomTerrain = TerrainNoiseCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, bCustomTerrain)));
 	TSharedPtr<IPropertyHandle> bCustomTerrainProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, bCustomTerrain));
@@ -65,4 +89,30 @@ EVisibility FCustomBiomeStatsDetails::PropertyMatchesEnum(TSharedPtr<IPropertyHa
 
 	// If there are multiple values, show all properties
 	return EVisibility::Visible;
+}
+
+EVisibility FCustomBiomeStatsDetails::PropertiesLandWater(TSharedPtr<IPropertyHandle> Property) const
+{
+
+	if (PropertyMatchesEnum(Property, EBiomeStats::LandBased) == EVisibility::Visible
+		|| PropertyMatchesEnum(Property, EBiomeStats::WaterBased) == EVisibility::Visible)
+	{
+		// If there are multiple values, show all properties
+		return EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
+}
+
+EVisibility FCustomBiomeStatsDetails::PropertiesSingleLandWater(TSharedPtr<IPropertyHandle> PropertyEnum, TSharedPtr<IPropertyHandle> PropertyBool) const
+{
+
+	if (PropertiesLandWater(PropertyEnum) == EVisibility::Visible
+		&& PropertyMatchesBool(PropertyBool) == EVisibility::Visible)
+	{
+		// If there are multiple values, show all properties
+		return EVisibility::Visible;
+	}
+
+	return EVisibility::Collapsed;
 }

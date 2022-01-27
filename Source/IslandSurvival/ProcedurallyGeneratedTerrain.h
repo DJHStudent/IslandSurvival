@@ -44,6 +44,7 @@ public:
 	TArray<FVector> Vertices; //list of all vertices of mesh
 	TArray<FLinearColor> VerticeColours; //the colour of each vertex
 	TArray<int32> IslandNumber; //the key of the island each vertex relates to from the IslandsMap
+	TArray<int32> LakeNumber; //the key of the island each vertex relates to from the IslandsMap
 
 
 	TArray<int32> Triangles; //list of all meshes trianlges

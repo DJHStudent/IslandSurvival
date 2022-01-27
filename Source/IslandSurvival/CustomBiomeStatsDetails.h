@@ -18,4 +18,6 @@ public:
 	static TSharedRef<IDetailCustomization> MakeInstance();
 private:
 	EVisibility PropertyMatchesEnum(TSharedPtr<IPropertyHandle> Property, EBiomeStats::Type DesiredMode) const;
+	EVisibility PropertiesLandWater(TSharedPtr<IPropertyHandle> Property) const;
+	EVisibility PropertiesSingleLandWater(TSharedPtr<IPropertyHandle> PropertyEnum, TSharedPtr<IPropertyHandle> PropertyBool) const;
 };

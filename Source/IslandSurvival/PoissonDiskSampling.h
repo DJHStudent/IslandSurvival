@@ -26,8 +26,11 @@ public:
 		X/Y origin offset: as grid is based around 0,0 need to offset the final islands point in order to get its actual position on the map
 	*/
 
-	static TArray<TPair<int32, FVector2D>> CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream); //create all the biomes points
+	static TArray<TPair<int32, FVector2D>> CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, 
+		const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, 
+		FRandomStream& Stream, TArray<int32>& BiomeKeys); //create all the biomes points
 
 private:
-	static int32 DetermineBiome(int32 NeighbourBiome, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream); //for each point determine the biome which resides within it
+	static int32 DetermineBiome(int32 NeighbourBiome, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream,
+		TArray<int32>& BiomeKeys); //for each point determine the biome which resides within it
 };

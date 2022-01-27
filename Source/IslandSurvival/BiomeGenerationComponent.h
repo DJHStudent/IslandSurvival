@@ -71,19 +71,23 @@ public:
 
 	void AddBiomePoints(int32 XPosition, int32 YPosition, float ZPosition);
 
-	void AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition); //for each point determine the island it relates too
+	//void AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition); //for each point determine the island/lake it relates too
+	void AddSinglePoint(int32 XPosition, int32 YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation);
 	UPROPERTY()
 	TMap<int32, FIslandStats> IslandPointsMap; //a map containing a key for the specific island it is and its various statistics
 	//an island is just a set of any number of vertices which are joined together above the waterline
 	int32 IslandKeys; //the current max key have, ensuring no duplicates are created
 	TArray<int32> LandBiomeKeys; //list of all biomes with the spawn condition set to land
-	void DetermineLandBiomes();
 
 	//Just the reverse of the islands, the lake / ocean biomes
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	TMap<int32, FIslandStats> LakePointsMap;
 	int32 LakeKeys;
-	TArray<int32> LakeBiomeKeys; //list of all biomes which appear underwater
+	TArray<int32> LakeBiomeKeys; //list of all biomes which appear 
+	TArray<int32> HeightBiomeKeys;
+
+	void DeterminePointBiomes();
+
 
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
 	void VerticesBiomes(); //for each island determine the biome(s) residing within it
@@ -102,12 +106,14 @@ public:
 	void SpawnStructure(); //spawn in tents and bouys around the map
 private:
 
-	void JoinIslands(int32 IslandPoint, int32 NewPoint); //for when generating islands some are unjoined and disconected, so join them together
+	void JoinPoints(int32 IslandPoint, int32 NewPoint, TMap<int32, FIslandStats>& PointsMap, TArray<int32>& VertexRelation); //for when generating islands some are unjoined and disconected, so join them together
 	
 	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier); 
 	bool HasHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //determine if it is a height based biome or not
-	void SingleBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //islands below a certain size will have only 1 biome
-	void MultiBiomeIslands(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize); //for all biomes above a certain size generate multiple biomes
+	
+	void EachPointsMap(TMap<int32, FIslandStats>& PointsMap, TArray<int32>& BiomeKeys);
+	void SingleBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys); //islands below a certain size will have only 1 biome
+	void MultiBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys); //for all biomes above a certain size generate multiple biomes
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single biome
 	float SingleIslandMaxSize; 

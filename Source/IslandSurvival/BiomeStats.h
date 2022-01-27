@@ -71,15 +71,6 @@ public:
 	UPROPERTY(EditAnywhere) //a list containing the key of each biome which can spawn in next to this one
 	TArray<int32> NeighbourBiomeKeys;
 
-	//UPROPERTY(EditAnywhere, Category = "Biome Spawning")
-	//bool bAnyLand;
-
-	//UPROPERTY(EditAnywhere, Category = "Biome Spawning")
-	//bool bAnyWater;
-
-	//UPROPERTY(EditAnywhere, Category = "Biome Spawning")
-	//bool bAnyHeight; //overriding land and water, spawns biome at location based on the vertices height
-
 	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
 	TEnumAsByte<EBiomeStats::Type> BiomeSpawningEnum; //allows the enum to appear within the editor
 	
@@ -88,7 +79,13 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
 	float MaxSpawnHeight;
-
+	
+	UPROPERTY(EditAnywhere, Category = "Biome Spawning")
+	bool bOnlySingle; //only appear on the small islands
+	UPROPERTY(EditAnywhere, Category = "Biome Spawning", meta = (ClampMin = "0"))
+	float MinSpawnArea;
+	UPROPERTY(EditAnywhere, Category = "Biome Spawning", meta = (ClampMin = "0"))
+	float MaxSpawnArea;
 	
 
 
@@ -114,5 +111,7 @@ public:
 		Scale = 1;
 		WalkSpeed = 600;
 		SwimSpeed = 1000.0;
+
+		MaxSpawnArea = 6000.0;
 	}
 };

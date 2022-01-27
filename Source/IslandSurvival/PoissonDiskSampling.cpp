@@ -12,7 +12,9 @@ PoissonDiskSampling::~PoissonDiskSampling()
 {
 }
 
-TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream)
+TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, 
+	const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, 
+	TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream, TArray<int32>& BiomeKeys)
 {
 	TArray<TPair<int32, FVector2D>> BiomePoints; //a list of points which contain the key for a biome
 
@@ -46,7 +48,7 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	GridPoints[InitialGridLocation] = FVector2D(InitalXValue, InitalYValue);
 
 	//determine the biome for the choosen point
-	int32 NewBiome = DetermineBiome(GridBiomes[InitialGridLocation], DifferentBiomesMap, Stream);
+	int32 NewBiome = DetermineBiome(GridBiomes[InitialGridLocation], DifferentBiomesMap, Stream, BiomeKeys);
 	GridBiomes[InitialGridLocation] = NewBiome;
 
 	//add the point as a valid biome location. Need the offset value as grid values centred around 0,0 so will shift the point to be around the islands location
@@ -107,7 +109,7 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 				GridPoints[OffsetGridIndex] = OffsetPosition; //assign the postion to it
 
 				//determine the biome of the new point
-				NewBiome = DetermineBiome(GridBiomes[ActiveGridIndexValue], DifferentBiomesMap, Stream);
+				NewBiome = DetermineBiome(GridBiomes[ActiveGridIndexValue], DifferentBiomesMap, Stream, BiomeKeys);
 				GridBiomes[OffsetGridIndex] = NewBiome;
 
 				//add the point as a valid biome location
@@ -126,10 +128,14 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 	return BiomePoints; //return the list of points with appropriate biomes found
 }
 
-int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream)
+int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32, TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, 
+	FRandomStream& Stream, TArray<int32>& BiomeKeys)
 {
-	if (NeighbourBiome == -1) //as no biome yet exists for the island just pick a random one
-		return Stream.RandRange(7, 12); //the keys for the biomes not bound by specific conditions
+	if (NeighbourBiome == -1 || DifferentBiomesMap[NeighbourBiome].GetDefaultObject()->NeighbourBiomeKeys.Num() == 0) //as no biome yet exists for the island just pick a random one
+	{
+		int32 RandomBiome = Stream.RandRange(0, BiomeKeys.Num() - 1);
+		return BiomeKeys[RandomBiome];//the keys for the biomes not bound by specific conditions
+	}
 	else
 	{
 		//pick random biome from list of neighbouring biomes

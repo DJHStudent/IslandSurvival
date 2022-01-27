@@ -126,6 +126,7 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 	Vertices.Empty();
 	VerticeColours.Empty();
 	IslandNumber.Empty();
+	LakeNumber.Empty();
 
 	Triangles.Empty();
 
@@ -133,11 +134,18 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 	{
 		//reset all info on biomes
 		BiomeGeneration->IslandKeys = 0;
+		BiomeGeneration->LakeKeys = 0;
+
 		BiomeGeneration->IslandPointsMap.Empty();
+		BiomeGeneration->LakePointsMap.Empty();
+
+		BiomeGeneration->LakeBiomeKeys.Empty();
+		BiomeGeneration->LandBiomeKeys.Empty();
+		BiomeGeneration->HeightBiomeKeys.Empty();
+
 		BiomeGeneration->BiomeAtEachPoint.Empty();
 		BiomeGeneration->VertexBiomeLocationsMap.Empty();
 		BiomeGeneration->bBeenLerped.Empty();
-		BiomeGeneration->LandBiomeKeys.Empty();
 
 
 		//destory any meshes placed on the terrain by using the array of all meshes which exist
@@ -176,7 +184,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 			float ZPosition = TerrainHeight->GenerateHeight(j, i, BiomeGeneration->WaterLine, bSmoothTerrain); //get the specific height for each point on the mesh
 			Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
 
-			BiomeGeneration->AddIslandPoint(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
+			BiomeGeneration->AddBiomePoints(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
 
 			if (i + 1 < Height && j + 1 < Width) //add the appropriate triangles in the right positions within the array
 			{
@@ -185,7 +193,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 			}
 		}
 	}
-	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map which is above water
+	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map
 
 	//GenerateMeshes();
 }
