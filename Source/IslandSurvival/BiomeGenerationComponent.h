@@ -80,7 +80,7 @@ public:
 	TArray<int32> LandBiomeKeys; //list of all biomes with the spawn condition set to land
 
 	//Just the reverse of the islands, the lake / ocean biomes
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	TMap<int32, FIslandStats> LakePointsMap;
 	int32 LakeKeys;
 	TArray<int32> LakeBiomeKeys; //list of all biomes which appear 

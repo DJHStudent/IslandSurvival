@@ -34,12 +34,12 @@ void FCustomBiomeStatsDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 
 	//get the properties for the height based biomes
 	TAttribute<EVisibility> HeightStatsVisibility = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FCustomBiomeStatsDetails::PropertyMatchesEnum, BiomeProperty, EBiomeStats::HeightBased));
-	IDetailPropertyRow& MaxSpawnHeight = BiomeCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, MaxSpawnHeight)));
 	IDetailPropertyRow& MinSpawnHeight = BiomeCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, MinSpawnHeight)));
+	IDetailPropertyRow& MaxSpawnHeight = BiomeCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, MaxSpawnHeight)));
 
 	//determine the height biomes visability
-	MaxSpawnHeight.Visibility(HeightStatsVisibility);
 	MinSpawnHeight.Visibility(HeightStatsVisibility);
+	MaxSpawnHeight.Visibility(HeightStatsVisibility);
 
 
 	//get the properties for the land/water based biomes

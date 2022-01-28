@@ -28,7 +28,7 @@ void FCustomProceduralTerrainDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 		}
 	}
 	check(Actor);
-	DetailBuilder.EditCategory("Generate Terrain", FText::FromString("Generate Terrain"), ECategoryPriority::Transform);
+	DetailBuilder.EditCategory("Generate Terrain", FText::FromString("Generate Terrain"), ECategoryPriority::Important);
 	DetailBuilder.EditCategory("Terrain Size", FText::FromString("Terrain Size"), ECategoryPriority::Important);
 	DetailBuilder.EditCategory("Smooth Terrain", FText::FromString("Smooth Terrain"), ECategoryPriority::Important);
 	DetailBuilder.EditCategory("General Settings", FText::FromString("General Settings"), ECategoryPriority::Important);

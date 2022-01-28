@@ -226,8 +226,17 @@ void UBiomeGenerationComponent::EachPointsMap(TMap<int32, FIslandStats>& PointsM
 
 void UBiomeGenerationComponent::SingleBiomePoints(TPair<int32, FIslandStats> PointsVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys)
 {
-	int32 RandomBiome = TerrainGenerator->Stream.RandRange(0, BiomeKeys.Num() - 1); //from biome list pick a random one which is also an above water, land(not mountain) biome
-	RandomBiome = BiomeKeys[RandomBiome]; //need to ensure do not actually include the specific single biomes only
+	TArray<int32> NonSingleBiomeKeys;
+	for (int32& Key : BiomeKeys) //while picked random biome from the list also check the biomes size
+	{
+		if (!BiomeStatsMap[Key].GetDefaultObject()->bOnlySingle)
+		{
+			NonSingleBiomeKeys.Add(Key);
+		}
+	}
+
+	int32 RandomBiome = TerrainGenerator->Stream.RandRange(0, NonSingleBiomeKeys.Num() - 1); //from biome list pick a random one which is also an above water, land(not mountain) biome
+	RandomBiome = NonSingleBiomeKeys[RandomBiome]; //need to ensure do not actually include the specific single biomes only
 
 	for (int32 VertexIdentifier : PointsVertexIdentifiers.Value.VertexIndices) //for each vertex stored in the specific island
 	{
@@ -310,6 +319,11 @@ bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int3
 			&& ZHeight < BiomeStatsMap[HeightBiome].GetDefaultObject()->MaxSpawnHeight)
 		{
 			//check if this height biome also has at least one valid neighbour
+			if (BiomeStatsMap[HeightBiome].GetDefaultObject()->NeighbourBiomeKeys.Num() <= 0) //no neighbours set means any biome is valid neighbour
+			{
+				UpdateBiomeLists(HeightBiome, VertexIdentifier);
+				return true; //as biome found return true
+			}
 			for (int32 NeighbourBiome : BiomeStatsMap[HeightBiome].GetDefaultObject()->NeighbourBiomeKeys) //check the possible neighbour biomes for 5 first
 			{
 				if (NeighbourBiome == Biome) //if the land biome is a neighbour
@@ -398,7 +412,8 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j) //blend 2 neighbo
 					&& BiomeAtEachPoint[VertexIndex] != 2 && BiomeAtEachPoint[NeighbourIndex] != 2
 					&& BiomeAtEachPoint[VertexIndex] != 3 && BiomeAtEachPoint[NeighbourIndex] != 3
 					&& BiomeAtEachPoint[VertexIndex] != -1 && BiomeAtEachPoint[NeighbourIndex] != -1
-					&& BiomeAtEachPoint[VertexIndex] != 14 && BiomeAtEachPoint[NeighbourIndex] != 14)
+					&& BiomeAtEachPoint[VertexIndex] != 14 && BiomeAtEachPoint[NeighbourIndex] != 14
+					&& BiomeAtEachPoint[VertexIndex] != 15 && BiomeAtEachPoint[NeighbourIndex] != 15)
 				{
 					if (!bBeenLerped[VertexIndex]) //if this vertex has not yet been lerped
 					{

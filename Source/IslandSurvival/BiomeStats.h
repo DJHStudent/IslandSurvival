@@ -87,7 +87,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Biome Spawning", meta = (ClampMin = "0"))
 	float MaxSpawnArea;
 	
-
+	float SpawnChance; //biome with heighest value spawns first
 
 	UPROPERTY(EditAnywhere, Category = "Terrain Height") //for each biome should it have a custom terrain, or use the default terrain made when first generated
 	bool bCustomTerrain;
@@ -113,5 +113,7 @@ public:
 		SwimSpeed = 1000.0;
 
 		MaxSpawnArea = 6000.0;
+
+		SpawnChance = 100;
 	}
 };

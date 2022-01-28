@@ -27,6 +27,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION(CallInEditor, Category = "Generate Terrain")
+	void GenerateNewTerrain();
 
 	UPROPERTY(VisibleAnywhere, Category = "Other")
 	UProceduralMeshComponent* MeshComponent;
@@ -55,9 +58,6 @@ public:
 	void ClearMap(); //remove any data stored for the previous map
 
 	virtual bool ShouldTickIfViewportsOnly() const override; //update the maps terrain, when value changed even if in the editor and not running
-
-	UFUNCTION(CallInEditor, Category="Generate Terrain")
-	void GenerateNewTerrain();
 
 	UPROPERTY(EditAnywhere, Category = "Other")//class for holding all info related to the biomes
 	class UBiomeGenerationComponent* BiomeGeneration; 
