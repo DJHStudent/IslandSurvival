@@ -28,10 +28,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	UFUNCTION(CallInEditor, Category = "Generate Terrain")
+	UFUNCTION(CallInEditor, Category = "Generate Terrain") //Generate a new terrain
 	void GenerateNewTerrain();
 
-	UPROPERTY(VisibleAnywhere, Category = "Other")
+	UPROPERTY(VisibleAnywhere, Category = "Other") //Save the terrain mesh as an asset
 	UProceduralMeshComponent* MeshComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//number of vertices on x axis
@@ -57,26 +57,27 @@ public:
 	void CreateMesh();
 	void ClearMap(); //remove any data stored for the previous map
 
-	virtual bool ShouldTickIfViewportsOnly() const override; //update the maps terrain, when value changed even if in the editor and not running
+	//update the maps terrain, when value changed even if in the editor and not running
+	virtual bool ShouldTickIfViewportsOnly() const override; 
 
 	UPROPERTY(EditAnywhere, Category = "Other")//class for holding all info related to the biomes
 	class UBiomeGenerationComponent* BiomeGeneration; 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")//seed using in the terrain for seeded generation
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")//the current seed of the terrain
 	int32 Seed; 
 
 	UPROPERTY() //once got value from server will generate the map
 	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
 
-	UPROPERTY(EditAnywhere, Category = "Other")
+	UPROPERTY(EditAnywhere, Category = "Other") //the mesh to spawn in
 	TSubclassOf<class AActor> ZombieSpawner;
 	UPROPERTY(EditAnywhere, Category = "Other")//the mesh to spawn in
 	TSubclassOf<class AActor> Fuel;
 
 	bool bIsEditor;
 private:
-	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height")
-	UTerrainHeight* TerrainHeight; //functionality for determining terrains height
+	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height") //the base generation settings, used to determine the biomes locations
+	UTerrainHeight* TerrainHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Seed")//if true will give a random seed on each generation
 	bool bRandomSeed; 

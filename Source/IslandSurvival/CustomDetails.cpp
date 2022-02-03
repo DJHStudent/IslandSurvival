@@ -27,7 +27,8 @@ TSharedRef<IDetailCustomization> FCustomDetails::MakeInstance()
 {
 	return MakeShareable(new FCustomDetails);
 }
-//template<typename Enum>
+//template<typename 
+// >
 //EVisibility FCustomDetails::PropertyMatchesEnum(TSharedPtr<IPropertyHandle> Property, Enum DesiredMode)
 //{
 //	if (Property.IsValid())

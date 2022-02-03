@@ -92,7 +92,7 @@ public:
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
 	void VerticesBiomes(); //for each island determine the biome(s) residing within it
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere) //The biome blueprints to spawn in, all containing a unique integer key
 	TMap<int32, TSubclassOf<UBiomeStatsObject>> BiomeStatsMap;
 
 	void SpawnMeshes(); //for each biome spawn in the appropriate meshes
@@ -115,7 +115,8 @@ private:
 	void SingleBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys); //islands below a certain size will have only 1 biome
 	void MultiBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys); //for all biomes above a certain size generate multiple biomes
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to have a single biome
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to only have a single biome
+		//note doesn't apply to height based biomes
 	float SingleIslandMaxSize; 
 
 	FVector MeshLocation(FVector VertexPosition); //determine the offset to give the plant mesh
