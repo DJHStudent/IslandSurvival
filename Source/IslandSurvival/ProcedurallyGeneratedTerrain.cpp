@@ -102,7 +102,7 @@ void AProcedurallyGeneratedTerrain::RegenContinued()
 	if (BiomeGeneration)
 	{
 		BiomeGeneration->BiomeAtEachPoint.Init(-1, Width * Height); //give each vertex a default biome of ocean
-		BiomeGeneration->bBeenLerped.Init(false, Width * Height);
+		BiomeGeneration->bBeenLerped.Init(TPair<bool, float>(false , -1), Width * Height);
 	}
 	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height); //give each vertex a default colour
 
@@ -195,6 +195,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	}
 	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map
 
+	BiomeGeneration->BiomeBlending();
 	//GenerateMeshes();
 }
 

@@ -64,6 +64,9 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY(EditAnywhere)
+	int32 BlendAmount;
+
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "-1", ClampMax = "1")) //the Z position of water on the map
 	float WaterLine;
 
@@ -101,11 +104,11 @@ public:
 	TArray<AActor*> MeshActors; //all meshes added into the world
 
 	void BiomeLerping(int32 i, int32 j); //for two biomes, if at border blend the height values together so get a smoother transition
-	TArray<bool> bBeenLerped; //has this vertex been succesfully blended with its neighbour yet
+	TArray<TPair<bool, float>> bBeenLerped; //has this vertex been succesfully blended with its neighbour yet + original Z value of point
+	void BiomeBlending();
 
 	void SpawnStructure(); //spawn in tents and bouys around the map
 private:
-
 	void JoinPoints(int32 IslandPoint, int32 NewPoint, TMap<int32, FIslandStats>& PointsMap, TArray<int32>& VertexRelation); //for when generating islands some are unjoined and disconected, so join them together
 	
 	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier); 
