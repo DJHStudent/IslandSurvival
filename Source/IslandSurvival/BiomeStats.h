@@ -91,6 +91,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Biome Spawning", meta = (ClampMin = "0")) //the max rectangular area it can spawn in
 	float MaxSpawnArea;
 	
+	UPROPERTY(EditAnywhere, Category = "Biome Spawning") //should this biome blend with neighbours terrain, at the edges of the biome
+	bool bDoBlending;
+
 	float SpawnChance;
 
 	UPROPERTY(EditAnywhere, Category = "Terrain Height") //should this biome override the default terrain with its own custom values
@@ -119,5 +122,6 @@ public:
 		MaxSpawnArea = 6000.0;
 
 		SpawnChance = 100;
+		bDoBlending = true;
 	}
 };

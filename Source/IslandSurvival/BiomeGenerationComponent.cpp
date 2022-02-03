@@ -403,7 +403,7 @@ void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the te
 		TArray<int32> NeighbourBiomes;
 		int32 CurrBlend = 1;
 		//chech all neighbours of current vertex
-		while (CurrBlend <= BlendAmount) //note, really inefficent and bad, just for quick testing
+		while (CurrBlend <= BlendAmount && BiomeStatsMap[BiomeAtEachPoint[i]].GetDefaultObject()->bDoBlending) //note, really inefficent and bad, just for quick testing
 		{
 			for (int32 Y = -CurrBlend; Y <= CurrBlend; Y++) //loop through all neighbouring grid points
 			{
