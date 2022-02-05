@@ -79,7 +79,7 @@ public:
 	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//should domain warping be included in the generation
 		bool bDoWarping;
 
-	UPROPERTY(EditAnywhere, Category = "Terraces")//should terracing be included in the generation 
+	UPROPERTY(EditAnywhere, Category = "Terraces", meta = (ClampMin = "0"))//should terracing be included in the generation 
 		bool bDoTerrace;	
 	UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
 		float TerraceSize;

@@ -421,9 +421,10 @@ void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the te
 							int32 Dist = FMath::Clamp(FMath::Min(FMath::Abs(X), FMath::Abs(Y)), 1, 100);
 							float Alpha = StartAlpha / (float)Dist;// -(float)((FMath::Max(FMath::Abs(X), FMath::Abs(Y)), 1, 100000) - 1) / (BlendAmount - 1.0f) * (0.5f);
 							TerrainGenerator->Vertices[i].Z = FMath::Lerp(TerrainGenerator->Vertices[i].Z, NeighbourValue, Alpha);
-							UE_LOG(LogTemp, Error, TEXT("The two biomes: %f"), Alpha) //this is bugged out and wrong somehow
+							//add terracing to the terrain here as well if both have it selected
+							TerrainGenerator->Vertices[i].Z = BlendingTerracing(TerrainGenerator->Vertices[i].Z, BiomeAtEachPoint[i], BiomeAtEachPoint[NeighboursIndex], Alpha);
 
-								FLinearColor VertexBiomeColor = BiomeStatsMap[BiomeAtEachPoint[i]].GetDefaultObject()->BiomeColour; //placed here so will update with lerped colour
+							FLinearColor VertexBiomeColor = BiomeStatsMap[BiomeAtEachPoint[i]].GetDefaultObject()->BiomeColour; //placed here so will update with lerped colour
 							FLinearColor NeighbourBiomeColor = BiomeStatsMap[BiomeAtEachPoint[NeighboursIndex]].GetDefaultObject()->BiomeColour;
 							TerrainGenerator->VerticeColours[i] = FMath::Lerp(VertexBiomeColor, NeighbourBiomeColor, Alpha);
 
@@ -436,6 +437,49 @@ void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the te
 		}
 		bBeenLerped[i] = TPair<bool, float>(true, OriginalZ);
 	}
+}
+
+float UBiomeGenerationComponent::BlendingTerracing(float VertexZPos, int32 CurrentBiome, int32 NeighbourBiome, float Alpha)
+{
+	if (!TerrainGenerator->bSmoothTerrain)
+	{
+		float CurrTerraceSize;
+		float NeighbourTerraceSize;
+		if (BiomeStatsMap[CurrentBiome].GetDefaultObject()->bCustomTerrain)
+		{
+			if (BiomeStatsMap[CurrentBiome].GetDefaultObject()->TerrainHeight->bDoTerrace)
+				CurrTerraceSize = BiomeStatsMap[CurrentBiome].GetDefaultObject()->TerrainHeight->TerraceSize;
+			else
+				CurrTerraceSize = -1;
+		}
+		else
+		{
+			if (TerrainGenerator->TerrainHeight->bDoTerrace)
+				CurrTerraceSize = TerrainGenerator->TerrainHeight->TerraceSize;
+			else
+				CurrTerraceSize = -1;
+		}
+
+		if (BiomeStatsMap[NeighbourBiome].GetDefaultObject()->bCustomTerrain)
+		{
+			if (BiomeStatsMap[NeighbourBiome].GetDefaultObject()->TerrainHeight->bDoTerrace)
+				NeighbourTerraceSize = BiomeStatsMap[NeighbourBiome].GetDefaultObject()->TerrainHeight->TerraceSize;
+			else
+				NeighbourTerraceSize = -1;
+		}
+		else
+		{
+			if (TerrainGenerator->TerrainHeight->bDoTerrace)
+				NeighbourTerraceSize = TerrainGenerator->TerrainHeight->TerraceSize;
+			else
+				NeighbourTerraceSize = -1;
+		}
+		//issue if only one or neither biomes actually do terracing
+		float TerraceSize = FMath::Lerp(CurrTerraceSize, NeighbourTerraceSize, Alpha);
+		UE_LOG(LogTemp, Warning, TEXT("Terraced Size is: %f, %f, %f"), TerraceSize, VertexZPos, FMath::RoundFromZero(VertexZPos * TerraceSize) / TerraceSize)
+		return FMath::RoundFromZero(VertexZPos * TerraceSize) / TerraceSize;
+	}
+	return VertexZPos;
 }
 
 void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j) //blend 2 neighbouring biome points together so smoother transition

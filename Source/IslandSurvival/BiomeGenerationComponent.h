@@ -122,6 +122,8 @@ private:
 		//note doesn't apply to height based biomes
 	float SingleIslandMaxSize; 
 
+	float BlendingTerracing(float VertexZPos, int32 CurrentBiome, int32 NeighbourBiome, float Alpha); //when blending biomes also update with terracing
+
 	FVector MeshLocation(FVector VertexPosition); //determine the offset to give the plant mesh
 	void SpawnZombieSpawner(FVector Location, int32 Index); //spawn in a zombie spawner
 

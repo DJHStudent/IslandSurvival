@@ -74,10 +74,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Other")//the mesh to spawn in
 	TSubclassOf<class AActor> Fuel;
 
-	bool bIsEditor;
-private:
+	bool bIsEditor;	
+	
 	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height") //the base generation settings, used to determine the biomes locations
 	UTerrainHeight* TerrainHeight;
+private:
+
 
 	UPROPERTY(EditAnywhere, Category = "Seed")//if true will give a random seed on each generation
 	bool bRandomSeed; 
