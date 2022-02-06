@@ -29,16 +29,14 @@ void FCustomProceduralTerrainDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 	}
 	check(Actor);
 	DetailBuilder.EditCategory("Generate Terrain", FText::FromString("Generate Terrain"), ECategoryPriority::Important);
-	DetailBuilder.EditCategory("Terrain Size", FText::FromString("Terrain Size"), ECategoryPriority::Important);
-	DetailBuilder.EditCategory("Smooth Terrain", FText::FromString("Smooth Terrain"), ECategoryPriority::Important);
-	DetailBuilder.EditCategory("General Settings", FText::FromString("General Settings"), ECategoryPriority::Important);
 
 	DetailBuilder.EditCategory("Seed", FText::FromString("Terrain Seed"), ECategoryPriority::Important);
 	TSharedPtr<IPropertyHandle> CurrentSeed = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(AProcedurallyGeneratedTerrain, Seed));
 	CurrentSeed->SetPropertyDisplayName(FText::FromString("Current Seed"));
 
+	DetailBuilder.EditCategory("Override Settings", FText::FromString("Override Settings"), ECategoryPriority::Important);
+	DetailBuilder.EditCategory("Terrain Size", FText::FromString("Terrain Size"), ECategoryPriority::Important);
 
-	DetailBuilder.EditCategory("Smooth Terrain", FText::FromString("Smooth Terrain"), ECategoryPriority::Important);
 	TSharedPtr<IPropertyHandle> bSmoothTerrain = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(AProcedurallyGeneratedTerrain, bSmoothTerrain));
 	bSmoothTerrain->SetPropertyDisplayName(FText::FromString("Override Terracing"));
 

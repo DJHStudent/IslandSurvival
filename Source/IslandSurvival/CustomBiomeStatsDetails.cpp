@@ -30,7 +30,7 @@ void FCustomBiomeStatsDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 
 	
 	TSharedPtr<IPropertyHandle> BiomeProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, BiomeSpawningEnum));
-	BiomeProperty->CreatePropertyNameWidget(FText::FromString("Spawn Condition"));
+	BiomeProperty->SetPropertyDisplayName(FText::FromString("Spawn Location"));
 
 	//get the properties for the height based biomes
 	TAttribute<EVisibility> HeightStatsVisibility = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FCustomBiomeStatsDetails::PropertyMatchesEnum, BiomeProperty, EBiomeStats::HeightBased));
@@ -56,18 +56,7 @@ void FCustomBiomeStatsDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuil
 	MinSpawnArea.Visibility(OnlySingleVisibility);
 	MaxSpawnArea.Visibility(OnlySingleVisibility);
 
-	//determine the water visability
-//	bOnlySingle.Visibility(WaterStatsVisibility);
-//	MinSpawnArea.Visibility(WaterStatsVisibility);
-//	MaxSpawnArea.Visibility(WaterStatsVisibility);
-
-
-
-
-
-
 	IDetailPropertyRow& TerrainNoise = TerrainNoiseCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, TerrainHeight)));
-	//IDetailPropertyRow& DoCustomTerrain = TerrainNoiseCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, bCustomTerrain)));
 	TSharedPtr<IPropertyHandle> bCustomTerrainProperty = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UBiomeStatsObject, bCustomTerrain));
 	TerrainNoise.Visibility(TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FCustomDetails::PropertyMatchesBool, bCustomTerrainProperty)));
 

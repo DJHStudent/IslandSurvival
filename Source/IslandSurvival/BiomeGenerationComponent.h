@@ -64,17 +64,18 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "1")) //the max number of vertices away from the border of a biome blending will occur
+													//note: only if blending enabled for the biome
 	int32 BlendAmount;
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "-1", ClampMax = "1")) //the Z position of water on the map
+																	 //note: multiplied by the base terrains perlin scale to get the water height
 	float WaterLine;
 
 	class AProcedurallyGeneratedTerrain* TerrainGenerator;
 
 	void AddBiomePoints(int32 XPosition, int32 YPosition, float ZPosition);
 
-	//void AddIslandPoint(int32 XPosition, int32 YPosition, float ZPosition); //for each point determine the island/lake it relates too
 	void AddSinglePoint(int32 XPosition, int32 YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation);
 	UPROPERTY()
 	TMap<int32, FIslandStats> IslandPointsMap; //a map containing a key for the specific island it is and its various statistics
@@ -93,9 +94,10 @@ public:
 
 
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
-	void VerticesBiomes(); //for each island determine the biome(s) residing within it
+	//for each island determine the biome(s) residing within it
+	void VerticesBiomes();
 
-	UPROPERTY(EditAnywhere) //The biome blueprints to spawn in, all containing a unique integer key
+	UPROPERTY(EditAnywhere) //The biome blueprints to spawn in, each containing a unique integer key
 	TMap<int32, TSubclassOf<UBiomeStatsObject>> BiomeStatsMap;
 
 	void SpawnMeshes(); //for each biome spawn in the appropriate meshes
@@ -116,14 +118,16 @@ private:
 	
 	void EachPointsMap(TMap<int32, FIslandStats>& PointsMap, TArray<int32>& BiomeKeys);
 	void SingleBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys); //islands below a certain size will have only 1 biome
-	void MultiBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys); //for all biomes above a certain size generate multiple biomes
+	//for all biomes above a certain size generate multiple biomes
+	void MultiBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys);
 
-	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max size an island can be to only have a single biome
-		//note doesn't apply to height based biomes
-	float SingleIslandMaxSize; 
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max rectangular area an island / lake can have to only have a single biome
+												   //note: doesn't apply to height based biomes
+	float SingleFeatureMaxSize; 
 
 	FVector MeshLocation(FVector VertexPosition); //determine the offset to give the plant mesh
-	void SpawnZombieSpawner(FVector Location, int32 Index); //spawn in a zombie spawner
+	//spawn in a zombie spawner
+	void SpawnZombieSpawner(FVector Location, int32 Index); 
 
 	UPROPERTY(EditAnywhere)//the tent mesh
 		UStaticMesh* Tent;

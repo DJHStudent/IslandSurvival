@@ -28,20 +28,27 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	UFUNCTION(CallInEditor, Category = "Generate Terrain") //Generate a new terrain
+	UFUNCTION(CallInEditor, Category = "Generate Terrain") //Generate new terrain
 	void GenerateNewTerrain();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")//the current seed of the terrain
+	int32 Seed; 
+		
+	UPROPERTY(EditAnywhere, Category = "Override Settings") //Should all terrain biomes, regardless if using terracing, be smooth 
+	bool bSmoothTerrain;
+	UPROPERTY(EditAnywhere, Category = "Override Settings") //Should the biome spawning be overriden so only the base terrain is shown
+	bool bOverrideBiomeSpawning;
 
 	UPROPERTY(VisibleAnywhere, Category = "Other") //Save the terrain mesh as an asset
 	UProceduralMeshComponent* MeshComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//number of vertices on x axis
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")// for the mesh, the number of vertices on x axis
 	int32 Width; 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//number of vertices on y axis
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//for the mesh, the number of vertices on y axis
 	int32 Height; 
-	UPROPERTY(EditAnywhere, Category = "Terrain Size")//distance each vertex is appart
+	UPROPERTY(EditAnywhere, Category = "Terrain Size")//distance each vertex is appart, on the mesh
 	float GridSize; 
-	UPROPERTY(EditAnywhere, Category = "Smooth Terrain") //Should all terrain biomes, regardless of using terracing be smooth or not 
-	bool bSmoothTerrain; //should all the biomes / terrain using terracing actually do it
+
 
 	//need to be replicated variables
 	TArray<FVector> Vertices; //list of all vertices of mesh
@@ -63,15 +70,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Other")//class for holding all info related to the biomes
 	class UBiomeGenerationComponent* BiomeGeneration; 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Seed")//the current seed of the terrain
-	int32 Seed; 
+	UPROPERTY() //once got value from server will generate the map, used in order to generate random numbers based on a specific seed
+	FRandomStream Stream; 
 
-	UPROPERTY() //once got value from server will generate the map
-	FRandomStream Stream; //used in order to generate random numbers based on a specific seed
-
-	UPROPERTY(EditAnywhere, Category = "Other") //the mesh to spawn in
+	UPROPERTY(EditAnywhere, Category = "Other") //the Zombie Spawner blueprint to spawn in
 	TSubclassOf<class AActor> ZombieSpawner;
-	UPROPERTY(EditAnywhere, Category = "Other")//the mesh to spawn in
+	UPROPERTY(EditAnywhere, Category = "Other")//the Fuel Blueprint to spawn in
 	TSubclassOf<class AActor> Fuel;
 
 	bool bIsEditor;	

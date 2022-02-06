@@ -14,11 +14,11 @@ UENUM()
 namespace ENoiseDepth //the amount of the noise to actually generate
 {
 	enum Type
-	{	//noise between -1 and 1
+	{	//all vertices of the biome can appear above and below the waterline
 		FullNoise UMETA(DisplayName = "Full Height"),
-		//noise between 0 and 1
+		//all vertices of the biome will appear above the waterline
 		LandNoise UMETA(DisplayName = "Above Water Only"),
-		//noise between -1 and 0
+		//all vertices of the biome will appear below the waterline
 		WaterNoise UMETA(DisplayName = "Below Water Only"),
 	};
 }
@@ -28,11 +28,17 @@ namespace ETerrainAdditions //the amount of the noise to actually generate
 {
 	enum Type
 	{	
+		//don't apply this feature to the terrain
 		DontUse UMETA(DisplayName = "Don't Use"),
+		//convert the current Z position to become this feature
 		FullUse UMETA(DisplayName = "Convert Current Terrain to Use this"),
+		//add this with the current Z position, creating a possibility for it to appear
 		Add UMETA(DisplayName = "Add to Existing"),
+		//subtract this with the current Z position, creating a possibility for it to appear
 		Subtract UMETA(DisplayName = "Subtract from Existing"),
+		//multiply this with the current Z position, creating a possibility for it to appear
 		Multiply UMETA(DisplayName = "Multiply with Existing"),
+		//divide this with the current Z position, creating a possibility for it to appear
 		Divide UMETA(DisplayName = "Divide with Existing"),
 	};
 }
@@ -55,53 +61,57 @@ private:
 	//the random values to offset the perlin noise by in each octave, in order to introduce randomness
 	TArray<float> OctaveOffsets;
 
-	UPROPERTY(EditAnywhere) //is the terrain only above or below the centre area or not
+	UPROPERTY(EditAnywhere) //the Z position constraint for the vertices of the biome
 	TEnumAsByte<ENoiseDepth::Type> NoiseDepthEnum; //allows the enum to appear within the editor
 public:
-	UPROPERTY(EditAnywhere, Category = "FBM")//number of perlin noise maps to layer
-		int32 Octaves;
-	UPROPERTY(EditAnywhere)//the range of values perlin noise will return
-		float PerlinScale;
-	UPROPERTY(EditAnywhere)//how spiky or smooth the terrain will be
-		float PerlinRoughness;
 
-	UPROPERTY(EditAnywhere, Category = "FBM")//the incremental gap in frequency of the noise between octaves
-		float Lacunarity;
-	UPROPERTY(EditAnywhere, Category = "FBM")//the amount of amplitude change of the noise over each octave
-		float Grain;
+	UPROPERTY(EditAnywhere)//the range, both positive and negative, the vertices Z position will be within
+	float PerlinScale;
+	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "1"))//how smooth or spiky the terrain will be
+	float PerlinRoughness;
+	
+	UPROPERTY(EditAnywhere, Category = "FBM")//number of layers of perlin noise to use
+	int32 Octaves;
+	UPROPERTY(EditAnywhere, Category = "FBM")//the linear change in Perlin Roughness over each successive octave
+											//i.e: the change in frequency of each octave of the noise
+	float Lacunarity;
+	UPROPERTY(EditAnywhere, Category = "FBM", meta = (ClampMin = "0", ClampMax = "1"))//the linear change in influence of each successive octave
+																					 //i.e: the change in amplitude of each octave of the noise
+	float Grain;
 
 	float FractalBrownianMotion(int32 XPosition, int32 YPosition);
 	
 	//offset the vertices of each point by specific values
 	float DomainWarping(float XPos, float YPos); 
-	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//the amount of random offset to apply to each vertex
-		float DomainAmount;
-	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//should domain warping be included in the generation
-		bool bDoWarping;
+	UPROPERTY(EditAnyWhere, Category = "Domain Warping", meta = (ClampMin = "0"))//the amount of random distortion to apply to each vertex
+	float DomainAmount;
+	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//should this biome use domain warping
+	bool bDoWarping;
 
-	UPROPERTY(EditAnywhere, Category = "Terraces", meta = (ClampMin = "0"))//should terracing be included in the generation 
+	UPROPERTY(EditAnywhere, Category = "Terraces", meta = (ClampMin = "0"))//should this biome be terraced 
 		bool bDoTerrace;	
-	UPROPERTY(EditAnywhere, Category = "Terraces") //the distance appart of each terrace, larger value means smaller appart
+	UPROPERTY(EditAnywhere, Category = "Terraces", meta = (ClampMin = "0")) //the inverse distance appart of each terrace
+																			//i.e: larger values mean smaller appart
 		float TerraceSize;
 
 	float SquareGradient(float XPosition, float YPosition);
 	UPROPERTY(EditAnywhere, Category = "FallOff")//should the map, falloff around the edges to create islands surounded by water
 		bool bDoFalloff;
-	UPROPERTY(EditAnywhere, Category = "FallOff")//steepness of the transition from land to water at the edge of the map
+	UPROPERTY(EditAnywhere, Category = "FallOff")//distance from the centre of the map where the falloff begins
+		float DistStarts;
+	UPROPERTY(EditAnywhere, Category = "FallOff")//steepness of the transition from land to water
 		float Steepness;
-	UPROPERTY(EditAnywhere, Category = "FallOff")//controls how much of the map's border is actually underwater
-		float Size;
-	UPROPERTY(EditAnywhere, Category = "FallOff")//amound of the map, from centre point is above water
+	UPROPERTY(EditAnywhere, Category = "FallOff", meta = (ClampMin = "0"))//amound of the map, from centre point which is above water
 		float AboveWater;
 
-	UPROPERTY(EditAnywhere, Category = "Noise Types") //makes the terrain be flatter, broken up by valleys and mountains
-		TEnumAsByte<ETerrainAdditions::Type> PowerNoiseEnum; //allows the enum to appear within the editor
+	UPROPERTY(EditAnywhere, Category = "Noise Types") //flattens the terrain so only large features like mountains and valleys appear every so often
+	TEnumAsByte<ETerrainAdditions::Type> PowerNoiseEnum;
 
 	UPROPERTY(EditAnywhere, Category = "Noise Types")//Allow rigdes to appear
-		TEnumAsByte<ETerrainAdditions::Type> RigidNoiseEnum; //allows the enum to appear within the editor
+	TEnumAsByte<ETerrainAdditions::Type> RigidNoiseEnum;
 
 	UPROPERTY(EditAnywhere, Category = "Noise Types")//Allow rolling hills to appear
-		TEnumAsByte<ETerrainAdditions::Type> BillowyNoiseEnum; //allows the enum to appear within the editor
+	TEnumAsByte<ETerrainAdditions::Type> BillowyNoiseEnum; //allows the enum to appear within the editor
 
 	float TerrainAdditionMode(ETerrainAdditions::Type AddMode, float CurrentValue, float AdditionalValue);
 };

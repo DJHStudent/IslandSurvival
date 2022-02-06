@@ -21,7 +21,7 @@ TSharedRef<IDetailCustomization> FCustomTerrainHeightDetails::MakeInstance()
 
 void FCustomTerrainHeightDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
-	IDetailCategoryBuilder& FBMCategory = DetailBuilder.EditCategory("FBM", FText::FromString("Noise Layers"), ECategoryPriority::Default);
+	IDetailCategoryBuilder& FBMCategory = DetailBuilder.EditCategory("FBM", FText::FromString("Noise Layering"), ECategoryPriority::Default);
 
 
 	IDetailCategoryBuilder& WarpingCategory = DetailBuilder.EditCategory("Domain Warping", FText::FromString("Domain Warping"), ECategoryPriority::Default);
@@ -41,7 +41,7 @@ void FCustomTerrainHeightDetails::CustomizeDetails(IDetailLayoutBuilder& DetailB
 	TAttribute<EVisibility> FalloffStatsVisibility = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FCustomDetails::PropertyMatchesBool, bDoFalloffProperty));
 	//the different falloff stats visability setting
 	FalloffCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UTerrainHeight, Steepness))).Visibility(FalloffStatsVisibility);
-	FalloffCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UTerrainHeight, Size))).Visibility(FalloffStatsVisibility);
+	FalloffCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UTerrainHeight, DistStarts))).Visibility(FalloffStatsVisibility);
 	FalloffCategory.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UTerrainHeight, AboveWater))).Visibility(FalloffStatsVisibility);
 
 

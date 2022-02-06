@@ -193,16 +193,20 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 			}
 		}
 	}
-	BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map
-
-	BiomeGeneration->BiomeBlending();
-	//GenerateMeshes();
+	if (!bOverrideBiomeSpawning)
+	{
+		BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map
+		BiomeGeneration->BiomeBlending();
+	}
 }
 
 void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate populating all the nessesary data
 {
-	BiomeGeneration->SpawnStructure();
-	BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
+	if (!bOverrideBiomeSpawning)
+	{
+		BiomeGeneration->SpawnStructure();
+		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
+	}
 
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);

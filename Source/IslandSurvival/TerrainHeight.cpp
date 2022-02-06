@@ -27,7 +27,7 @@ float UTerrainHeight::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 		HeightSum += NoiseValue * Amplitude; //add this noise value to the total with amplitude
 
 		Frequency *= Lacunarity; //the influence of the frequency over each sucessive octave, increasing
-		Amplitude *= Grain; //influence of amplitude on each sucessive octave, decreasing
+		Amplitude *= Grain; //influence of amplitude on each sucessive octave
 	}
 	return HeightSum; //return the final height sum
 }
@@ -55,34 +55,23 @@ float UTerrainHeight::SquareGradient(float XPosition, float YPosition) //determi
 	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //for a sqaure gradient determine the positive value closest to the edge
 
 	//using this specific S curve equation compute the amount to reduce the terrains height by
-	Value = FMath::Pow(Value, Size) / (FMath::Pow(Value, Size) + FMath::Pow((Steepness - Steepness * Value), Size)) - AboveWater;
+	Value = FMath::Pow(Value, Steepness) / (FMath::Pow(Value, Steepness) + FMath::Pow((DistStarts -  Value), Steepness)) - AboveWater;
 
 	return Value;
 }
 
 float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition, float WaterZPos, bool bSmooth) //all the functions for determining the height of a specific point
 {
-	float FBMValue;
+	float FBMValue; //determine the inital value of the point
 	bDoWarping ? FBMValue = DomainWarping(XPosition, YPosition) : FBMValue = FractalBrownianMotion(XPosition, YPosition);
 	
-		 //determine the inital value of the point using domain warping
-		 //convert the value so only goes between 0 and 1 as for an island so needs to be above water
-
 	float HeightValue = FBMValue;
-	//if (bDoPower || bIsPower)
 	//try adding in the power value
-	HeightValue = TerrainAdditionMode(PowerNoiseEnum, HeightValue, FMath::Pow(HeightValue, 2.0f));//*= FMath::Pow(FBMValue, 2.0f); //this will give us terrain which consists mostly of flater land broken up occasionally by hills and valleys
-	////if (bDoBillowy)
-	//	HeightValue *= FMath::Abs(FBMValue); //this will add more rolling hills
-	//if (bIsBillowy)
+	HeightValue = TerrainAdditionMode(PowerNoiseEnum, HeightValue, FMath::Pow(HeightValue, 2.0f));//this will give us terrain which consists mostly of flater land broken up occasionally by hills and valleys
 	//try adding in the billowy value
-	HeightValue = TerrainAdditionMode(BillowyNoiseEnum, HeightValue, FMath::Abs(HeightValue));//FMath::Abs(HeightValue);
-	////if (bDoRigid)
-	//	HeightValue *= 1 - FMath::Abs(FBMValue); //this will add sharp peaks or ridges as a possibility to occur
-	//if (bIsRigid)
-
+	HeightValue = TerrainAdditionMode(BillowyNoiseEnum, HeightValue, FMath::Abs(HeightValue));
 	//try adding in the rigid value
-	HeightValue = TerrainAdditionMode(RigidNoiseEnum, HeightValue, 1 - FMath::Abs(HeightValue));//1 - FMath::Abs(HeightValue);
+	HeightValue = TerrainAdditionMode(RigidNoiseEnum, HeightValue, 1 - FMath::Abs(HeightValue));
 
 
 	if (bDoFalloff)
@@ -95,19 +84,8 @@ float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition, float Wat
 		case ENoiseDepth::LandNoise: //only do noise between 0 and 1
 			//+1 means the value will be between 0 and 1 only
 			//if water height 0.5 then will need to be between 0.5 and 1
-			//need 
-			/*
-				-1 -- 1 = 0 -- 1 when FBMValue + 1 /2
 
-				if say FBM = 0.23
-				0.23 + 1 / 2 = 0.615
-				if say FBM = -0.23
-				-0.23 + 1 / 2 = 0.385
-
-				if between 0.2 and 1 use min -- max normalization
-
-				minmax = (value - oldmin)/(oldmax-oldmin(always 2 here)) *(newmax - newmin) + newmin
-			*/
+			//minmax = (value - oldmin)/(oldmax-oldmin(always 2 here)) *(newmax - newmin) + newmin
 			//add the offset so will always appear above the water, min = waterZpos max = 1
 			HeightValue = ((HeightValue - -1) / 2) * (1 - WaterZPos) + WaterZPos;
 			break;
