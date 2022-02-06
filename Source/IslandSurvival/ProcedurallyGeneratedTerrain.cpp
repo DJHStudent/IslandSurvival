@@ -78,8 +78,8 @@ void AProcedurallyGeneratedTerrain::GenerateNewTerrain()
 			Stream.Initialize(Seed);
 			Seed = Seed;
 		}
-		RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
 		bIsEditor = true;
+		RegenerateMap(Seed, Width, Height, Stream, bSmoothTerrain);
 	}
 }
 
@@ -112,12 +112,10 @@ void AProcedurallyGeneratedTerrain::RegenContinued()
 		TerrainHeight->Width = Width;
 		TerrainHeight->Height = Height;
 	}
-	///////CreateMesh(); //generate the terrain mesh
-	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	AsyncVertices = (new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain));
-	AsyncVertices->StartBackgroundTask();
-
-	//bRegenerateMap = false;
+	CreateMesh(); //generate the terrain mesh
+	//AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	//AsyncVertices = (new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain));
+	//AsyncVertices->StartBackgroundTask();
 }
 
 void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all data for it
@@ -149,7 +147,7 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 
 
 		//destory any meshes placed on the terrain by using the array of all meshes which exist
-		for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0; i--)
+		for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0; i--)//make async task for this?
 		{
 			if (BiomeGeneration->MeshActors[i])
 				BiomeGeneration->MeshActors[i]->Destroy();
@@ -165,7 +163,7 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 	if (BiomeGeneration) 
 	{
 		for (auto& BiomeStats : BiomeGeneration->BiomeStatsMap) //for each biome give a random offset for each noise value to use
-		{
+		{ //move this to a more appropriate place i.e when calling noise function for mesh I guess
 			if (BiomeStats.Value.GetDefaultObject()->TerrainHeight)
 				BiomeStats.Value.GetDefaultObject()->TerrainHeight->DeclareOffsetValues(Stream);
 		}
@@ -177,7 +175,7 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populating all the nessesary data
 {
 	//loop through each vertex of the terrain
-	for (int32 i = 0; i < Height; i++)
+	for (int32 i = 0; i < Height; i++) //can this be deivided up somehow so parts of it can run async
 	{
 		for (int32 j = 0; j < Width; j++)
 		{
@@ -196,8 +194,10 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	if (!bOverrideBiomeSpawning)
 	{
 		BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map
-		BiomeGeneration->BiomeBlending();
+		BiomeGeneration->BiomeBlending(); //make work by running it as soon as the vertice has a biome choosen
 	}
+
+	GenerateMeshes();
 }
 
 void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate populating all the nessesary data

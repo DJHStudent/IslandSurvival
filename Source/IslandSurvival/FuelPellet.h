@@ -20,6 +20,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintPure)
+	bool IsWithEditor();
 private:
 	AMainGameState* MainGameState;
 	bool bCollided; //ensures can only collide once with the player

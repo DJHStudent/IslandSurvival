@@ -40,3 +40,12 @@ void AFuelPellet::OnOverlap(AActor* MyOverlappedActor, AActor* OtherActor)
 		}
 	}
 }
+
+bool AFuelPellet::IsWithEditor() 
+{
+	#if WITH_EDITOR
+		return true;
+	#else
+		return false;
+	#endif
+}

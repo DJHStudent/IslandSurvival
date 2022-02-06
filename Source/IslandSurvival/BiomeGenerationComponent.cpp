@@ -185,7 +185,7 @@ void UBiomeGenerationComponent::VerticesBiomes() //determine the biome for each 
 {
 	DeterminePointBiomes();
 
-	EachPointsMap(IslandPointsMap, LandBiomeKeys);
+	EachPointsMap(IslandPointsMap, LandBiomeKeys); //run these in parrallel
 	EachPointsMap(LakePointsMap, LakeBiomeKeys);
 }
 
@@ -292,7 +292,7 @@ bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int3
 		//check to see if the biome is a height based biome or not
 		if (ZHeight > BiomeStatsMap[HeightBiome].GetDefaultObject()->MinSpawnHeight //check if the vertexes z height is between these 2 values
 			&& ZHeight < BiomeStatsMap[HeightBiome].GetDefaultObject()->MaxSpawnHeight)
-		{
+		{//looping here could probably be optimized
 			//check if this height biome also has at least one valid neighbour
 			if (BiomeStatsMap[HeightBiome].GetDefaultObject()->NeighbourBiomeKeys.Num() <= 0) //no neighbours set means any biome is valid neighbour
 			{
@@ -314,7 +314,6 @@ bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int3
 
 void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdentifier) //for the vertex assign it the appropriate biome and correct generation
 {	
-
 	TerrainGenerator->VerticeColours[VertexIdentifier] = BiomeStatsMap[Biome].GetDefaultObject()->BiomeColour; //for the specified biome assign the vertex the appropriate colour
 	BiomeAtEachPoint[VertexIdentifier] = Biome; //also give each vertex the appropriate biome
 
@@ -339,7 +338,7 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 	}
 
 	//BiomeLerping(YPos, XPos); //also blend with a neighbour biome to get good transitions
-}
+}//implement the biome blending to be within this function
 
 void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the terracing, if enabled
 {
@@ -481,7 +480,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 		{
 			GridPoints.Add(FVector2D(x * XDistAppart, y * YDistAppart));
 		}
-	}
+	} //using structure amount 3 times here, why?
 
 	for (int32 i = 0; i < StructureAmount; i++) //for the number of structure which can spawn in
 	{
@@ -546,7 +545,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 
 
 void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
-{
+{ //I guess try and get it to run async or something
 	for (auto& BiomePoints : VertexBiomeLocationsMap) //for each biome on the map
 	{
 		if (BiomeStatsMap[BiomePoints.Key].GetDefaultObject()->BiomeMeshes.Num() > 0) //only do as long as biome contains meshes to be spawned in
@@ -631,7 +630,7 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 
 FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a square around the vertex spawning at, randomly place the mesh, so not appearing as a grid like pattern
 {
-
+	//optimize
 	//get the index location of the point, using its actual location
 	int32 XIndex = FMath::FloorToInt(VertexPosition.X / TerrainGenerator->GridSize);
 	int32 YIndex = FMath::FloorToInt(VertexPosition.Y / TerrainGenerator->GridSize);
