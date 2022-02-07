@@ -133,16 +133,8 @@ int32 PoissonDiskSampling::DetermineBiome(int32 NeighbourBiome, const TMap<int32
 {
 	if (NeighbourBiome == -1 || DifferentBiomesMap[NeighbourBiome].GetDefaultObject()->NeighbourBiomeKeys.Num() == 0) //as no biome yet exists for the island just pick a random one
 	{
-		TArray<int32> NonSingleBiomeKeys;
-		for (int32& Key : BiomeKeys) //while picked random biome from the list also check the biomes size
-		{
-			if (!DifferentBiomesMap[Key].GetDefaultObject()->bOnlySingle)
-			{
-				NonSingleBiomeKeys.Add(Key);
-			}
-		}
-		int32 RandomBiome = Stream.RandRange(0, NonSingleBiomeKeys.Num() - 1);
-		return NonSingleBiomeKeys[RandomBiome];//the keys for the biomes not bound by specific conditions
+		int32 RandomBiome = Stream.RandRange(0, BiomeKeys.Num() - 1);
+		return BiomeKeys[RandomBiome];//the keys for the biomes not bound by specific conditions
 	}
 	else
 	{

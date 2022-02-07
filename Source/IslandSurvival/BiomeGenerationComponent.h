@@ -9,6 +9,12 @@
 #include "BiomeStats.h"
 #include "BiomeGenerationComponent.generated.h"
 
+UENUM()
+enum EVertexSpawnLocation
+{
+	Land = 1,
+	Water = -1,
+};
 
 USTRUCT() struct FIslandStats //the different parameters for an island
 {
@@ -74,21 +80,22 @@ public:
 
 	class AProcedurallyGeneratedTerrain* TerrainGenerator;
 
-	void AddBiomePoints(const int32& XPosition, const int32& YPosition, const float& ZPosition);
+	void AddBiomePoints(const int32 XPosition, const int32 YPosition, const float ZPosition);
 
-	void AddSinglePoint(const int32& XPosition, const int32& YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation);
-	UPROPERTY()
-	TMap<int32, FIslandStats> IslandPointsMap; //a map containing a key for the specific island it is and its various statistics
-	//an island is just a set of any number of vertices which are joined together above the waterline
-	int32 IslandKeys; //the current max key have, ensuring no duplicates are created
-	TArray<int32> LandBiomeKeys; //list of all biomes with the spawn condition set to land
+	void AddSinglePoint(const int32 XPosition, const int32 YPosition, const int32 SpawnLocation);
 
-	//Just the reverse of the islands, the lake / ocean biomes
-	UPROPERTY()
-	TMap<int32, FIslandStats> LakePointsMap;
-	int32 LakeKeys;
-	TArray<int32> LakeBiomeKeys; //list of all biomes which appear 
+	TArray<int32> SingleLandBiomeKeys; //list of all biomes with the spawn condition set to land
+	TArray<int32> MultiLandBiomeKeys; //list of all biomes with the spawn condition set to land
+	TArray<int32> SingleLakeBiomeKeys; //list of all biomes which appear underwater
+	TArray<int32> MultiLakeBiomeKeys; //list of all biomes which appear underwater
 	TArray<int32> HeightBiomeKeys;
+
+	//list of all the features(islands/lakes) and the vertices related to each one
+	UPROPERTY() //for this to work, negative keys for lake and positive keys for island
+	TMap<int32, FIslandStats> FeaturePointsMap;//a map containing a key for the specific island it is and its various statistics
+	int32 FeatureKeys;//the current max key have, ensuring no duplicates are created
+
+
 
 	void DeterminePointBiomes();
 
@@ -111,15 +118,15 @@ public:
 
 	void SpawnStructure(); //spawn in tents and bouys around the map
 private:
-	void JoinPoints(int32 IslandPoint, int32 NewPoint, TMap<int32, FIslandStats>& PointsMap, TArray<int32>& VertexRelation); //for when generating islands some are unjoined and disconected, so join them together
+	void JoinPoints(const int32 IslandPoint, const int32 NewPoint); //for when generating islands some are unjoined and disconected, so join them together
 	
 	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier); 
 	bool HasHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //determine if it is a height based biome or not
 	
-	void EachPointsMap(TMap<int32, FIslandStats>& PointsMap, TArray<int32>& BiomeKeys);
-	void SingleBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys); //islands below a certain size will have only 1 biome
+	void EachPointsMap();
+	void SingleBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& SingleBiomeKeys, TArray<int32>& MultiBiomeKeys); //islands below a certain size will have only 1 biome
 	//for all biomes above a certain size generate multiple biomes
-	void MultiBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys);
+	void MultiBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& MultiBiomeKeys);
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0"))//the max rectangular area an island / lake can have to only have a single biome
 												   //note: doesn't apply to height based biomes

@@ -33,7 +33,7 @@ float UTerrainHeight::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 }
 
 
-float UTerrainHeight::DomainWarping(const int32& XPosition, const int32& YPosition) //for each vertex offset its height by a specific amount of values, through combining multiple FBM noise
+float UTerrainHeight::DomainWarping(const int32 XPosition, const int32 YPosition) //for each vertex offset its height by a specific amount of values, through combining multiple FBM noise
 {
 	//calculate the firest points X and Y position
 	FVector2D q = FVector2D(FractalBrownianMotion(XPosition, YPosition), FractalBrownianMotion(XPosition + 5.2f, YPosition + 1.3f));
@@ -46,11 +46,11 @@ float UTerrainHeight::DomainWarping(const int32& XPosition, const int32& YPositi
 	return NewHeight;
 }
 
-float UTerrainHeight::SquareGradient(const int32& XPosition, const int32& YPosition) //determine a square gradient to reduce the border of the map by
+float UTerrainHeight::SquareGradient(const int32 XPosition, const int32 YPosition) //determine a square gradient to reduce the border of the map by
 {
 	//determine the value of the vertex's X and Y positions between -1 and 0
-	float X = XPosition / Width * 2 - 1;
-	float Y = YPosition / Height * 2 - 1;
+	float X = (float)XPosition / Width * 2 - 1;
+	float Y = (float)YPosition / Height * 2 - 1;
 
 	float Value = FMath::Max(FMath::Abs(X), FMath::Abs(Y)); //for a sqaure gradient determine the positive value closest to the edge
 
@@ -60,7 +60,7 @@ float UTerrainHeight::SquareGradient(const int32& XPosition, const int32& YPosit
 	return Value;
 }
 
-float UTerrainHeight::GenerateHeight(const int32& XPosition, const int32& YPosition, const float& WaterZPos, const bool& bSmooth) //all the functions for determining the height of a specific point
+float UTerrainHeight::GenerateHeight(const int32 XPosition, const int32 YPosition, const float WaterZPos, const bool bSmooth) //all the functions for determining the height of a specific point
 {
 	float FBMValue; //determine the inital value of the point
 	bDoWarping ? FBMValue = DomainWarping(XPosition, YPosition) : FBMValue = FractalBrownianMotion(XPosition, YPosition);
@@ -99,7 +99,7 @@ float UTerrainHeight::GenerateHeight(const int32& XPosition, const int32& YPosit
 	return HeightValue;
 }
 
-float UTerrainHeight::TerrainAdditionMode(ETerrainAdditions::Type AddMode, const float& CurrentValue, const float& AdditionalValue)
+float UTerrainHeight::TerrainAdditionMode(ETerrainAdditions::Type AddMode, const float CurrentValue, const float AdditionalValue)
 {
 	switch (AddMode)
 	{

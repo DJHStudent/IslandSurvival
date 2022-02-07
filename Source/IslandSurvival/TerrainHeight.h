@@ -51,7 +51,7 @@ class ISLANDSURVIVAL_API UTerrainHeight : public UObject
 
 public:
 	// Called every frame
-	float GenerateHeight(const int32& XPosition, const int32& YPosition, const float& WaterZPos, const bool& bSmooth); //returns the height of each vertex in turn
+	float GenerateHeight(const int32 XPosition, const int32 YPosition, const float WaterZPos, const bool bSmooth); //returns the height of each vertex in turn
 	
 	void DeclareOffsetValues(FRandomStream Stream); //probably should actually delcare them here
 	
@@ -82,7 +82,7 @@ public:
 	float FractalBrownianMotion(int32 XPosition, int32 YPosition);
 	
 	//offset the vertices of each point by specific values
-	float DomainWarping(const int32& XPosition, const int32& YPosition);
+	float DomainWarping(const int32 XPosition, const int32 YPosition);
 	UPROPERTY(EditAnyWhere, Category = "Domain Warping", meta = (ClampMin = "0"))//the amount of random distortion to apply to each vertex
 	float DomainAmount;
 	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//should this biome use domain warping
@@ -94,7 +94,7 @@ public:
 																			//i.e: larger values mean smaller appart
 	float TerraceSize;
 
-	float SquareGradient(const int32& XPosition, const int32& YPosition);
+	float SquareGradient(const int32 XPosition, const int32 YPosition);
 	UPROPERTY(EditAnywhere, Category = "FallOff")//should the map, falloff around the edges to create islands surounded by water
 	bool bDoFalloff;
 	UPROPERTY(EditAnywhere, Category = "FallOff")//distance from the centre of the map where the falloff begins
@@ -113,5 +113,5 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Noise Types")//Allow rolling hills to appear
 	TEnumAsByte<ETerrainAdditions::Type> BillowyNoiseEnum; //allows the enum to appear within the editor
 
-	float TerrainAdditionMode(ETerrainAdditions::Type AddMode, const float& CurrentValue, const float& AdditionalValue);
+	float TerrainAdditionMode(ETerrainAdditions::Type AddMode, const float CurrentValue, const float AdditionalValue);
 };

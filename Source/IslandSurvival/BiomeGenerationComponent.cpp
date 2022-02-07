@@ -16,7 +16,7 @@ UBiomeGenerationComponent::UBiomeGenerationComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 	
-	IslandKeys = 0;
+	FeatureKeys = 1;
 	SingleFeatureMaxSize = 6000;
 	// ...
 }
@@ -40,73 +40,67 @@ void UBiomeGenerationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	// ...
 }
 
-void UBiomeGenerationComponent::AddBiomePoints(const int32& XPosition, const int32& YPosition, const float& ZPosition) //code to determine where each island/lake is in the world
+void UBiomeGenerationComponent::AddBiomePoints(const int32 XPosition, const int32 YPosition, const float ZPosition) //code to determine where each island/lake is in the world
 {
-	if (ZPosition < WaterLine)
-	{
-		//must be a water / lake point
-		AddSinglePoint(XPosition, YPosition, LakePointsMap, LakeKeys, TerrainGenerator->LakeNumber);
-		TerrainGenerator->IslandNumber.Add(-1); //-1 means underwater and as a result do not need to check again
-	}
+	if (ZPosition < WaterLine) //must be a water / lake point
+		AddSinglePoint(XPosition, YPosition, EVertexSpawnLocation::Water);
 	else //the point is part of the island biomes
-	{
-		AddSinglePoint(XPosition, YPosition, IslandPointsMap, IslandKeys, TerrainGenerator->IslandNumber);
-		TerrainGenerator->LakeNumber.Add(-1); //-1 meaning land biome so no lake ever here
-	}
+		AddSinglePoint(XPosition, YPosition, EVertexSpawnLocation::Land);
 }
-
-void UBiomeGenerationComponent::AddSinglePoint(const int32& XPosition, const int32& YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation) //code to determine where each island is in the world
+//-1 is in a lake, 1 is on land
+void UBiomeGenerationComponent::AddSinglePoint(const int32 XPosition, const int32 YPosition, const int32 SpawnLocation) //code to determine where each island is in the world
 {
 	int32 CurrentVertexPosition = YPosition * TerrainGenerator->Width + XPosition; //the position of the vertex within the array
 
-	int32 Point = -1; //the current island key the point is related to
-	if (PointsMap.Num() > 0) //only actually check the neighbour points if they actually exist
+	int32 Point = 0; //the current island key the point is related to
+	if (FeaturePointsMap.Num() > 0) //only actually check the neighbour points if they actually exist
 	{
+		//get vertex one back
 		if (XPosition - 1 >= 0)
 		{
-			int32 NewPoint = VertexRelation[YPosition * TerrainGenerator->Width + (XPosition - 1)]; //get a vertex one behind, if exists and determine its island number
-			if (NewPoint != -1) //as long as the new point is not invalid, it must then be connected to this island
+			int32 NewPoint = TerrainGenerator->FeatureNumber[YPosition * TerrainGenerator->Width + (XPosition - 1)]; //get a vertex one behind, if exists and determine its island number
+			if (NewPoint < 0 && SpawnLocation == EVertexSpawnLocation::Water || NewPoint > 0 && SpawnLocation == EVertexSpawnLocation::Land)//as long as the new point is not invalid, it must then be connected to this island
 				Point = NewPoint; //as first direction checking unknown if any other islands are yet nearby
 		}
 
-		//get node one up and back is j - i, i - 1
+		//get vertex one up and back is j - i, i - 1
 		if (XPosition - 1 >= 0 && YPosition - 1 >= 0)
 		{
-			int32 NewPoint = VertexRelation[(YPosition - 1) * TerrainGenerator->Width + (XPosition - 1)]; //get a vertex diagonaly one behind and up, if exists and determine its island number
-			if (NewPoint != -1)
+			int32 NewPoint = TerrainGenerator->FeatureNumber[(YPosition - 1) * TerrainGenerator->Width + (XPosition - 1)]; //get a vertex diagonaly one behind and up, if exists and determine its island number
+			if (NewPoint < 0 && SpawnLocation == EVertexSpawnLocation::Water || NewPoint > 0 && SpawnLocation == EVertexSpawnLocation::Land)
 			{
 				//if it is next to a point which is land, but a different island then join the two seperate islands as one whole island
-				if (Point != -1 && Point != NewPoint)
-					JoinPoints(Point, NewPoint, PointsMap, VertexRelation); //for both elements of the IslandPointsMap join them together
+				if (Point != 0 && Point != NewPoint)
+					JoinPoints(Point, NewPoint); //for both elements of the IslandPointsMap join them together
 				else //must be appart of the same island / lake
 					Point = NewPoint;
 			}
 		}
 
-		//get node one up is i - 1
+		//get vertex one up is i - 1
 		if (YPosition - 1 >= 0)
 		{
-			int32 NewPoint = VertexRelation[(YPosition - 1) * TerrainGenerator->Width + XPosition]; //get a vertex one up, if exists and determine its island number
-			if (NewPoint != -1)
+			int32 NewPoint = TerrainGenerator->FeatureNumber[(YPosition - 1) * TerrainGenerator->Width + XPosition]; //get a vertex one up, if exists and determine its island number
+			if (NewPoint < 0 && SpawnLocation == EVertexSpawnLocation::Water || NewPoint > 0 && SpawnLocation == EVertexSpawnLocation::Land)
 			{
 				//if it is next to a point which is land, but a different island then join the two seperate islands as one whole island
-				if (Point != -1 && Point != NewPoint)
-					JoinPoints(Point, NewPoint, PointsMap, VertexRelation);
+				if (Point != 0 && Point != NewPoint)
+					JoinPoints(Point, NewPoint);
 				else //must be appart of the same island
 					Point = NewPoint;
-			}//	else
+			}
 		}
 
-		//get node one up and forward is j + i, i - 1
+		//get vertex one up and forward is j + i, i - 1
 		if (XPosition + 1 < TerrainGenerator->Width && YPosition - 1 >= 0)
 		{
-			int32 NewPoint = VertexRelation[(YPosition - 1) * TerrainGenerator->Width + (XPosition + 1)]; //get a vertex one diagonally up and forward, if exists and determine its island number
+			int32 NewPoint = TerrainGenerator->FeatureNumber[(YPosition - 1) * TerrainGenerator->Width + (XPosition + 1)]; //get a vertex one diagonally up and forward, if exists and determine its island number
 			//new point is currently the key relating to the island looking for
-			if (NewPoint != -1)
+			if (NewPoint < 0 && SpawnLocation == EVertexSpawnLocation::Water || NewPoint > 0 && SpawnLocation == EVertexSpawnLocation::Land)
 			{
 				//if it is next to a point which is land, but a different island then join the two seperate islands as one whole island
-				if (Point != -1 && Point != NewPoint)
-					JoinPoints(Point, NewPoint, PointsMap, VertexRelation);
+				if (Point != 0 && Point != NewPoint)
+					JoinPoints(Point, NewPoint);
 				else //must be appart of the same island
 					Point = NewPoint;
 
@@ -114,49 +108,51 @@ void UBiomeGenerationComponent::AddSinglePoint(const int32& XPosition, const int
 		}
 	}
 	//once all 4 currently existing neighboruing points are checked add the point into the islands map
-	if (Point == -1) //as all points around it are underwater it must be an entirly new Island
+	if (Point == 0) //as all points around it are invalid it must be an entirly new feature
 	{
 		FIslandStats IslandStats;
-		PointsMap.Add(PointsKey, IslandStats); //add the point as a new element
-		PointsMap[PointsKey].VertexIndices.Add(CurrentVertexPosition); //add the vertex's position within the vertices array
+		int32 KeyLocation = FeatureKeys * SpawnLocation; //done as if < 0 it is a lake feature
+
+		FeaturePointsMap.Add(KeyLocation, IslandStats); //add the point as a new element
+		FeaturePointsMap[KeyLocation].VertexIndices.Add(CurrentVertexPosition); //add the vertex's position within the vertices array
 
 		//PointsMap the min and max values for the island with the inital starting values
-		PointsMap[PointsKey].MinXPosition = XPosition;
-		PointsMap[PointsKey].MaxXPosition = XPosition;
-		PointsMap[PointsKey].MinYPosition = YPosition;
-		PointsMap[PointsKey].MaxYPosition = YPosition;
-		VertexRelation.Add(PointsKey); //for the new vertex adding add the islands point to it
+		FeaturePointsMap[KeyLocation].MinXPosition = XPosition;
+		FeaturePointsMap[KeyLocation].MaxXPosition = XPosition;
+		FeaturePointsMap[KeyLocation].MinYPosition = YPosition;
+		FeaturePointsMap[KeyLocation].MaxYPosition = YPosition;
+		TerrainGenerator->FeatureNumber.Add(KeyLocation); //for the new vertex adding add the islands point to it
 
-		PointsKey++;//as a new Island has been made add will need another new Key for the next island
+		FeatureKeys++;//as a new Island has been made will need another new Key for the next island
 	}
-	else //it is part of an existing island so add the point to the existing island
+	else //it is part of an existing feature so add the point to the existing island
 	{
-		PointsMap[Point].VertexIndices.Add(CurrentVertexPosition);
-		PointsMap[Point].UpdateIslandBounds(FVector2D(XPosition, YPosition)); //check to see if the islands bounds need to be updated
-		VertexRelation.Add(Point);
+		FeaturePointsMap[Point].VertexIndices.Add(CurrentVertexPosition);
+		FeaturePointsMap[Point].UpdateIslandBounds(FVector2D(XPosition, YPosition)); //check to see if the islands bounds need to be updated
+		TerrainGenerator->FeatureNumber.Add(Point);
 	}
 }
 
-void UBiomeGenerationComponent::JoinPoints(int32 Point, int32 NewPoint, TMap<int32, FIslandStats>& PointsMap, TArray<int32>& VertexRelation) //for 2 islands which are actually one in the list, add them together
+void UBiomeGenerationComponent::JoinPoints(const int32 Point, const int32 NewPoint) //for 2 islands which are actually one in the list, add them together
 {
-	for (int32 i = 0; i < PointsMap[NewPoint].VertexIndices.Num(); i++) //for each vertex index stored in the new point key move to the Island point key
+	for (int32 i = 0; i < FeaturePointsMap[NewPoint].VertexIndices.Num(); i++) //for each vertex index stored in the new point key move to the Island point key
 	{
-		PointsMap[Point].VertexIndices.Add(PointsMap[NewPoint].VertexIndices[i]);
-		VertexRelation[PointsMap[NewPoint].VertexIndices[i]] = Point;
+		FeaturePointsMap[Point].VertexIndices.Add(FeaturePointsMap[NewPoint].VertexIndices[i]);
+		TerrainGenerator->FeatureNumber[FeaturePointsMap[NewPoint].VertexIndices[i]] = Point;
 	}
 
 	//update the min and max positions of the island to reflect the new values if nessesary to do so
-	if (PointsMap[NewPoint].MinXPosition < PointsMap[Point].MinXPosition)
-		PointsMap[Point].MinXPosition = PointsMap[NewPoint].MinXPosition;
-	if (PointsMap[NewPoint].MinYPosition < PointsMap[Point].MinYPosition)
-		PointsMap[Point].MinYPosition = PointsMap[NewPoint].MinYPosition;
+	if (FeaturePointsMap[NewPoint].MinXPosition < FeaturePointsMap[Point].MinXPosition)
+		FeaturePointsMap[Point].MinXPosition = FeaturePointsMap[NewPoint].MinXPosition;
+	if (FeaturePointsMap[NewPoint].MinYPosition < FeaturePointsMap[Point].MinYPosition)
+		FeaturePointsMap[Point].MinYPosition = FeaturePointsMap[NewPoint].MinYPosition;
 
-	if (PointsMap[NewPoint].MaxXPosition > PointsMap[Point].MaxXPosition)
-		PointsMap[Point].MaxXPosition = PointsMap[NewPoint].MaxXPosition;
-	if (PointsMap[NewPoint].MaxYPosition > PointsMap[Point].MaxYPosition)
-		PointsMap[Point].MaxYPosition = PointsMap[NewPoint].MaxYPosition;
+	if (FeaturePointsMap[NewPoint].MaxXPosition > FeaturePointsMap[Point].MaxXPosition)
+		FeaturePointsMap[Point].MaxXPosition = FeaturePointsMap[NewPoint].MaxXPosition;
+	if (FeaturePointsMap[NewPoint].MaxYPosition > FeaturePointsMap[Point].MaxYPosition)
+		FeaturePointsMap[Point].MaxYPosition = FeaturePointsMap[NewPoint].MaxYPosition;
 
-	PointsMap.Remove(NewPoint); //remove the new island which is copied to the actual island list
+	FeaturePointsMap.Remove(NewPoint); //remove the new feature which is copied to the actual island list
 }
 
 void UBiomeGenerationComponent::DeterminePointBiomes() //for all biomes add them to the appropriate list based on spawn location
@@ -167,10 +163,16 @@ void UBiomeGenerationComponent::DeterminePointBiomes() //for all biomes add them
 		switch (SpawnLocation)
 		{
 			case EBiomeStats::LandBased:
-				LandBiomeKeys.Add(Biome.Key);
+				if (BiomeStatsMap[Biome.Key].GetDefaultObject()->bOnlySingle)
+					SingleLandBiomeKeys.Add(Biome.Key);
+				else
+					MultiLandBiomeKeys.Add(Biome.Key);
 				break;
 			case EBiomeStats::WaterBased:
-				LakeBiomeKeys.Add(Biome.Key);
+				if (BiomeStatsMap[Biome.Key].GetDefaultObject()->bOnlySingle)
+					SingleLakeBiomeKeys.Add(Biome.Key);
+				else
+					MultiLakeBiomeKeys.Add(Biome.Key);
 				break;
 			case EBiomeStats::HeightBased:
 				HeightBiomeKeys.Add(Biome.Key);
@@ -184,40 +186,32 @@ void UBiomeGenerationComponent::DeterminePointBiomes() //for all biomes add them
 void UBiomeGenerationComponent::VerticesBiomes() //determine the biome for each vertex
 {
 	DeterminePointBiomes();
-
-	EachPointsMap(IslandPointsMap, LandBiomeKeys); //run these in parrallel
-	EachPointsMap(LakePointsMap, LakeBiomeKeys);
+	EachPointsMap();
 }
 
-void UBiomeGenerationComponent::EachPointsMap(TMap<int32, FIslandStats>& PointsMap, TArray<int32>& BiomeKeys)
+void UBiomeGenerationComponent::EachPointsMap()
 {
-	for (auto& PointsPair : PointsMap) //loop through each island which has been previously found
+	for (auto& PointsPair : FeaturePointsMap) //loop through each feature which has been previously found
 	{
 		//determine the width and height of the points
 		float PointsWidth = (PointsPair.Value.MaxXPosition - PointsPair.Value.MinXPosition);
 		float PointsHeight = (PointsPair.Value.MaxYPosition - PointsPair.Value.MinYPosition);
 
 		int32 PointsSize = FMath::CeilToInt(PointsWidth * PointsHeight);//rectangular size of the island
+
+		TArray<int32>& SingleBiomeKeys = PointsPair.Key < 0 ? SingleLakeBiomeKeys : SingleLandBiomeKeys;
+		TArray<int32>& MultiBiomeKeys = PointsPair.Key < 0 ? MultiLakeBiomeKeys : MultiLandBiomeKeys;
 		if (PointsSize < SingleFeatureMaxSize) //if the island is small it will only have a single biome on it
-			SingleBiomePoints(PointsPair, PointsSize, BiomeKeys);
+			SingleBiomePoints(PointsPair, PointsSize, SingleBiomeKeys, MultiBiomeKeys);
 		else
-			MultiBiomePoints(PointsPair, PointsSize, BiomeKeys);
+			MultiBiomePoints(PointsPair, PointsSize, MultiBiomeKeys);
 	}
 }
 
-void UBiomeGenerationComponent::SingleBiomePoints(TPair<int32, FIslandStats> PointsVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys)
+void UBiomeGenerationComponent::SingleBiomePoints(TPair<int32, FIslandStats> PointsVertexIdentifiers, int32 FeatureSize, TArray<int32>& SingleBiomeKeys, TArray<int32>& MultiBiomeKeys)
 {
-	TArray<int32> NonSingleBiomeKeys;
-	for (int32& Key : BiomeKeys) //while picked random biome from the list also check the biomes size
-	{
-		if (!BiomeStatsMap[Key].GetDefaultObject()->bOnlySingle)
-		{
-			NonSingleBiomeKeys.Add(Key);
-		}
-	}
-
-	int32 RandomBiome = TerrainGenerator->Stream.RandRange(0, NonSingleBiomeKeys.Num() - 1); //from biome list pick a random one which is also an above water, land(not mountain) biome
-	RandomBiome = NonSingleBiomeKeys[RandomBiome]; //need to ensure do not actually include the specific single biomes only
+	int32 RandomBiome = TerrainGenerator->Stream.RandRange(0, MultiBiomeKeys.Num() - 1); //from biome list pick a random one which is also an above water, land(not mountain) biome
+	RandomBiome = MultiBiomeKeys[RandomBiome]; //need to ensure do not actually include the specific single biomes only
 
 	for (int32 VertexIdentifier : PointsVertexIdentifiers.Value.VertexIndices) //for each vertex stored in the specific island
 	{
@@ -225,16 +219,13 @@ void UBiomeGenerationComponent::SingleBiomePoints(TPair<int32, FIslandStats> Poi
 		{ //As no height biome found, use a land/water based one instead
 			float OnlySingleMaxArea = -1;
 			int32 OnlySingleCurrKey = -1;
-			for (int32& Key : BiomeKeys) //while picked random biome from the list also check the biomes size
+			for (int32& Key : SingleBiomeKeys) //while picked random biome from the list also check the biomes size
 			{
-				if (BiomeStatsMap[Key].GetDefaultObject()->bOnlySingle)
+				if (FeatureSize >= BiomeStatsMap[Key].GetDefaultObject()->MinSpawnArea && FeatureSize <= BiomeStatsMap[Key].GetDefaultObject()->MaxSpawnArea
+					&& (OnlySingleMaxArea == -1 || BiomeStatsMap[Key].GetDefaultObject()->MaxSpawnArea > OnlySingleMaxArea))
 				{
-					if (IslandSize >= BiomeStatsMap[Key].GetDefaultObject()->MinSpawnArea && IslandSize <= BiomeStatsMap[Key].GetDefaultObject()->MaxSpawnArea
-						&& (OnlySingleMaxArea == -1 || BiomeStatsMap[Key].GetDefaultObject()->MaxSpawnArea > OnlySingleMaxArea))
-					{
-						OnlySingleMaxArea = BiomeStatsMap[Key].GetDefaultObject()->MaxSpawnArea;
-						OnlySingleCurrKey = Key;
-					}
+					OnlySingleMaxArea = BiomeStatsMap[Key].GetDefaultObject()->MaxSpawnArea;
+					OnlySingleCurrKey = Key;
 				}
 			}
 			if (OnlySingleCurrKey != -1) //if actually found a single biome island
@@ -245,7 +236,7 @@ void UBiomeGenerationComponent::SingleBiomePoints(TPair<int32, FIslandStats> Poi
 	}
 }
 
-void UBiomeGenerationComponent::MultiBiomePoints(TPair<int32, FIslandStats> PointsVertexIdentifiers, int32 IslandSize, TArray<int32>& BiomeKeys)
+void UBiomeGenerationComponent::MultiBiomePoints(TPair<int32, FIslandStats> PointsVertexIdentifiers, int32 IslandSize, TArray<int32>& MultiBiomeKeys)
 {
 	//for these islands using voronoi noise with an even distribution of the points by poisson disk sampling to determine the locations of the biomes
 	//this will create islands with biomes which have an even distribution
@@ -260,7 +251,7 @@ void UBiomeGenerationComponent::MultiBiomePoints(TPair<int32, FIslandStats> Poin
 	//use poisson disk sampling here to give a more even distribution of the biomes
 	TArray<TPair<int32, FVector2D>> BiomePositions = PoissonDiskSampling::CreatePoints(SingleFeatureMaxSize, 30, IslandWidth, IslandHeight, 
 	PointsVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, PointsVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize, 
-		BiomeStatsMap, TerrainGenerator->Stream, BiomeKeys);
+		BiomeStatsMap, TerrainGenerator->Stream, MultiBiomeKeys);
 
 
 	//using a voronoi noise method which for each vertice just determine the biome point it is nearest

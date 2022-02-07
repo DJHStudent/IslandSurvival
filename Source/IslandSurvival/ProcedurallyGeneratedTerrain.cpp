@@ -116,22 +116,20 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 	//empty all generated arrays
 	Vertices.Empty();
 	VerticeColours.Empty();
-	IslandNumber.Empty();
-	LakeNumber.Empty();
-
+	FeatureNumber.Empty();
+	
 	Triangles.Empty();
 
 	if (BiomeGeneration)
 	{
 		//reset all info on biomes
-		BiomeGeneration->IslandKeys = 0;
-		BiomeGeneration->LakeKeys = 0;
+		BiomeGeneration->FeatureKeys = 0;
+		BiomeGeneration->FeaturePointsMap.Empty();
 
-		BiomeGeneration->IslandPointsMap.Empty();
-		BiomeGeneration->LakePointsMap.Empty();
-
-		BiomeGeneration->LakeBiomeKeys.Empty();
-		BiomeGeneration->LandBiomeKeys.Empty();
+		BiomeGeneration->SingleLakeBiomeKeys.Empty();
+		BiomeGeneration->SingleLandBiomeKeys.Empty();		
+		BiomeGeneration->MultiLakeBiomeKeys.Empty();
+		BiomeGeneration->MultiLandBiomeKeys.Empty();
 		BiomeGeneration->HeightBiomeKeys.Empty();
 
 		BiomeGeneration->BiomeAtEachPoint.Empty();
