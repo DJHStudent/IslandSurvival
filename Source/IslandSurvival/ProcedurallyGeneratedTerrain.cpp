@@ -99,13 +99,6 @@ void AProcedurallyGeneratedTerrain::RegenContinued()
 {
 	ClearMap(); //delete any previosuly stored values
 
-	if (BiomeGeneration)
-	{
-		BiomeGeneration->BiomeAtEachPoint.Init(-1, Width * Height); //give each vertex a default biome of ocean
-		BiomeGeneration->bBeenLerped.Init(TPair<bool, float>(false , -1), Width * Height);
-	}
-	VerticeColours.Init(FLinearColor(1, 1, 1), Width * Height); //give each vertex a default colour
-
 	GenerateSeed(); //determine seed
 	if (TerrainHeight)
 	{
@@ -182,7 +175,15 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 			float ZPosition = TerrainHeight->GenerateHeight(j, i, BiomeGeneration->WaterLine, bSmoothTerrain); //get the specific height for each point on the mesh
 			Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
 
-			BiomeGeneration->AddBiomePoints(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
+			if (BiomeGeneration)
+			{
+				BiomeGeneration->AddBiomePoints(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
+
+				//initilize the two arrays with default values
+				BiomeGeneration->BiomeAtEachPoint.Add(-1); //give each vertex a default empty biome
+				BiomeGeneration->bBeenLerped.Add(TPair<bool, float>(false, -1));
+			}
+			VerticeColours.Add(FLinearColor(1, 1, 1)); //give each vertex a default colour of white
 
 			if (i + 1 < Height && j + 1 < Width) //add the appropriate triangles in the right positions within the array
 			{
@@ -194,7 +195,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	if (!bOverrideBiomeSpawning)
 	{
 		BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map
-		BiomeGeneration->BiomeBlending(); //make work by running it as soon as the vertice has a biome choosen
+		//BiomeGeneration->BiomeBlending(); //make work by running it as soon as the vertice has a biome choosen
 	}
 
 	GenerateMeshes();

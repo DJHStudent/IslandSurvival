@@ -33,7 +33,7 @@ float UTerrainHeight::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 }
 
 
-float UTerrainHeight::DomainWarping(float XPosition, float YPosition) //for each vertex offset its height by a specific amount of values, through combining multiple FBM noise
+float UTerrainHeight::DomainWarping(const int32& XPosition, const int32& YPosition) //for each vertex offset its height by a specific amount of values, through combining multiple FBM noise
 {
 	//calculate the firest points X and Y position
 	FVector2D q = FVector2D(FractalBrownianMotion(XPosition, YPosition), FractalBrownianMotion(XPosition + 5.2f, YPosition + 1.3f));
@@ -46,7 +46,7 @@ float UTerrainHeight::DomainWarping(float XPosition, float YPosition) //for each
 	return NewHeight;
 }
 
-float UTerrainHeight::SquareGradient(float XPosition, float YPosition) //determine a square gradient to reduce the border of the map by
+float UTerrainHeight::SquareGradient(const int32& XPosition, const int32& YPosition) //determine a square gradient to reduce the border of the map by
 {
 	//determine the value of the vertex's X and Y positions between -1 and 0
 	float X = XPosition / Width * 2 - 1;
@@ -60,7 +60,7 @@ float UTerrainHeight::SquareGradient(float XPosition, float YPosition) //determi
 	return Value;
 }
 
-float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition, float WaterZPos, bool bSmooth) //all the functions for determining the height of a specific point
+float UTerrainHeight::GenerateHeight(const int32& XPosition, const int32& YPosition, const float& WaterZPos, const bool& bSmooth) //all the functions for determining the height of a specific point
 {
 	float FBMValue; //determine the inital value of the point
 	bDoWarping ? FBMValue = DomainWarping(XPosition, YPosition) : FBMValue = FractalBrownianMotion(XPosition, YPosition);
@@ -82,9 +82,6 @@ float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition, float Wat
 	switch (NoiseDepthEnum)
 	{
 		case ENoiseDepth::LandNoise: //only do noise between 0 and 1
-			//+1 means the value will be between 0 and 1 only
-			//if water height 0.5 then will need to be between 0.5 and 1
-
 			//minmax = (value - oldmin)/(oldmax-oldmin(always 2 here)) *(newmax - newmin) + newmin
 			//add the offset so will always appear above the water, min = waterZpos max = 1
 			HeightValue = ((HeightValue - -1) / 2) * (1 - WaterZPos) + WaterZPos;
@@ -98,13 +95,11 @@ float UTerrainHeight::GenerateHeight(int32 XPosition, int32 YPosition, float Wat
 			break;
 	}
 
-
 	HeightValue *= PerlinScale; //give the Z position its final in game height
-
 	return HeightValue;
 }
 
-float UTerrainHeight::TerrainAdditionMode(ETerrainAdditions::Type AddMode, float CurrentValue, float AdditionalValue)
+float UTerrainHeight::TerrainAdditionMode(ETerrainAdditions::Type AddMode, const float& CurrentValue, const float& AdditionalValue)
 {
 	switch (AddMode)
 	{

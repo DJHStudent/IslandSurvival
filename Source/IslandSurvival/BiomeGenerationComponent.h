@@ -74,9 +74,9 @@ public:
 
 	class AProcedurallyGeneratedTerrain* TerrainGenerator;
 
-	void AddBiomePoints(int32 XPosition, int32 YPosition, float ZPosition);
+	void AddBiomePoints(const int32& XPosition, const int32& YPosition, const float& ZPosition);
 
-	void AddSinglePoint(int32 XPosition, int32 YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation);
+	void AddSinglePoint(const int32& XPosition, const int32& YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation);
 	UPROPERTY()
 	TMap<int32, FIslandStats> IslandPointsMap; //a map containing a key for the specific island it is and its various statistics
 	//an island is just a set of any number of vertices which are joined together above the waterline

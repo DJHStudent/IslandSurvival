@@ -51,7 +51,7 @@ class ISLANDSURVIVAL_API UTerrainHeight : public UObject
 
 public:
 	// Called every frame
-	float GenerateHeight(int32 XPosition, int32 YPosition, float WaterZPos, bool bSmooth); //returns the height of each vertex in turn
+	float GenerateHeight(const int32& XPosition, const int32& YPosition, const float& WaterZPos, const bool& bSmooth); //returns the height of each vertex in turn
 	
 	void DeclareOffsetValues(FRandomStream Stream); //probably should actually delcare them here
 	
@@ -82,27 +82,27 @@ public:
 	float FractalBrownianMotion(int32 XPosition, int32 YPosition);
 	
 	//offset the vertices of each point by specific values
-	float DomainWarping(float XPos, float YPos); 
+	float DomainWarping(const int32& XPosition, const int32& YPosition);
 	UPROPERTY(EditAnyWhere, Category = "Domain Warping", meta = (ClampMin = "0"))//the amount of random distortion to apply to each vertex
 	float DomainAmount;
 	UPROPERTY(EditAnyWhere, Category = "Domain Warping")//should this biome use domain warping
 	bool bDoWarping;
 
 	UPROPERTY(EditAnywhere, Category = "Terraces", meta = (ClampMin = "0"))//should this biome be terraced 
-		bool bDoTerrace;	
+	bool bDoTerrace;	
 	UPROPERTY(EditAnywhere, Category = "Terraces", meta = (ClampMin = "0")) //the inverse distance appart of each terrace
 																			//i.e: larger values mean smaller appart
-		float TerraceSize;
+	float TerraceSize;
 
-	float SquareGradient(float XPosition, float YPosition);
+	float SquareGradient(const int32& XPosition, const int32& YPosition);
 	UPROPERTY(EditAnywhere, Category = "FallOff")//should the map, falloff around the edges to create islands surounded by water
-		bool bDoFalloff;
+	bool bDoFalloff;
 	UPROPERTY(EditAnywhere, Category = "FallOff")//distance from the centre of the map where the falloff begins
-		float DistStarts;
+	float DistStarts;
 	UPROPERTY(EditAnywhere, Category = "FallOff")//steepness of the transition from land to water
-		float Steepness;
+	float Steepness;
 	UPROPERTY(EditAnywhere, Category = "FallOff", meta = (ClampMin = "0"))//amound of the map, from centre point which is above water
-		float AboveWater;
+	float AboveWater;
 
 	UPROPERTY(EditAnywhere, Category = "Noise Types") //flattens the terrain so only large features like mountains and valleys appear every so often
 	TEnumAsByte<ETerrainAdditions::Type> PowerNoiseEnum;
@@ -113,5 +113,5 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Noise Types")//Allow rolling hills to appear
 	TEnumAsByte<ETerrainAdditions::Type> BillowyNoiseEnum; //allows the enum to appear within the editor
 
-	float TerrainAdditionMode(ETerrainAdditions::Type AddMode, float CurrentValue, float AdditionalValue);
+	float TerrainAdditionMode(ETerrainAdditions::Type AddMode, const float& CurrentValue, const float& AdditionalValue);
 };

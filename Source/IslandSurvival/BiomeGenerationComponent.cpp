@@ -40,7 +40,7 @@ void UBiomeGenerationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	// ...
 }
 
-void UBiomeGenerationComponent::AddBiomePoints(int32 XPosition, int32 YPosition, float ZPosition) //code to determine where each island/lake is in the world
+void UBiomeGenerationComponent::AddBiomePoints(const int32& XPosition, const int32& YPosition, const float& ZPosition) //code to determine where each island/lake is in the world
 {
 	if (ZPosition < WaterLine)
 	{
@@ -55,17 +55,17 @@ void UBiomeGenerationComponent::AddBiomePoints(int32 XPosition, int32 YPosition,
 	}
 }
 
-void UBiomeGenerationComponent::AddSinglePoint(int32 XPosition, int32 YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation) //code to determine where each island is in the world
+void UBiomeGenerationComponent::AddSinglePoint(const int32& XPosition, const int32& YPosition, TMap<int32, FIslandStats>& PointsMap, int32& PointsKey, TArray<int32>& VertexRelation) //code to determine where each island is in the world
 {
 	int32 CurrentVertexPosition = YPosition * TerrainGenerator->Width + XPosition; //the position of the vertex within the array
-		//first check with all other terrain vertices around it to see what island/lake they relate to
+
 	int32 Point = -1; //the current island key the point is related to
 	if (PointsMap.Num() > 0) //only actually check the neighbour points if they actually exist
 	{
-		if (XPosition - 1 >= 0) //note this method works as due to the falloff map the border vertices are 100% underwater anyway
+		if (XPosition - 1 >= 0)
 		{
 			int32 NewPoint = VertexRelation[YPosition * TerrainGenerator->Width + (XPosition - 1)]; //get a vertex one behind, if exists and determine its island number
-			if (NewPoint != -1) //as long as the new point is not underwater, it must then be connected to this island
+			if (NewPoint != -1) //as long as the new point is not invalid, it must then be connected to this island
 				Point = NewPoint; //as first direction checking unknown if any other islands are yet nearby
 		}
 
@@ -556,6 +556,24 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 				//calculate number of each mesh to spawn in based on its % density of total points
 				int32 MeshesDensity = FMath::CeilToInt(DifferentMeshes.Density / 100 * BiomeAmount);
 				int32 MeshesAdded = 0;
+
+
+				AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+				SpawnedMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
+				SpawnedMesh->SetMobility(EComponentMobility::Stationary);
+				SpawnedMesh->SetActorEnableCollision(DifferentMeshes.bHasCollision);
+				//SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in actor
+
+				MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
+
+				UInstancedStaticMeshComponent* InstancedMesh = NewObject<UInstancedStaticMeshComponent>(SpawnedMesh);
+				InstancedMesh->RegisterComponent();
+				SpawnedMesh->AddInstanceComponent(InstancedMesh);
+				InstancedMesh->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh
+				if(!DifferentMeshes.bHasCollision)
+					InstancedMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision); //update the meshes collision so if say grass it will not have any player collision
+
+
 				while (MeshesAdded < MeshesDensity) //spawn for the determined desnity of the mesh spawn that many into the map
 				{
 					//pick a random location within the specified biome
@@ -597,26 +615,35 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 							RandomLocation = TerrainGenerator->Stream.RandRange(0, RadiusPoints.Num() - 1);
 							if (BiomePoints.Value.Num() > 0 && RadiusPoints.Num() > 0 && MeshesAdded <= MeshesDensity) 
 							{
+								FTransform InstancedMeshTransform;
+
 								VertexIndex = RadiusPoints[RandomLocation];
 								FVector VertexLocation = MeshLocation(TerrainGenerator->Vertices[VertexIndex]); //adjust the location so somewhat offset
+
+								InstancedMeshTransform.SetLocation(VertexLocation);
 
 								FRotator Rotation = FRotator(0, 0, 0); //give the mesh a random Yaw rotation
 								Rotation.Yaw = TerrainGenerator->Stream.FRandRange(0.0f, 360.0f);
 
-								//spawn in a new Actor in specified location, with random rotation
-								AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
-								SpawnedMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
-								SpawnedMesh->SetMobility(EComponentMobility::Stationary);
+								InstancedMeshTransform.Rotator() = (Rotation);
 
-								SpawnedMesh->SetActorScale3D(FVector(TerrainGenerator->Stream.FRandRange(15.0f, 45.0f))); //give the mesh a random scale
-								SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in actor
+								////spawn in a new Actor in specified location, with random rotation
+								//AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, Rotation);
+								//SpawnedMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
+								//SpawnedMesh->SetMobility(EComponentMobility::Stationary);
 
-								SpawnedMesh->SetActorEnableCollision(DifferentMeshes.bHasCollision); //update the meshes collision so if say grass it will not have any player collision
+								InstancedMeshTransform.SetScale3D(FVector(TerrainGenerator->Stream.FRandRange(15.0f, 45.0f)));
+
+								//SpawnedMesh->SetActorScale3D(FVector(TerrainGenerator->Stream.FRandRange(15.0f, 45.0f))); //give the mesh a random scale
+								//SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(DifferentMeshes.Mesh); //assign the appropriate mesh to the spawned in actor
+
+								//SpawnedMesh->SetActorEnableCollision(DifferentMeshes.bHasCollision); //update the meshes collision so if say grass it will not have any player collision
+
+								InstancedMesh->AddInstanceWorldSpace(InstancedMeshTransform);
 
 								//remove the choosen location from the list so no new meshes can spawn there
 								BiomePoints.Value.Remove(VertexIndex);
 								RadiusPoints.RemoveAt(RandomLocation);
-								MeshActors.Add(SpawnedMesh); //add the mesh to the list of all meshes within the map
 
 								MeshesAdded++;
 							}
