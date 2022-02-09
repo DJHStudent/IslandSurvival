@@ -82,7 +82,8 @@ public:
 	UPROPERTY(EditAnywhere, Instanced, Category = "Terrain Height") //the base generation settings, used to determine the biomes locations
 	UTerrainHeight* TerrainHeight;
 private:
-
+	UPROPERTY(EditAnywhere, Category = "Other") //the Zombie Spawner blueprint to spawn in
+	UMaterialInterface* TerrainMaterial;
 
 	UPROPERTY(EditAnywhere, Category = "Seed")//if true will give a random seed on each generation
 	bool bRandomSeed; 

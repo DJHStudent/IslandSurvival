@@ -206,9 +206,57 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 		BiomeGeneration->SpawnStructure();
 		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 	}
+	int32 ChunkSize = 100;
+	int32 ChunkAmount = FMath::CeilToInt(FMath::Sqrt(Width * Height / (float)(ChunkSize * ChunkSize)));
+	UE_LOG(LogTemp, Warning, TEXT("Making a new chunk: %i"), ChunkAmount)
+	for (int32 i = 0; i < ChunkAmount; i++) //for every chunk in the terrain system
+	{
+		for (int32 j = 0; j < ChunkAmount; j++)
+		{
+			TArray<FVector> ChunkVertices;
+			TArray<FLinearColor> ChunkColours;
+			TArray<int32> ChunkTriangles;
+
+			for (int32 Y = FMath::Clamp(i * ChunkSize - 1, 0, 1000000000); Y < ChunkSize * (i + 1); Y++) //loop through all vertices of the chunk
+			{
+				for (int32 X = FMath::Clamp(j * ChunkSize - 1, 0, 1000000000); X < ChunkSize * (j + 1); X++)
+				{
+					int32 Index = Y * Width + X;
+
+					if (Y < Height && X < Width)
+					{
+						//UE_LOG(LogTemp, Warning, TEXT("Triangle List Size: %i"), X);
+						ChunkVertices.Add(Vertices[Index]);
+						int32 TrianlgeX = X - (j * ChunkSize);
+						int32 TriangleY = Y - (i * ChunkSize);
+						if ((i != 0 && j != 0) && TriangleY + 1 < ChunkSize && TrianlgeX + 1 < ChunkSize) //add the appropriate triangles in the right positions within the array
+						{
+							ChunkTriangles.Add(TriangleY * ChunkSize + TrianlgeX); ChunkTriangles.Add((TriangleY + 1) * ChunkSize + TrianlgeX); ChunkTriangles.Add(TriangleY * ChunkSize + (TrianlgeX + 1));
+							ChunkTriangles.Add(TriangleY * ChunkSize + (TrianlgeX + 1)); ChunkTriangles.Add((TriangleY + 1) * ChunkSize + TrianlgeX); ChunkTriangles.Add((TriangleY + 1) * ChunkSize + (TrianlgeX + 1));
+						}
+						ChunkColours.Add(VerticeColours[Index]);
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Index Out of Bounds: %i"), Index);
+					}
+				}
+			}
+			UE_LOG(LogTemp, Error, TEXT("Triangle List Size: %i, %i"), ChunkTriangles.Num(), ChunkVertices.Num());
+			AActor* MeshChunk = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+			UProceduralMeshComponent* ProceduralChunk = NewObject<UProceduralMeshComponent>(MeshChunk);
+			ProceduralChunk->RegisterComponent();
+			MeshChunk->AddInstanceComponent(ProceduralChunk);
+			if (TerrainMaterial)
+				ProceduralChunk->SetMaterial(0, TerrainMaterial);
+
+			BiomeGeneration->MeshActors.Add(MeshChunk);
+			ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, ChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
+		}
+	}
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
-	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
-	MeshComponent->SetCollisionProfileName(TEXT("BlockAll")); //update the meshes collision, so that the navmesh will regenerate and be correct
+	//MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
+	//MeshComponent->SetCollisionProfileName(TEXT("BlockAll")); //update the meshes collision, so that the navmesh will regenerate and be correct
 
 	if (!bIsEditor)
 	{
