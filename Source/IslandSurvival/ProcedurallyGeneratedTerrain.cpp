@@ -207,6 +207,7 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 	}
 	int32 ChunkSize = 100;
+
 	int32 ChunkAmount = FMath::CeilToInt(FMath::Sqrt(Width * Height / (float)(ChunkSize * ChunkSize)));
 	UE_LOG(LogTemp, Warning, TEXT("Making a new chunk: %i"), ChunkAmount)
 	for (int32 i = 0; i < ChunkAmount; i++) //for every chunk in the terrain system
@@ -217,9 +218,9 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 			TArray<FLinearColor> ChunkColours;
 			TArray<int32> ChunkTriangles;
 
-			for (int32 Y = FMath::Clamp(i * ChunkSize - 1, 0, 1000000000); Y < ChunkSize * (i + 1); Y++) //loop through all vertices of the chunk
+			for (int32 Y = FMath::Clamp(i * ChunkSize - i, 0, 1000000000); Y < ChunkSize * (i + 1) - i; Y++) //loop through all vertices of the chunk
 			{
-				for (int32 X = FMath::Clamp(j * ChunkSize - 1, 0, 1000000000); X < ChunkSize * (j + 1); X++)
+				for (int32 X = FMath::Clamp(j * ChunkSize - j, 0, 1000000000); X < ChunkSize * (j + 1) - j; X++)
 				{
 					int32 Index = Y * Width + X;
 
@@ -227,9 +228,14 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 					{
 						//UE_LOG(LogTemp, Warning, TEXT("Triangle List Size: %i"), X);
 						ChunkVertices.Add(Vertices[Index]);
-						int32 TrianlgeX = X - (j * ChunkSize);
-						int32 TriangleY = Y - (i * ChunkSize);
-						if ((i != 0 && j != 0) && TriangleY + 1 < ChunkSize && TrianlgeX + 1 < ChunkSize) //add the appropriate triangles in the right positions within the array
+						int32 TrianlgeX = X - (j * ChunkSize) + j;
+						int32 TriangleY = Y - (i * ChunkSize) + i;
+
+
+						//Somehow even if the vertices array is smaller the triangle array is not????
+
+						if (TriangleY + 1 < ChunkSize
+							&& TrianlgeX + 1 < ChunkSize) //add the appropriate triangles in the right positions within the array
 						{
 							ChunkTriangles.Add(TriangleY * ChunkSize + TrianlgeX); ChunkTriangles.Add((TriangleY + 1) * ChunkSize + TrianlgeX); ChunkTriangles.Add(TriangleY * ChunkSize + (TrianlgeX + 1));
 							ChunkTriangles.Add(TriangleY * ChunkSize + (TrianlgeX + 1)); ChunkTriangles.Add((TriangleY + 1) * ChunkSize + TrianlgeX); ChunkTriangles.Add((TriangleY + 1) * ChunkSize + (TrianlgeX + 1));
