@@ -95,15 +95,9 @@ public:
 	TMap<int32, FIslandStats> FeaturePointsMap;//a map containing a key for the specific island it is and its various statistics
 	int32 FeatureKeys;//the current max key have, ensuring no duplicates are created
 
-
-
 	void DeterminePointBiomes();
 
-
 	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
-	//for each island determine the biome(s) residing within it
-	void VerticesBiomes();
-
 	UPROPERTY(EditAnywhere) //The biome blueprints to spawn in, each containing a unique integer key
 	TMap<int32, TSubclassOf<UBiomeStatsObject>> BiomeStatsMap;
 
@@ -112,6 +106,7 @@ public:
 	UPROPERTY()
 	TArray<AActor*> MeshActors; //all meshes added into the world
 
+	void EachPointsMap();
 	void BiomeLerping(int32 i, int32 j); //for two biomes, if at border blend the height values together so get a smoother transition
 	TArray<TPair<bool, float>> bBeenLerped; //has this vertex been succesfully blended with its neighbour yet + original Z value of point
 	void BiomeBlending();
@@ -123,7 +118,6 @@ private:
 	void UpdateBiomeLists(int32 Biome, int32 VertexIdentifier); 
 	bool HasHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier); //determine if it is a height based biome or not
 	
-	void EachPointsMap();
 	void SingleBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& SingleBiomeKeys, TArray<int32>& MultiBiomeKeys); //islands below a certain size will have only 1 biome
 	//for all biomes above a certain size generate multiple biomes
 	void MultiBiomePoints(TPair<int32, FIslandStats> IslandVertexIdentifiers, int32 IslandSize, TArray<int32>& MultiBiomeKeys);

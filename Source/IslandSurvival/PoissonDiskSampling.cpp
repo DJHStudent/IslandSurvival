@@ -15,9 +15,10 @@ PoissonDiskSampling::~PoissonDiskSampling()
 TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& Radius, const int32& k, const float& IslandWidth, 
 	const float& IslandHeight, const float& XOriginOffset, const float& YOriginOffset, const TMap<int32, 
 	TSubclassOf<UBiomeStatsObject>>& DifferentBiomesMap, FRandomStream& Stream, TArray<int32>& BiomeKeys)
-{
-	TArray<TPair<int32, FVector2D>> BiomePoints; //a list of points which contain the key for a biome
+{	
+	float SquaredRadius = FMath::Square(Radius);
 
+	TArray<TPair<int32, FVector2D>> BiomePoints; //a list of points which contain the key for a biome
 	/*
 		Setup the grid of a specific size with default values
 	*/
@@ -93,8 +94,8 @@ TArray<TPair<int32, FVector2D>> PoissonDiskSampling::CreatePoints(const float& R
 					if (OffsetGridXPosition + j >= 0 && OffsetGridXPosition + j < GridWidth && OffsetGridYPosition + i >= 0 && OffsetGridYPosition + i < GridHeight)
 					{
 						int32 NeighbourGridIndex = (OffsetGridYPosition + i) * GridWidth + (OffsetGridXPosition + j);
-						float Distance = FVector2D::Distance(OffsetPosition, GridPoints[NeighbourGridIndex]); //determine the distance between the active point and its neighbour's location
-						if (GridBiomes[NeighbourGridIndex] != -1 && Distance < Radius) //if the offset point testing is too close to another already existing point
+						float Distance = FVector2D::DistSquared(OffsetPosition, GridPoints[NeighbourGridIndex]); //determine the distance between the active point and its neighbour's location
+						if (GridBiomes[NeighbourGridIndex] != -1 && Distance < SquaredRadius) //if the offset point testing is too close to another already existing point
 							bOffsetValid = false;
 					}
 					else //as outside array bounds it is also invalid so do not use this point for a new biome

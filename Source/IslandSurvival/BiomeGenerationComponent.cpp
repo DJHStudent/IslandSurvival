@@ -183,14 +183,9 @@ void UBiomeGenerationComponent::DeterminePointBiomes() //for all biomes add them
 	}
 }
 
-void UBiomeGenerationComponent::VerticesBiomes() //determine the biome for each vertex
-{
-	DeterminePointBiomes();
-	EachPointsMap();
-}
-
 void UBiomeGenerationComponent::EachPointsMap()
 {
+	DeterminePointBiomes();
 	for (auto& PointsPair : FeaturePointsMap) //loop through each feature which has been previously found
 	{
 		//determine the width and height of the points
@@ -199,8 +194,8 @@ void UBiomeGenerationComponent::EachPointsMap()
 
 		int32 PointsSize = FMath::CeilToInt(PointsWidth * PointsHeight);//rectangular size of the island
 
-		TArray<int32>& SingleBiomeKeys = PointsPair.Key < 0 ? SingleLakeBiomeKeys : SingleLandBiomeKeys;
-		TArray<int32>& MultiBiomeKeys = PointsPair.Key < 0 ? MultiLakeBiomeKeys : MultiLandBiomeKeys;
+		TArray<int32> SingleBiomeKeys = PointsPair.Key < 0 ? SingleLakeBiomeKeys : SingleLandBiomeKeys;
+		TArray<int32> MultiBiomeKeys = PointsPair.Key < 0 ? MultiLakeBiomeKeys : MultiLandBiomeKeys;
 		if (PointsSize < SingleFeatureMaxSize) //if the island is small it will only have a single biome on it
 			SingleBiomePoints(PointsPair, PointsSize, SingleBiomeKeys, MultiBiomeKeys);
 		else
@@ -253,7 +248,6 @@ void UBiomeGenerationComponent::MultiBiomePoints(TPair<int32, FIslandStats> Poin
 	PointsVertexIdentifiers.Value.MinXPosition * TerrainGenerator->GridSize, PointsVertexIdentifiers.Value.MinYPosition * TerrainGenerator->GridSize, 
 		BiomeStatsMap, TerrainGenerator->Stream, MultiBiomeKeys);
 
-
 	//using a voronoi noise method which for each vertice just determine the biome point it is nearest
 	for (int32 VertexIdentifier : PointsVertexIdentifiers.Value.VertexIndices) //for each point stored in the specific island
 	{
@@ -263,7 +257,7 @@ void UBiomeGenerationComponent::MultiBiomePoints(TPair<int32, FIslandStats> Poin
 
 		for (int k = 0; k < BiomePositions.Num(); k++) //for each biome which will exist on the island determine the nearest one
 		{
-			float CurrentDistance = FVector2D::Distance(currentLocation, BiomePositions[k].Value); //the distance to the current point checking
+			float CurrentDistance = FVector2D::DistSquared(currentLocation, BiomePositions[k].Value); //the distance to the current point checking
 			if (CurrentDistance < MinDist) //as closer than previous point it will be the new biome of the vertex
 			{
 				NearestBiome = BiomePositions[k].Key; //update with the new biome of the point
@@ -283,16 +277,16 @@ bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int3
 		//check to see if the biome is a height based biome or not
 		if (ZHeight > BiomeStatsMap[HeightBiome].GetDefaultObject()->MinSpawnHeight //check if the vertexes z height is between these 2 values
 			&& ZHeight < BiomeStatsMap[HeightBiome].GetDefaultObject()->MaxSpawnHeight)
-		{//looping here could probably be optimized
+		{
 			//check if this height biome also has at least one valid neighbour
 			if (BiomeStatsMap[HeightBiome].GetDefaultObject()->NeighbourBiomeKeys.Num() <= 0) //no neighbours set means any biome is valid neighbour
 			{
 				UpdateBiomeLists(HeightBiome, VertexIdentifier);
 				return true; //as biome found return true
 			}
-			for (int32 NeighbourBiome : BiomeStatsMap[HeightBiome].GetDefaultObject()->NeighbourBiomeKeys) //check the possible neighbour biomes for 5 first
+			for (int32 NeighbourBiome : BiomeStatsMap[HeightBiome].GetDefaultObject()->NeighbourBiomeKeys) //check the possible neighbour biomes for the biome
 			{
-				if (NeighbourBiome == Biome) //if the land biome is a neighbour
+				if (NeighbourBiome == Biome) //if the land / ocean biome is a neighbour
 				{
 					UpdateBiomeLists(HeightBiome, VertexIdentifier);
 					return true; //as biome found return true
@@ -348,10 +342,18 @@ void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the te
 		//chech all neighbours of current vertex
 		while (CurrBlend <= BlendAmount && BiomeStatsMap[BiomeAtEachPoint[i]].GetDefaultObject()->bDoBlending) //note, really inefficent and bad, just for quick testing
 		{
-			for (int32 Y = -CurrBlend; Y <= CurrBlend; Y++) //loop through all neighbouring grid points
-			{
-				for (int32 X = -CurrBlend; X <= CurrBlend; X++)
+			for (int32 Y = -CurrBlend; Y <= CurrBlend; Y++) //loop through all neighbouring grid points, rows
+			{ //issue as while looping, will also check the same point a few times over
+				for (int32 X = -CurrBlend; X <= CurrBlend; X++) //loop through all the columns
 				{
+					/*
+						needs to actually go  -1 -1, 0, 1
+											   0  0, x, 1
+											   1  1, 0, 1
+
+					*/
+
+
 					//as long as theneighbour falls within the bounds of the island it can be lerped
 					if (VertexY + Y >= 0 && VertexY + Y < TerrainGenerator->Height && VertexX + X >= 0 && VertexX + X < TerrainGenerator->Width)
 					{
@@ -360,7 +362,7 @@ void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the te
 						float NeighbourValue = bBeenLerped[NeighboursIndex].Key ? bBeenLerped[NeighboursIndex].Value : TerrainGenerator->Vertices[NeighboursIndex].Z;
 						if (BiomeAtEachPoint[i] != BiomeAtEachPoint[NeighboursIndex]
 							&& !NeighbourBiomes.Contains(BiomeAtEachPoint[NeighboursIndex])) //also not contain the same neighbour biome
-						{ //issue here is if sourounded by > 1 of same different biome more lerping occurs than needed
+						{
 							int32 Dist = FMath::Clamp(FMath::Min(FMath::Abs(X), FMath::Abs(Y)), 1, 100);
 							float Alpha = StartAlpha / (float)Dist;// -(float)((FMath::Max(FMath::Abs(X), FMath::Abs(Y)), 1, 100000) - 1) / (BlendAmount - 1.0f) * (0.5f);
 							TerrainGenerator->Vertices[i].Z = FMath::Lerp(TerrainGenerator->Vertices[i].Z, NeighbourValue, Alpha);

@@ -105,10 +105,10 @@ void AProcedurallyGeneratedTerrain::RegenContinued()
 		TerrainHeight->Width = Width;
 		TerrainHeight->Height = Height;
 	}
-	CreateMesh(); //generate the terrain mesh
-	//AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
-	//AsyncVertices = (new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain));
-	//AsyncVertices->StartBackgroundTask();
+	//CreateMesh(); //generate the terrain mesh
+	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	AsyncVertices = (new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain));
+	AsyncVertices->StartBackgroundTask();
 }
 
 void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all data for it
@@ -192,11 +192,11 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 	}
 	if (!bOverrideBiomeSpawning)
 	{
-		BiomeGeneration->VerticesBiomes();//determine the biome of each vertex of the map
-		//BiomeGeneration->BiomeBlending(); //make work by running it as soon as the vertice has a biome choosen
+		BiomeGeneration->EachPointsMap();//determine the biome of each vertex of the map
+		BiomeGeneration->BiomeBlending(); //make work by running it as soon as the vertice has a biome choosen
 	}
 
-	GenerateMeshes();
+	//GenerateMeshes();
 }
 
 void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate populating all the nessesary data
@@ -206,7 +206,6 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 		BiomeGeneration->SpawnStructure();
 		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 	}
-
 	//generate the terrain with the specified colour and do collision, and normals caculated on the material
 	MeshComponent->CreateMeshSection_LinearColor(int32(0), Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), VerticeColours, TArray<FProcMeshTangent>(), true);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAll")); //update the meshes collision, so that the navmesh will regenerate and be correct
