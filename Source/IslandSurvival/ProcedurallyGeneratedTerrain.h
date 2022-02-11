@@ -48,6 +48,8 @@ public:
 	int32 Height; 
 	UPROPERTY(EditAnywhere, Category = "Terrain Size")//distance each vertex is appart, on the mesh
 	float GridSize; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//the default width and height of each chunk of the mesh
+	int32 ChunkSize;
 
 
 	//need to be replicated variables
@@ -56,7 +58,7 @@ public:
 	TArray<int32> FeatureNumber; //the key of each island/lake and the vertex it relates to
 
 
-	TArray<int32> Triangles; //list of all meshes trianlges
+	TArray<int32> ChunkTriangles; //list of all meshes trianlges
 
 	void RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain); //when UI button pressed regenerate the map
 	void RegenContinued();
@@ -91,6 +93,7 @@ private:
 
 	FAsyncTask<class AsyncTerrainGeneration>* AsyncVertices;
 	void GenerateMeshes();
+	void SpawnChunk(int32 i, int32 j, const int32 ChunkXAmount, const int32 ChunkYAmount, int32 ChunkWidth);
 
 	class AMainGameState* GameState;
 };

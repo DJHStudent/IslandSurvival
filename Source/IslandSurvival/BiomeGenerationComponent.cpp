@@ -454,6 +454,29 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j) //blend 2 neighbo
 
 void UBiomeGenerationComponent::SpawnStructure()
 {
+	AStaticMeshActor* SpawnedTentMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+	SpawnedTentMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
+	SpawnedTentMesh->SetMobility(EComponentMobility::Stationary);
+
+	MeshActors.Add(SpawnedTentMesh); //add the mesh to the list of all meshes within the map
+
+	UInstancedStaticMeshComponent* InstancedTentMesh = NewObject<UInstancedStaticMeshComponent>(SpawnedTentMesh);
+	InstancedTentMesh->RegisterComponent();
+	SpawnedTentMesh->AddInstanceComponent(InstancedTentMesh);
+	InstancedTentMesh->SetStaticMesh(Tent); //assign the appropriate mesh
+
+	AStaticMeshActor* SpawnedBouyMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+	SpawnedBouyMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
+	SpawnedBouyMesh->SetMobility(EComponentMobility::Stationary);
+
+	MeshActors.Add(SpawnedBouyMesh); //add the mesh to the list of all meshes within the map
+
+	UInstancedStaticMeshComponent* InstancedBouyMesh = NewObject<UInstancedStaticMeshComponent>(SpawnedBouyMesh);
+	InstancedBouyMesh->RegisterComponent();
+	SpawnedBouyMesh->AddInstanceComponent(InstancedBouyMesh);
+	InstancedBouyMesh->SetStaticMesh(Bouy); //assign the appropriate mesh
+
+
 	int32 StructureAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1500); //determine number to spawn in based on map size, rounding if ends up being a float
 	//* divide by 1500 so that if say have a 100 by 100 map will have 6 tents spawn on it
 	if (!TerrainGenerator->bIsEditor && GetWorld()->IsServer())
@@ -484,7 +507,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 
 		int32 VertexIndex = YPosition * TerrainGenerator->Width + XPosition; //get index in vertices array of the point
 		FVector VertexLocation = TerrainGenerator->Vertices[VertexIndex]; //get its actual location
-
+		
 		if (VertexLocation.Z < WaterLine) //if spawning in the ocean
 			VertexLocation.Z = WaterLine - 90; //update the spawn location to be just below water surface, not on the surface
 		else
@@ -502,11 +525,10 @@ void UBiomeGenerationComponent::SpawnStructure()
 				}
 			}
 		}
+		FTransform InstancedMeshTransform;
 
-		//spawn in empty mesh at given location
-		AStaticMeshActor* SpawnedMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), VertexLocation, FRotator::ZeroRotator);
-		SpawnedMesh->SetNetDormancy(ENetDormancy::DORM_DormantAll); //do not continue to replicate it to clients
-		SpawnedMesh->SetMobility(EComponentMobility::Stationary); //ensure it cannot move
+		//Assign the appropriate transform
+		InstancedMeshTransform.SetLocation(VertexLocation);
 
 		if (GetWorld()->IsServer() || TerrainGenerator->bIsEditor) //only spawn spawners/fuel in on the server version
 		{
@@ -520,18 +542,16 @@ void UBiomeGenerationComponent::SpawnStructure()
 
 		if (TerrainGenerator->Vertices[VertexIndex].Z < 0) //spawn in a bouy as must be underwater
 		{
-			SpawnedMesh->SetActorScale3D(FVector(10)); //give the bouy a certain scale
-			SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Bouy); //assign the appropriate mesh to the spawned in actor
+			InstancedMeshTransform.SetScale3D(FVector(10)); //give the bouy a certain scale
+			InstancedBouyMesh->AddInstanceWorldSpace(InstancedMeshTransform);
 		}
 		else //as on land spawn in a tent
 		{
-			SpawnedMesh->SetActorScale3D(FVector(40)); //give the bouy a certain scale
-			SpawnedMesh->GetStaticMeshComponent()->SetStaticMesh(Tent); //assign the appropriate mesh to the spawned in actor
+			InstancedMeshTransform.SetScale3D(FVector(40)); //give the bouy a certain scale
+			InstancedTentMesh->AddInstanceWorldSpace(InstancedMeshTransform); //assign the appropriate mesh to the spawned in actor
 		}
 
 		//add the meshes to the list of all meshes within the map so will be destroyed when resetting map
-		MeshActors.Add(SpawnedMesh);
-
 		GridPoints.RemoveAt(RandomIndex);
 	}
 }
