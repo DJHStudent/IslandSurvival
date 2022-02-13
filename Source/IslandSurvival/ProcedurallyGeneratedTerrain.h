@@ -11,6 +11,10 @@
 #include "Async/AsyncWork.h"
 #include "ProcedurallyGeneratedTerrain.generated.h"
 
+//declare stats for the profilier to also track
+DECLARE_STATS_GROUP(TEXT("Determine Islands"), STATGROUP_ProcedurallyGeneratedTerrain, STATCAT_Advanced);
+
+
 UCLASS()
 class ISLANDSURVIVAL_API AProcedurallyGeneratedTerrain : public AActor
 {

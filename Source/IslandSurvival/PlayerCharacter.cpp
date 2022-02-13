@@ -223,7 +223,7 @@ void APlayerCharacter::DisplayPointBiome()
 	int32 BiomeIndex = YPosition * BiomeList->Width + XPosition; //get the 1D index of the position of the point 
 	if (BiomeIndex < BiomeList->BiomeGeneration->BiomeAtEachPoint.Num()) //check to ensure the index doesn't fall outside the bounds of the array
 	{
-		int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[BiomeIndex]; //biome at the specific point on map
+		int32 BiomeOfPoint = BiomeList->BiomeGeneration->BiomeAtEachPoint[BiomeIndex].Key; //biome at the specific point on map
 
 		if (BiomeList->BiomeGeneration->BiomeStatsMap.Contains(BiomeOfPoint)) //if the biome choosen actually does exist i.e an error occured when adding it's value to the list
 		{

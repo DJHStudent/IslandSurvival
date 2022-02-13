@@ -8,6 +8,10 @@
 #include "MainGameInstance.h"
 #include "TimerManager.h"
 
+//stats to track
+DECLARE_CYCLE_STAT(TEXT("Create Mesh Details"), STAT_CreateMesh, STATGROUP_ProcedurallyGeneratedTerrain);
+
+
 // Sets default values
 AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 {
@@ -142,7 +146,7 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 
 
 		//destory any meshes placed on the terrain by using the array of all meshes which exist
-		for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0; i--)//make async task for this?
+		for (int32 i = BiomeGeneration->MeshActors.Num() - 1; i >= 0; i--)
 		{
 			if (BiomeGeneration->MeshActors[i])
 				BiomeGeneration->MeshActors[i]->Destroy();
@@ -160,7 +164,7 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 		for (auto& BiomeStats : BiomeGeneration->BiomeStatsMap) //for each biome give a random offset for each noise value to use
 		{ //move this to a more appropriate place i.e when calling noise function for mesh I guess
 			if (BiomeStats.Value.GetDefaultObject()->TerrainHeight)
-				BiomeStats.Value.GetDefaultObject()->TerrainHeight->DeclareOffsetValues(Stream);
+				BiomeStats.Value.GetDefaultObject()->TerrainHeight->DeclareOffsetValues(Stream); //can be optimised
 		}
 	}
 	if(TerrainHeight)
@@ -169,6 +173,8 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 
 void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populating all the nessesary data
 {
+	SCOPE_CYCLE_COUNTER(STAT_CreateMesh);
+
 	//loop through each vertex of the terrain
 	for (int32 i = 0; i < Height; i++) //can this be deivided up somehow so parts of it can run async
 	{
@@ -182,7 +188,7 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 				BiomeGeneration->AddBiomePoints(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
 
 				//initilize the two arrays with default values
-				BiomeGeneration->BiomeAtEachPoint.Add(-1); //give each vertex a default empty biome
+				BiomeGeneration->BiomeAtEachPoint.Add(TPair<int32, int32>(-1, -1)); //give each vertex a default empty biome
 				BiomeGeneration->bBeenLerped.Add(TPair<bool, float>(false, -1));
 			}
 			VerticeColours.Add(FLinearColor(1, 1, 1)); //give each vertex a default colour of white

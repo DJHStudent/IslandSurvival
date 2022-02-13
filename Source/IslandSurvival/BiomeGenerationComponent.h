@@ -97,7 +97,7 @@ public:
 
 	void DeterminePointBiomes();
 
-	TArray<int32> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value
+	TArray<TPair<int32, int32>> BiomeAtEachPoint; //for each vertex of the map the biome which resides their, identified by its key value, along with int specifying its location within the biome points map array(note -1 means tree there so don't use)
 	UPROPERTY(EditAnywhere) //The biome blueprints to spawn in, each containing a unique integer key
 	TMap<int32, TSubclassOf<UBiomeStatsObject>> BiomeStatsMap;
 
@@ -134,4 +134,26 @@ private:
 		UStaticMesh* Tent;
 	UPROPERTY(EditAnywhere)//the bouy mesh
 		UStaticMesh* Bouy;
+};
+
+class AsyncSpawnMeshesBiome : public FNonAbandonableTask
+{
+	AsyncSpawnMeshesBiome()
+	{
+		//constructor called
+	}
+	~AsyncSpawnMeshesBiome()
+	{
+		//destructor called automatically when DoWork() done
+	}
+
+	FORCEINLINE TStatId GetStatId() const
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT(AsyncSpawnMeshesBiome, STATGROUP_ThreadPoolAsyncTasks);
+	}
+
+	void DoWork() //here for the biome spawn in all the nessesary meshes
+	{
+
+	}
 };
