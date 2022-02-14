@@ -235,14 +235,14 @@ void AProcedurallyGeneratedTerrain::SpawnChunk(int32 i, int32 j, const int32 Chu
 	int32 CurrChunkHeight = FMath::Clamp(ChunkHeight * (i + 1), 0, Height) - i * ChunkHeight;
 	if (CurrChunkHeight > 0 && CurrChunkWidth > 0)
 	{
-		for (int32 Y = i * ChunkHeight - i; Y < FMath::Clamp(ChunkHeight * (i + 1) - i, 0, Height); Y++) //loop through all vertices of the chunk
+		for (int32 Y = FMath::Clamp(i * ChunkHeight - i, 0, 10000000); Y < FMath::Clamp(ChunkHeight * (i + 1) - i, 0, Height); Y++) //loop through all vertices of the chunk
 		{
 			//for the actual width of a chunk, need to minus width by the current x position
-			for (int32 X = j * ChunkWidth - j; X < FMath::Clamp(ChunkWidth * (j + 1) - j, 0, Width); X++)
+			for (int32 X = FMath::Clamp(j * ChunkWidth - j, 0, 100000000); X < FMath::Clamp(ChunkWidth * (j + 1) - j, 0, Width); X++)
 			{
 				int32 Index = Y * Width + X;
 
-				if (Y < Height - i && X < Width - j)
+				if (Y < Height && X < Width)
 				{
 					//UE_LOG(LogTemp, Error, TEXT("Chunk actual Posses: %i, %i"), X, Y)
 
@@ -257,16 +257,16 @@ void AProcedurallyGeneratedTerrain::SpawnChunk(int32 i, int32 j, const int32 Chu
 					}
 					//do when width and height different
 
-					if (CurrChunkWidth != ChunkWidth || CurrChunkHeight != ChunkHeight) //issue with how this stuff works
+					if (CurrChunkWidth != ChunkWidth || CurrChunkHeight != ChunkHeight)
 					{
 						int32 TX = X - (j * ChunkWidth) + j;
 						int32 TY = Y - (i * ChunkHeight) + i;
 
-						if (TY + 1 < CurrChunkHeight && TX + 1 < CurrChunkWidth) //add the appropriate triangles in the right positions within the array
+						if (TY + 1 < CurrChunkHeight + i && TX + 1 < CurrChunkWidth + j) //add the appropriate triangles in the right positions within the array
 						{
 							//UE_LOG(LogTemp, Error, TEXT("Chunk triangle Pos: %i, %i, %i, %i, %i, %i"), TX, TY, X, Y, CurrChunkWidth, CurrChunkHeight)
-								SmallerChunkTriangles.Add(TY * CurrChunkWidth + TX); SmallerChunkTriangles.Add((TY + 1) * CurrChunkWidth + TX); SmallerChunkTriangles.Add(TY * CurrChunkWidth + (TX + 1));
-							SmallerChunkTriangles.Add(TY * CurrChunkWidth + (TX + 1)); SmallerChunkTriangles.Add((TY + 1) * CurrChunkWidth + TX); SmallerChunkTriangles.Add((TY + 1) * CurrChunkWidth + (TX + 1));
+							SmallerChunkTriangles.Add(TY * (CurrChunkWidth + j) + TX); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth + j) + TX); SmallerChunkTriangles.Add(TY * (CurrChunkWidth + j) + (TX + 1));
+							SmallerChunkTriangles.Add(TY * (CurrChunkWidth + j) + (TX + 1)); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth + j) + TX); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth + j) + (TX + 1));
 						}
 					}
 
