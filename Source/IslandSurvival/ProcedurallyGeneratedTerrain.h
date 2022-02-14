@@ -43,12 +43,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Override Settings") //Should the biome spawning be overriden so only the base terrain is shown
 	bool bOverrideBiomeSpawning;
 
-	UPROPERTY(VisibleAnywhere, Category = "Other") //Save the terrain mesh as an asset
-	UProceduralMeshComponent* MeshComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")// for the mesh, the number of vertices on x axis
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size", meta = (ClampMin = "10", ClampMax = "1000"))// for the mesh, the number of vertices on x axis
 	int32 Width; 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size")//for the mesh, the number of vertices on y axis
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Terrain Size", meta = (ClampMin = "10", ClampMax = "1000"))//for the mesh, the number of vertices on y axis
 	int32 Height; 
 	UPROPERTY(EditAnywhere, Category = "Terrain Size")//distance each vertex is appart, on the mesh
 	float GridSize; 
@@ -97,7 +94,7 @@ private:
 
 	FAsyncTask<class AsyncTerrainGeneration>* AsyncVertices;
 	void GenerateMeshes();
-	void SpawnChunk(int32 i, int32 j, const int32 ChunkXAmount, const int32 ChunkYAmount, int32 ChunkWidth);
+	void SpawnChunk(int32 i, int32 j, const int32 ChunkXAmount, const int32 ChunkYAmount, int32 ChunkWidth, int32 ChunkHeight);
 
 	class AMainGameState* GameState;
 };

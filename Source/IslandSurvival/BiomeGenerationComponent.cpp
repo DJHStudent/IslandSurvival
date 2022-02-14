@@ -10,7 +10,6 @@
 #include "Kismet/GameplayStatics.h"
 
 //declare stats
-DECLARE_CYCLE_STAT(TEXT("Determine Island Locations"), STAT_DetermineIslands, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Single Biomes"), STAT_SingleBiomes, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Multi Biomes"), STAT_MultiBiomes, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Height Biomes"), STAT_HeightBiomes, STATGROUP_ProcedurallyGeneratedTerrain);
@@ -22,6 +21,7 @@ DECLARE_CYCLE_STAT(TEXT("Loop through meshes1"), STAT_LoopMesh1, STATGROUP_Proce
 DECLARE_CYCLE_STAT(TEXT("Loop through meshes2"), STAT_LoopMesh2, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Check Point is within Biome"), STAT_BiomePoint, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Actually Add Mesh to World"), STAT_AddToWorld, STATGROUP_ProcedurallyGeneratedTerrain);
+DECLARE_CYCLE_STAT(TEXT("Biome Blending"), STAT_BiomeBlending, STATGROUP_ProcedurallyGeneratedTerrain);
 
 
 // Sets default values for this component's properties
@@ -57,8 +57,6 @@ void UBiomeGenerationComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 void UBiomeGenerationComponent::AddBiomePoints(const int32 XPosition, const int32 YPosition, const float ZPosition) //code to determine where each island/lake is in the world
 {
-	SCOPE_CYCLE_COUNTER(STAT_DetermineIslands);
-
 	if (ZPosition < WaterLine) //must be a water / lake point
 		AddSinglePoint(XPosition, YPosition, EVertexSpawnLocation::Water);
 	else //the point is part of the island biomes
@@ -350,6 +348,8 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 
 void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the terracing, if enabled
 {
+	SCOPE_CYCLE_COUNTER(STAT_BiomeBlending);
+
 	float StartAlpha = BlendAmount == 1 ? StartAlpha = 0.25f : StartAlpha = 0.4f;//FMath::Clamp(1 - 1.0f / (float)BlendAmount, 0.25f, 1.0f);
 	//UE_LOG(LogTemp, Error, TEXT("The two biomes: %f"), InitBlend)
 
@@ -503,7 +503,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 	InstancedBouyMesh->SetStaticMesh(Bouy); //assign the appropriate mesh
 
 
-	int32 StructureAmount = FMath::FloorToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1500); //determine number to spawn in based on map size, rounding if ends up being a float
+	int32 StructureAmount = FMath::CeilToInt(TerrainGenerator->Width * TerrainGenerator->Height / 1500.0f); //determine number to spawn in based on map size, rounding if ends up being a float
 	//* divide by 1500 so that if say have a 100 by 100 map will have 6 tents spawn on it
 	if (!TerrainGenerator->bIsEditor && GetWorld()->IsServer())
 	{//update the servers game state to hold total number of structures needed to collect
@@ -578,7 +578,8 @@ void UBiomeGenerationComponent::SpawnStructure()
 		}
 
 		//add the meshes to the list of all meshes within the map so will be destroyed when resetting map
-		GridPoints.RemoveAt(RandomIndex);
+		GridPoints[RandomIndex] = GridPoints[GridPoints.Num() - 1];
+		GridPoints.RemoveAt(GridPoints.Num() - 1);
 	}
 }
 

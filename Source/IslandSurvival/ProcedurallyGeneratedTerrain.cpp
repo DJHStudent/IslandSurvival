@@ -10,6 +10,8 @@
 
 //stats to track
 DECLARE_CYCLE_STAT(TEXT("Create Mesh Details"), STAT_CreateMesh, STATGROUP_ProcedurallyGeneratedTerrain);
+DECLARE_CYCLE_STAT(TEXT("Create Mesh Vertices"), STAT_CreateVertices, STATGROUP_ProcedurallyGeneratedTerrain);
+DECLARE_CYCLE_STAT(TEXT("Inital Height"), STAT_InitialHeight, STATGROUP_ProcedurallyGeneratedTerrain);
 
 
 // Sets default values
@@ -17,12 +19,6 @@ AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	MeshComponent = CreateDefaultSubobject<UProceduralMeshComponent>("Mesh Component"); //create a procedural mesh for the terrain
-	if (MeshComponent)
-	{
-		MeshComponent->SetIsReplicated(true);
-	}
 
 	BiomeGeneration = CreateDefaultSubobject<UBiomeGenerationComponent>("Biome Generation Component"); //create a new component for handling biomes
 	if (BiomeGeneration)
@@ -63,7 +59,6 @@ void AProcedurallyGeneratedTerrain::Tick(float DeltaTime)
 	//when the vertices array is completed and is not null
 	if (AsyncVertices && AsyncVertices->IsDone())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT(" Async Task Done: %i "));
 		AsyncVertices->EnsureCompletion();
 		delete AsyncVertices;
 		AsyncVertices = nullptr;
@@ -92,8 +87,6 @@ void AProcedurallyGeneratedTerrain::GenerateNewTerrain()
 
 void AProcedurallyGeneratedTerrain::RegenerateMap(int32 tSeed, int32 tWidth, int32 tHeight, FRandomStream tStream, bool tbSmoothTerrain)
 {
-	//FTimerManager::ClearAllTimersForObject(this);
-	MeshComponent->SetCollisionProfileName(TEXT("NoCollision")); //disable collision for the mesh, in turn destroying the nav mesh
 	this->Seed = tSeed;
 	this->Width = tWidth;
 	this->Height = tHeight;
@@ -113,10 +106,10 @@ void AProcedurallyGeneratedTerrain::RegenContinued()
 		TerrainHeight->Width = Width;
 		TerrainHeight->Height = Height;
 	}
-	CreateMesh(); //generate the terrain mesh
-	/*AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
+	//CreateMesh(); //generate the terrain mesh
+	AProcedurallyGeneratedTerrain* ProceduralTerrain = Cast<AProcedurallyGeneratedTerrain>(UGameplayStatics::GetActorOfClass(GetWorld(), AProcedurallyGeneratedTerrain::StaticClass()));
 	AsyncVertices = (new FAsyncTask<AsyncTerrainGeneration>(ProceduralTerrain));
-	AsyncVertices->StartBackgroundTask();*/
+	AsyncVertices->StartBackgroundTask();
 }
 
 void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all data for it
@@ -127,7 +120,6 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 	FeatureNumber.Empty();
 	
 	ChunkTriangles.Empty();
-
 	if (BiomeGeneration)
 	{
 		//reset all info on biomes
@@ -152,8 +144,6 @@ void AProcedurallyGeneratedTerrain::ClearMap() //empties the map removing all da
 				BiomeGeneration->MeshActors[i]->Destroy();
 		}
 		BiomeGeneration->MeshActors.Empty();
-
-		MeshComponent->ClearAllMeshSections(); //removes all mesh sections, returning it to empty state
 	}
 }
 
@@ -164,7 +154,7 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 		for (auto& BiomeStats : BiomeGeneration->BiomeStatsMap) //for each biome give a random offset for each noise value to use
 		{ //move this to a more appropriate place i.e when calling noise function for mesh I guess
 			if (BiomeStats.Value.GetDefaultObject()->TerrainHeight)
-				BiomeStats.Value.GetDefaultObject()->TerrainHeight->DeclareOffsetValues(Stream); //can be optimised
+				BiomeStats.Value.GetDefaultObject()->TerrainHeight->DeclareOffsetValues(Stream);
 		}
 	}
 	if(TerrainHeight)
@@ -174,30 +164,31 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populating all the nessesary data
 {
 	SCOPE_CYCLE_COUNTER(STAT_CreateMesh);
-
-	//loop through each vertex of the terrain
-	for (int32 i = 0; i < Height; i++) //can this be deivided up somehow so parts of it can run async
 	{
-		for (int32 j = 0; j < Width; j++)
-		{
-			float ZPosition = TerrainHeight->GenerateHeight(j, i, BiomeGeneration->WaterLine, bSmoothTerrain); //get the specific height for each point on the mesh
-			Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
+		SCOPE_CYCLE_COUNTER(STAT_CreateVertices);
 
-			if (BiomeGeneration)
+		//loop through each vertex of the terrain
+		for (int32 i = 0; i < Height; i++) //can this be deivided up somehow so parts of it can run async
+		{ //least performant part of the entire list now
+			for (int32 j = 0; j < Width; j++)
 			{
-				BiomeGeneration->AddBiomePoints(j, i, ZPosition); //Calculate the island this point relates to for the biome generation
+				float ZPosition;
+				{
+					SCOPE_CYCLE_COUNTER(STAT_InitialHeight);
+					ZPosition = TerrainHeight->GenerateHeight(j, i, BiomeGeneration->WaterLine, bSmoothTerrain); //get the specific height for each point on the mesh
+				}
+				Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
 
-				//initilize the two arrays with default values
-				BiomeGeneration->BiomeAtEachPoint.Add(TPair<int32, int32>(-1, -1)); //give each vertex a default empty biome
-				BiomeGeneration->bBeenLerped.Add(TPair<bool, float>(false, -1));
+				if (BiomeGeneration)
+				{
+					BiomeGeneration->AddBiomePoints(j, i, ZPosition); //Calculate the feature this point relates to for the biome generation
+
+					//initilize the two arrays with default values
+					BiomeGeneration->BiomeAtEachPoint.Add(TPair<int32, int32>(-1, -1)); //give each vertex a default empty biome
+					BiomeGeneration->bBeenLerped.Add(TPair<bool, float>(false, -1));
+				}
+				VerticeColours.Add(FLinearColor(1, 1, 1)); //give each vertex a default colour of white
 			}
-			VerticeColours.Add(FLinearColor(1, 1, 1)); //give each vertex a default colour of white
-
-			//if (i + 1 < Height && j + 1 < Width) //add the appropriate triangles in the right positions within the array
-			//{
-			//	Triangles.Add(i * Width + j); Triangles.Add((i + 1) * Width + j); Triangles.Add(i * Width + (j + 1));
-			//	Triangles.Add(i * Width + (j + 1)); Triangles.Add((i + 1) * Width + j); Triangles.Add((i + 1) * Width + (j + 1));
-			//}
 		}
 	}
 	if (!bOverrideBiomeSpawning)
@@ -205,8 +196,6 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 		BiomeGeneration->EachPointsMap();//determine the biome of each vertex of the map
 		BiomeGeneration->BiomeBlending(); //make work by running it as soon as the vertice has a biome choosen
 	}
-
-	GenerateMeshes();
 }
 
 void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate populating all the nessesary data
@@ -217,11 +206,11 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 		BiomeGeneration->SpawnMeshes(); //spawn in all the appropriate meshes for each biome
 	}
 	//either this or find the max number which can divide evenly into both the width and height
-	int32 ChunkWidth = ChunkSize > Width ? Width : FMath::CeilToInt(Width / (FMath::CeilToInt(Width / (float)ChunkSize)));
+	int32 ChunkWidth = ChunkSize > Width ? Width : ChunkSize;//FMath::CeilToInt(Width / (FMath::CeilToInt(Width / (float)ChunkSize)));
+	int32 ChunkHeight = ChunkSize > Height ? Height : ChunkSize;//FMath::CeilToInt(Width / (FMath::CeilToInt(Width / (float)ChunkSize)));
 	int32 ChunkXAmount = FMath::CeilToInt(Width / (float)ChunkWidth);
 	int32 ChunkYAmount = FMath::CeilToInt(Height / (float)ChunkWidth);
-	int32 i = 0; int32 j = 0;
-	SpawnChunk(i, j, ChunkXAmount, ChunkYAmount, ChunkWidth);
+	SpawnChunk(0, 0, ChunkXAmount, ChunkYAmount, ChunkWidth, ChunkHeight);
 
 	if (!bIsEditor)
 	{
@@ -232,50 +221,82 @@ void AProcedurallyGeneratedTerrain::GenerateMeshes() //make the map generate pop
 	bIsEditor = false;
 }
 
-void AProcedurallyGeneratedTerrain::SpawnChunk(int32 i, int32 j, const int32 ChunkXAmount, const int32 ChunkYAmount, int32 ChunkWidth)
+void AProcedurallyGeneratedTerrain::SpawnChunk(int32 i, int32 j, const int32 ChunkXAmount, const int32 ChunkYAmount, int32 ChunkWidth, int32 ChunkHeight)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Making a new chunk: %i"), ChunkAmount)
 	TArray<FVector> ChunkVertices;
 	TArray<FLinearColor> ChunkColours;
 
-	for (int32 Y = FMath::Clamp(i * ChunkWidth - i, 0, 1000000000); Y < FMath::Clamp(ChunkWidth * (i + 1) - i, 0, Height); Y++) //loop through all vertices of the chunk
+	TArray<int32> SmallerChunkTriangles;
+
+	//actual width and height of the current chunk
+	//have 3 values: width of terrain, 
+	int32 CurrChunkWidth = FMath::Clamp(ChunkWidth * (j + 1), 0, Width) - j * ChunkWidth;
+	int32 CurrChunkHeight = FMath::Clamp(ChunkHeight * (i + 1), 0, Height) - i * ChunkHeight;
+	if (CurrChunkHeight > 0 && CurrChunkWidth > 0)
 	{
-		//for the actual width of a chunk, need to minus width by the current x position
-
-		for (int32 X = FMath::Clamp(j * ChunkWidth - j, 0, 1000000000); X < FMath::Clamp(ChunkWidth * (j + 1) - j, 0, Width); X++)
+		for (int32 Y = i * ChunkHeight - i; Y < FMath::Clamp(ChunkHeight * (i + 1) - i, 0, Height); Y++) //loop through all vertices of the chunk
 		{
-			int32 Index = Y * Width + X;
-
-			if (Y < Height && X < Width)
+			//for the actual width of a chunk, need to minus width by the current x position
+			for (int32 X = j * ChunkWidth - j; X < FMath::Clamp(ChunkWidth * (j + 1) - j, 0, Width); X++)
 			{
-				ChunkVertices.Add(Vertices[Index]);
-				if (i == 0 && j == 0 && //only generate the array for the first chunk
-					Y + 1 < ChunkWidth && X + 1 < ChunkWidth) //add the appropriate triangles in the right positions within the array
+				int32 Index = Y * Width + X;
+
+				if (Y < Height - i && X < Width - j)
 				{
-					ChunkTriangles.Add(Y * ChunkWidth + X); ChunkTriangles.Add((Y + 1) * ChunkWidth + X); ChunkTriangles.Add(Y * ChunkWidth + (X + 1));
-					ChunkTriangles.Add(Y * ChunkWidth + (X + 1)); ChunkTriangles.Add((Y + 1) * ChunkWidth + X); ChunkTriangles.Add((Y + 1) * ChunkWidth + (X + 1));
+					//UE_LOG(LogTemp, Error, TEXT("Chunk actual Posses: %i, %i"), X, Y)
+
+					ChunkVertices.Add(Vertices[Index]);
+					if (i == 0 && j == 0) //Setup triangles for a chunk so they don't need to be calculated for each(if same)
+					{
+						if (Y + 1 < ChunkHeight && X + 1 < ChunkWidth) //add the appropriate triangles in the right positions within the array
+						{
+							ChunkTriangles.Add(Y * ChunkWidth + X); ChunkTriangles.Add((Y + 1) * ChunkWidth + X); ChunkTriangles.Add(Y * ChunkWidth + (X + 1));
+							ChunkTriangles.Add(Y * ChunkWidth + (X + 1)); ChunkTriangles.Add((Y + 1) * ChunkWidth + X); ChunkTriangles.Add((Y + 1) * ChunkWidth + (X + 1));
+						}
+					}
+					//do when width and height different
+
+					if (CurrChunkWidth != ChunkWidth || CurrChunkHeight != ChunkHeight) //issue with how this stuff works
+					{
+						int32 TX = X - (j * ChunkWidth) + j;
+						int32 TY = Y - (i * ChunkHeight) + i;
+
+						if (TY + 1 < CurrChunkHeight && TX + 1 < CurrChunkWidth) //add the appropriate triangles in the right positions within the array
+						{
+							//UE_LOG(LogTemp, Error, TEXT("Chunk triangle Pos: %i, %i, %i, %i, %i, %i"), TX, TY, X, Y, CurrChunkWidth, CurrChunkHeight)
+								SmallerChunkTriangles.Add(TY * CurrChunkWidth + TX); SmallerChunkTriangles.Add((TY + 1) * CurrChunkWidth + TX); SmallerChunkTriangles.Add(TY * CurrChunkWidth + (TX + 1));
+							SmallerChunkTriangles.Add(TY * CurrChunkWidth + (TX + 1)); SmallerChunkTriangles.Add((TY + 1) * CurrChunkWidth + TX); SmallerChunkTriangles.Add((TY + 1) * CurrChunkWidth + (TX + 1));
+						}
+					}
+
+					//if the chunk size ends up having a width less than the specified one, due to terrains size given chunk triangles will be too large
+					ChunkColours.Add(VerticeColours[Index]);
 				}
-				ChunkColours.Add(VerticeColours[Index]);
 			}
 		}
+		//UE_LOG(LogTemp, Error, TEXT("Triangle List Size: %i, %i"), ChunkTriangles.Num(), ChunkVertices.Num());
+		AActor* MeshChunk = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+		UProceduralMeshComponent* ProceduralChunk = NewObject<UProceduralMeshComponent>(MeshChunk);
+		ProceduralChunk->SetIsReplicated(true);
+		ProceduralChunk->RegisterComponent();
+		MeshChunk->AddInstanceComponent(ProceduralChunk);
+		if (TerrainMaterial)
+			ProceduralChunk->SetMaterial(0, TerrainMaterial);
+
+		BiomeGeneration->MeshActors.Add(MeshChunk);
+		//UE_LOG(LogTemp, Warning, TEXT("Chunk Sizes: %i, %i, %i, %i, %i, %i"), CurrChunkHeight, CurrChunkWidth, ChunkHeight, ChunkWidth, ChunkXAmount, ChunkYAmount)
+			if (SmallerChunkTriangles.Num() > 0)
+				ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, SmallerChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
+			else
+				ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, ChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
 	}
-	//UE_LOG(LogTemp, Error, TEXT("Triangle List Size: %i, %i"), ChunkTriangles.Num(), ChunkVertices.Num());
-	AActor* MeshChunk = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
-	UProceduralMeshComponent* ProceduralChunk = NewObject<UProceduralMeshComponent>(MeshChunk);
-	ProceduralChunk->RegisterComponent();
-	MeshChunk->AddInstanceComponent(ProceduralChunk);
-	if (TerrainMaterial)
-		ProceduralChunk->SetMaterial(0, TerrainMaterial);
-
-	BiomeGeneration->MeshActors.Add(MeshChunk);
-	ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, ChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
-
 	if (j + 1 < ChunkXAmount)
 	{
 		j++;
 		//spawn the next chunk, one column down
 		//SpawnChunk(i, j, ChunkAmount, ChunkWidth);
-		FTimerDelegate WaitDelegate = FTimerDelegate::CreateUObject(this, &AProcedurallyGeneratedTerrain::SpawnChunk, i, j, ChunkXAmount, ChunkYAmount, ChunkWidth);
+		FTimerDelegate WaitDelegate = FTimerDelegate::CreateUObject(this, &AProcedurallyGeneratedTerrain::SpawnChunk, i, j, ChunkXAmount, ChunkYAmount, ChunkWidth, ChunkHeight);
 		GetWorld()->GetTimerManager().SetTimerForNextTick(WaitDelegate);//wait for frame to end and next one to start
 	}
 	else if (i + 1 < ChunkYAmount)
@@ -285,7 +306,7 @@ void AProcedurallyGeneratedTerrain::SpawnChunk(int32 i, int32 j, const int32 Chu
 		//spawn next chunk, one row down
 		//SpawnChunk(i, j, ChunkAmount, ChunkWidth);
 
-		FTimerDelegate WaitDelegate = FTimerDelegate::CreateUObject(this, &AProcedurallyGeneratedTerrain::SpawnChunk, i, j, ChunkXAmount, ChunkYAmount, ChunkWidth);
+		FTimerDelegate WaitDelegate = FTimerDelegate::CreateUObject(this, &AProcedurallyGeneratedTerrain::SpawnChunk, i, j, ChunkXAmount, ChunkYAmount, ChunkWidth, ChunkHeight);
 		GetWorld()->GetTimerManager().SetTimerForNextTick(WaitDelegate);//wait for frame to end and next one to start
 	}
 }

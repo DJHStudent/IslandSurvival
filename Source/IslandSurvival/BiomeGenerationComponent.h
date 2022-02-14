@@ -135,25 +135,3 @@ private:
 	UPROPERTY(EditAnywhere)//the bouy mesh
 		UStaticMesh* Bouy;
 };
-
-class AsyncSpawnMeshesBiome : public FNonAbandonableTask
-{
-	AsyncSpawnMeshesBiome()
-	{
-		//constructor called
-	}
-	~AsyncSpawnMeshesBiome()
-	{
-		//destructor called automatically when DoWork() done
-	}
-
-	FORCEINLINE TStatId GetStatId() const
-	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(AsyncSpawnMeshesBiome, STATGROUP_ThreadPoolAsyncTasks);
-	}
-
-	void DoWork() //here for the biome spawn in all the nessesary meshes
-	{
-
-	}
-};

@@ -13,21 +13,21 @@ TSharedRef<IDetailCustomization> FCustomProceduralTerrainDetails::MakeInstance()
 
 void FCustomProceduralTerrainDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
-	//perform a check to ensure at least one actor of right type has been selected
-	AProcedurallyGeneratedTerrain* Actor = nullptr;
-	TArray<TWeakObjectPtr<UObject>> CustomizedObjects;
-	DetailBuilder.GetObjectsBeingCustomized(CustomizedObjects);
+	////perform a check to ensure at least one actor of right type has been selected
+	//AProcedurallyGeneratedTerrain* Actor = nullptr;
+	//TArray<TWeakObjectPtr<UObject>> CustomizedObjects;
+	//DetailBuilder.GetObjectsBeingCustomized(CustomizedObjects);
 
-	for (auto Object : CustomizedObjects)
-	{
-		if (Object.IsValid()) //check to find the appropriate object has been selected
-		{
-			Actor = Cast<AProcedurallyGeneratedTerrain>(Object);
-			if (Actor)
-				break;
-		}
-	}
-	check(Actor);
+	//for (auto Object : CustomizedObjects)
+	//{
+	//	if (Object.IsValid()) //check to find the appropriate object has been selected
+	//	{
+	//		Actor = Cast<AProcedurallyGeneratedTerrain>(Object);
+	//		if (Actor)
+	//			break;
+	//	}
+	//}
+	//check(Actor);
 	DetailBuilder.EditCategory("Generate Terrain", FText::FromString("Generate Terrain"), ECategoryPriority::Important);
 
 	DetailBuilder.EditCategory("Seed", FText::FromString("Terrain Seed"), ECategoryPriority::Important);
