@@ -231,42 +231,39 @@ void AProcedurallyGeneratedTerrain::SpawnChunk(int32 i, int32 j, const int32 Chu
 
 	//actual width and height of the current chunk
 	//have 3 values: width of terrain, 
-	int32 CurrChunkWidth = FMath::Clamp(ChunkWidth * (j + 1), 0, Width) - j * ChunkWidth;
-	int32 CurrChunkHeight = FMath::Clamp(ChunkHeight * (i + 1), 0, Height) - i * ChunkHeight;
-	if (CurrChunkHeight > 0 && CurrChunkWidth > 0)
+	int32 CurrChunkWidth = FMath::Clamp(ChunkWidth * (j + 1) + 1, 0, Width) - j * ChunkWidth;
+	int32 CurrChunkHeight = FMath::Clamp(ChunkHeight * (i + 1) + 1, 0, Height) - i * ChunkHeight;
+	if (CurrChunkHeight > 1 && CurrChunkWidth > 1)
 	{
-		for (int32 Y = FMath::Clamp(i * ChunkHeight - i, 0, 10000000); Y < FMath::Clamp(ChunkHeight * (i + 1) - i, 0, Height); Y++) //loop through all vertices of the chunk
+		for (int32 Y = FMath::Clamp(i * ChunkHeight, 0, 10000000); Y < FMath::Clamp(ChunkHeight * (i + 1) + 1, 0, Height); Y++) //loop through all vertices of the chunk
 		{
 			//for the actual width of a chunk, need to minus width by the current x position
-			for (int32 X = FMath::Clamp(j * ChunkWidth - j, 0, 100000000); X < FMath::Clamp(ChunkWidth * (j + 1) - j, 0, Width); X++)
+			for (int32 X = FMath::Clamp(j * ChunkWidth, 0, 100000000); X < FMath::Clamp(ChunkWidth * (j + 1) + 1, 0, Width); X++)
 			{
 				int32 Index = Y * Width + X;
 
 				if (Y < Height && X < Width)
 				{
-					//UE_LOG(LogTemp, Error, TEXT("Chunk actual Posses: %i, %i"), X, Y)
-
 					ChunkVertices.Add(Vertices[Index]);
 					if (i == 0 && j == 0) //Setup triangles for a chunk so they don't need to be calculated for each(if same)
 					{
-						if (Y + 1 < ChunkHeight && X + 1 < ChunkWidth) //add the appropriate triangles in the right positions within the array
+						if (Y + 1 < ChunkHeight + 1 && X + 1 < ChunkWidth + 1) //add the appropriate triangles in the right positions within the array
 						{
-							ChunkTriangles.Add(Y * ChunkWidth + X); ChunkTriangles.Add((Y + 1) * ChunkWidth + X); ChunkTriangles.Add(Y * ChunkWidth + (X + 1));
-							ChunkTriangles.Add(Y * ChunkWidth + (X + 1)); ChunkTriangles.Add((Y + 1) * ChunkWidth + X); ChunkTriangles.Add((Y + 1) * ChunkWidth + (X + 1));
+							ChunkTriangles.Add(Y * (ChunkWidth + 1) + X); ChunkTriangles.Add((Y + 1) * (ChunkWidth + 1) + X); ChunkTriangles.Add(Y * (ChunkWidth + 1) + (X + 1));
+							ChunkTriangles.Add(Y * (ChunkWidth + 1) + (X + 1)); ChunkTriangles.Add((Y + 1) * (ChunkWidth + 1) + X); ChunkTriangles.Add((Y + 1) * (ChunkWidth + 1) + (X + 1));
 						}
 					}
 					//do when width and height different
 
-					if (CurrChunkWidth != ChunkWidth || CurrChunkHeight != ChunkHeight)
+					if (CurrChunkWidth != ChunkWidth + 1 || CurrChunkHeight != ChunkHeight + 1 || j == ChunkXAmount - 1 || i == ChunkYAmount - 1)
 					{
-						int32 TX = X - (j * ChunkWidth) + j;
-						int32 TY = Y - (i * ChunkHeight) + i;
+						int32 TX = X - (j * ChunkWidth);
+						int32 TY = Y - (i * ChunkHeight);
 
-						if (TY + 1 < CurrChunkHeight + i && TX + 1 < CurrChunkWidth + j) //add the appropriate triangles in the right positions within the array
+						if (TY + 1 < CurrChunkHeight && TX + 1 < CurrChunkWidth) //add the appropriate triangles in the right positions within the array
 						{
-							//UE_LOG(LogTemp, Error, TEXT("Chunk triangle Pos: %i, %i, %i, %i, %i, %i"), TX, TY, X, Y, CurrChunkWidth, CurrChunkHeight)
-							SmallerChunkTriangles.Add(TY * (CurrChunkWidth + j) + TX); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth + j) + TX); SmallerChunkTriangles.Add(TY * (CurrChunkWidth + j) + (TX + 1));
-							SmallerChunkTriangles.Add(TY * (CurrChunkWidth + j) + (TX + 1)); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth + j) + TX); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth + j) + (TX + 1));
+							SmallerChunkTriangles.Add(TY * (CurrChunkWidth)+TX); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth)+TX); SmallerChunkTriangles.Add(TY * (CurrChunkWidth)+(TX + 1));
+							SmallerChunkTriangles.Add(TY * (CurrChunkWidth)+(TX + 1)); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth)+TX); SmallerChunkTriangles.Add((TY + 1) * (CurrChunkWidth)+(TX + 1));
 						}
 					}
 
@@ -286,10 +283,10 @@ void AProcedurallyGeneratedTerrain::SpawnChunk(int32 i, int32 j, const int32 Chu
 
 		BiomeGeneration->MeshActors.Add(MeshChunk);
 		//UE_LOG(LogTemp, Warning, TEXT("Chunk Sizes: %i, %i, %i, %i, %i, %i"), CurrChunkHeight, CurrChunkWidth, ChunkHeight, ChunkWidth, ChunkXAmount, ChunkYAmount)
-			if (SmallerChunkTriangles.Num() > 0)
-				ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, SmallerChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
-			else
-				ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, ChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
+		if (SmallerChunkTriangles.Num() > 0)
+			ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, SmallerChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
+		else
+			ProceduralChunk->CreateMeshSection_LinearColor(int32(0), ChunkVertices, ChunkTriangles, TArray<FVector>(), TArray<FVector2D>(), ChunkColours, TArray<FProcMeshTangent>(), true);
 	}
 	if (j + 1 < ChunkXAmount)
 	{

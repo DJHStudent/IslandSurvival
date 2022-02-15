@@ -772,8 +772,8 @@ FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a s
 	}
 
 	//update the new VertexPosition with the appropriate values for X and Y
-	VertexPosition.X = RandXPosition;
-	VertexPosition.Y = RandYPosition;
+	VertexPosition.X = FMath::Clamp(RandXPosition, (float)-(TerrainGenerator->Width- 1) * TerrainGenerator->GridSize, (float)(TerrainGenerator->Width - 1) * TerrainGenerator->GridSize);
+	VertexPosition.Y = FMath::Clamp(RandYPosition, (float)-(TerrainGenerator->Height - 1) * TerrainGenerator->GridSize, (float)(TerrainGenerator->Height - 1) * TerrainGenerator->GridSize);
 	return VertexPosition;
 }
 
