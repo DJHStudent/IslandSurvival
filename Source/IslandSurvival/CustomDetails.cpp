@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#if WITH_EDITOR
 #include "CustomDetails.h"
 #include "Components/SceneComponent.h"
 #include "Components/LightComponentBase.h"
@@ -309,3 +309,4 @@ void FCustomDetails::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 //	// If there are multiple values, show all properties
 //	return EVisibility::Visible;
 //}
+#endif

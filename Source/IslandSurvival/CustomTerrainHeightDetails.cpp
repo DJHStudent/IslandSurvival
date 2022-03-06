@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#if WITH_EDITOR
 #include "CustomTerrainHeightDetails.h"
 #include "DetailLayoutBuilder.h"
 #include "IDetailPropertyRow.h"
@@ -46,3 +46,5 @@ void FCustomTerrainHeightDetails::CustomizeDetails(IDetailLayoutBuilder& DetailB
 
 
 }
+
+#endif

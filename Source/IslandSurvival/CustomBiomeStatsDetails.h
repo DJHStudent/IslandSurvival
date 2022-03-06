@@ -1,5 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+#if WITH_EDITOR
 #pragma once
 
 #include "CoreMinimal.h"
@@ -21,3 +21,4 @@ private:
 	EVisibility PropertiesLandWater(TSharedPtr<IPropertyHandle> Property) const;
 	EVisibility PropertiesSingleLandWater(TSharedPtr<IPropertyHandle> PropertyEnum, TSharedPtr<IPropertyHandle> PropertyBool) const;
 };
+#endif

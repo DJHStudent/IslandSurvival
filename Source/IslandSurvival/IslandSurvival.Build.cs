@@ -18,12 +18,16 @@ public class IslandSurvival : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
-        // Uncomment if you are using Slate UI
-        PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "PropertyEditor", "UnrealEd" });
+		// Uncomment if you are using Slate UI
+		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
-        //Uncomment if you are using online features
+#if WITH_EDITOR
+		PrivateDependencyModuleNames.AddRange(new string[] { "PropertyEditor", "UnrealEd" });
+#endif
 
-        PublicDependencyModuleNames.Add("OnlineSubsystem");
+		//Uncomment if you are using online features
+
+		PublicDependencyModuleNames.Add("OnlineSubsystem");
 
         // To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
     }

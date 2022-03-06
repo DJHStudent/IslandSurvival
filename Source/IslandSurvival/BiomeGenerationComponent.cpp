@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 
 //declare stats
+#if WITH_EDITOR
 DECLARE_CYCLE_STAT(TEXT("Single Biomes"), STAT_SingleBiomes, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Multi Biomes"), STAT_MultiBiomes, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Height Biomes"), STAT_HeightBiomes, STATGROUP_ProcedurallyGeneratedTerrain);
@@ -22,6 +23,7 @@ DECLARE_CYCLE_STAT(TEXT("Loop through meshes2"), STAT_LoopMesh2, STATGROUP_Proce
 DECLARE_CYCLE_STAT(TEXT("Check Point is within Biome"), STAT_BiomePoint, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Actually Add Mesh to World"), STAT_AddToWorld, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Biome Blending"), STAT_BiomeBlending, STATGROUP_ProcedurallyGeneratedTerrain);
+#endif
 
 
 // Sets default values for this component's properties
@@ -220,8 +222,9 @@ void UBiomeGenerationComponent::EachPointsMap()
 
 void UBiomeGenerationComponent::SingleBiomePoints(TPair<int32, FIslandStats> PointsVertexIdentifiers, int32 FeatureSize, TArray<int32>& SingleBiomeKeys, TArray<int32>& MultiBiomeKeys)
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_SingleBiomes);
-
+#endif
 	int32 RandomBiome = TerrainGenerator->Stream.RandRange(0, MultiBiomeKeys.Num() - 1); //from biome list pick a random one which is also an above water, land(not mountain) biome
 	RandomBiome = MultiBiomeKeys[RandomBiome]; //need to ensure do not actually include the specific single biomes only
 
@@ -250,8 +253,9 @@ void UBiomeGenerationComponent::SingleBiomePoints(TPair<int32, FIslandStats> Poi
 
 void UBiomeGenerationComponent::MultiBiomePoints(TPair<int32, FIslandStats> PointsVertexIdentifiers, int32 IslandSize, TArray<int32>& MultiBiomeKeys)
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_MultiBiomes);
-
+#endif
 	//for these islands using voronoi noise with an even distribution of the points by poisson disk sampling to determine the locations of the biomes
 	//this will create islands with biomes which have an even distribution
 
@@ -291,8 +295,9 @@ void UBiomeGenerationComponent::MultiBiomePoints(TPair<int32, FIslandStats> Poin
 
 bool UBiomeGenerationComponent::HasHeightBiomes(float ZHeight, int32 Biome, int32 VertexIdentifier)
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_HeightBiomes);
-
+#endif
 	for (auto HeightBiome : HeightBiomeKeys) //check all height based biomes to see if any fit the criteria
 	{
 		//check to see if the biome is a height based biome or not
@@ -348,8 +353,9 @@ void UBiomeGenerationComponent::UpdateBiomeLists(int32 Biome, int32 VertexIdenti
 
 void UBiomeGenerationComponent::BiomeBlending() //don't forget to include the terracing, if enabled
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_BiomeBlending);
-
+#endif
 	float StartAlpha = BlendAmount == 1 ? StartAlpha = 0.25f : StartAlpha = 0.4f;//FMath::Clamp(1 - 1.0f / (float)BlendAmount, 0.25f, 1.0f);
 	//UE_LOG(LogTemp, Error, TEXT("The two biomes: %f"), InitBlend)
 
@@ -477,8 +483,9 @@ void UBiomeGenerationComponent::BiomeLerping(int32 i, int32 j) //blend 2 neighbo
 
 void UBiomeGenerationComponent::SpawnStructure()
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_SpawnStructures);
-
+#endif
 
 	AStaticMeshActor* SpawnedTentMesh = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
 	SpawnedTentMesh->NetDormancy = ENetDormancy::DORM_DormantAll;
@@ -558,7 +565,7 @@ void UBiomeGenerationComponent::SpawnStructure()
 
 		if (GetWorld()->IsServer() || TerrainGenerator->bIsEditor) //only spawn spawners/fuel in on the server version
 		{
-			//SpawnZombieSpawner(VertexLocation, VertexIndex);
+			SpawnZombieSpawner(VertexLocation, VertexIndex);
 
 			FVector FuelLocation = VertexLocation;
 			FuelLocation.Z += 200; //apply offset to the fuels location
@@ -586,7 +593,9 @@ void UBiomeGenerationComponent::SpawnStructure()
 
 void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_SpawnMeshes);
+#endif
 	//really performance heavy
 	for (auto& BiomePoints : VertexBiomeLocationsMap) //for each biome on the map
 	{
@@ -617,8 +626,9 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 
 				while (MeshesAdded < MeshesDensity) //spawn for the determined desnity of the mesh spawn that many into the map
 				{
+#if WITH_EDITOR
 					SCOPE_CYCLE_COUNTER(STAT_LoopMesh);
-
+#endif
 					//pick a random location within the specified biome
 					int32 RandomLocation = TerrainGenerator->Stream.RandRange(0, BiomePoints.Value.Num() - 1);
 
@@ -633,7 +643,9 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 							RadiusPoints.Add(VertexIndex);
 						else
 						{
+#if WITH_EDITOR
 							SCOPE_CYCLE_COUNTER(STAT_LoopMesh1);
+#endif
 							for (int32 a = -DifferentMeshes.NeighbourRadius; a < DifferentMeshes.NeighbourRadius; a++) //add all points within a 2 radius of the choosen one
 							{
 								for (int32 b = -DifferentMeshes.NeighbourRadius; b < DifferentMeshes.NeighbourRadius; b++)
@@ -644,7 +656,9 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 										if (BiomeAtEachPoint[NeighbourIndex].Value != -1 && BiomePoints.Key == BiomeAtEachPoint[NeighbourIndex].Key) 
 											//ensure neighbour does not contain a mesh and will be the same biome
 										{
+#if WITH_EDITOR
 											SCOPE_CYCLE_COUNTER(STAT_BiomePoint);
+#endif
 
 											//now can actually add the point to the radius, as long as exists so doesn't contain another mesh
 											RadiusPoints.Add(NeighbourIndex);
@@ -658,8 +672,9 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 						int32 MaxRadiusLocations = TerrainGenerator->Stream.RandRange(DifferentMeshes.MinNeighbours, DifferentMeshes.MaxNeighbours);
 						for (int32 k = 0; k < MaxRadiusLocations + 1; k++)
 						{
+#if WITH_EDITOR
 							SCOPE_CYCLE_COUNTER(STAT_LoopMesh2);
-
+#endif
 							RandomLocation = TerrainGenerator->Stream.RandRange(0, RadiusPoints.Num() - 1);
 							if (BiomePoints.Value.Num() > 0 && RadiusPoints.Num() > 0 && MeshesAdded <= MeshesDensity)
 							{
@@ -680,7 +695,9 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 								InstancedMesh->AddInstanceWorldSpace(InstancedMeshTransform);
 
 								{ //////these two lines of code here really bad performance, taking around 12 seconds in total
+#if WITH_EDITOR
 									SCOPE_CYCLE_COUNTER(STAT_AddToWorld);
+#endif
 									//remove the choosen location from the list so no new meshes can spawn there
 
 									//need to ensure getting the index of the point on the BiomePoints array somehow
@@ -710,9 +727,9 @@ void UBiomeGenerationComponent::SpawnMeshes() //spawn in the plants into the map
 
 FVector UBiomeGenerationComponent::MeshLocation(FVector VertexPosition) //in a square around the vertex spawning at, randomly place the mesh, so not appearing as a grid like pattern
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_MeshLocation);
-
-	//optimize
+#endif
 	//get the index location of the point, using its actual location
 	int32 XIndex = FMath::FloorToInt(VertexPosition.X / TerrainGenerator->GridSize);
 	int32 YIndex = FMath::FloorToInt(VertexPosition.Y / TerrainGenerator->GridSize);

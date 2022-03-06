@@ -22,7 +22,6 @@ void FDetailsBindingModule::StartupModule()
 #if WITH_EDITOR
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	//assign the class to use the custom property settings
-	PropertyModule.RegisterCustomClassLayout("CustomDetailsTestActor", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomDetails::MakeInstance));
 
 	//the custom details for procedural terrain class
 	PropertyModule.RegisterCustomClassLayout("ProcedurallyGeneratedTerrain", FOnGetDetailCustomizationInstance::CreateStatic(&FCustomProceduralTerrainDetails::MakeInstance));

@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#if WITH_EDITOR
 #include "CustomBiomeStatsDetails.h"
 
 #include "Modules/ModuleManager.h"
@@ -105,3 +105,5 @@ EVisibility FCustomBiomeStatsDetails::PropertiesSingleLandWater(TSharedPtr<IProp
 
 	return EVisibility::Collapsed;
 }
+
+#endif

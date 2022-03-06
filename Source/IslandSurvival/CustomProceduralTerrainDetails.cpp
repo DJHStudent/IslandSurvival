@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#if WITH_EDITOR
 #include "CustomProceduralTerrainDetails.h"
 #include "ProcedurallyGeneratedTerrain.h"
 
@@ -44,3 +44,4 @@ void FCustomProceduralTerrainDetails::CustomizeDetails(IDetailLayoutBuilder& Det
 	DetailBuilder.EditCategory("Terrain Height", FText::FromString("Terrain Noise Settings"), ECategoryPriority::Important);
 	DetailBuilder.EditCategory("Other", FText::FromString("Other"), ECategoryPriority::Important);
 }
+#endif

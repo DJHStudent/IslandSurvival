@@ -4,8 +4,10 @@
 #include "TerrainHeight.h"
 #include "ProcedurallyGeneratedTerrain.h"
 
+#if WITH_EDITOR
 DECLARE_CYCLE_STAT(TEXT("Domain Warping"), STAT_DomainWarp, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("FBM"), STAT_FBM, STATGROUP_ProcedurallyGeneratedTerrain);
+#endif
 
 void UTerrainHeight::DeclareOffsetValues(FRandomStream Stream)
 {
@@ -19,8 +21,9 @@ void UTerrainHeight::DeclareOffsetValues(FRandomStream Stream)
 
 float UTerrainHeight::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_FBM);
-
+#endif
 	float HeightSum = 0; //the sum of the height at each octave
 	float Frequency = 1; //offset value for steepness of each successive octave
 	float Amplitude = 1; //the offset value for the height at each octave
@@ -41,8 +44,9 @@ float UTerrainHeight::FractalBrownianMotion(int32 XPosition, int32 YPosition)
 
 float UTerrainHeight::DomainWarping(const int32 XPosition, const int32 YPosition) //for each vertex offset its height by a specific amount of values, through combining multiple FBM noise
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_DomainWarp);
-
+#endif
 	//calculate the firest points X and Y position
 	FVector2D q = FVector2D(FractalBrownianMotion(XPosition, YPosition), FractalBrownianMotion(XPosition + 5.2f, YPosition + 1.3f));
 	//determine the next points X and Y position based on q's point values

@@ -7,12 +7,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "MainGameInstance.h"
 #include "TimerManager.h"
-
+#if WITH_EDITOR
 //stats to track
 DECLARE_CYCLE_STAT(TEXT("Create Mesh Details"), STAT_CreateMesh, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Create Mesh Vertices"), STAT_CreateVertices, STATGROUP_ProcedurallyGeneratedTerrain);
 DECLARE_CYCLE_STAT(TEXT("Inital Height"), STAT_InitialHeight, STATGROUP_ProcedurallyGeneratedTerrain);
-
+#endif
 
 // Sets default values
 AProcedurallyGeneratedTerrain::AProcedurallyGeneratedTerrain()
@@ -163,10 +163,13 @@ void AProcedurallyGeneratedTerrain::GenerateSeed() //give a random seed, otherwi
 
 void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populating all the nessesary data
 {
+#if WITH_EDITOR
 	SCOPE_CYCLE_COUNTER(STAT_CreateMesh);
+#endif
 	{
+#if WITH_EDITOR
 		SCOPE_CYCLE_COUNTER(STAT_CreateVertices);
-
+#endif
 		//loop through each vertex of the terrain
 		for (int32 i = 0; i < Height; i++) //can this be deivided up somehow so parts of it can run async
 		{ //least performant part of the entire list now
@@ -174,7 +177,9 @@ void AProcedurallyGeneratedTerrain::CreateMesh() //make the map generate populat
 			{
 				float ZPosition;
 				{
+#if WITH_EDITOR
 					SCOPE_CYCLE_COUNTER(STAT_InitialHeight);
+#endif
 					ZPosition = TerrainHeight->GenerateHeight(j, i, BiomeGeneration->WaterLine, bSmoothTerrain); //get the specific height for each point on the mesh
 				}
 				Vertices.Add(FVector(j * GridSize, i * GridSize, ZPosition));
